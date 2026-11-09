@@ -10,6 +10,7 @@ Site de uma página onde a Larissa monta a proposta do cliente pelo celular e ba
 ## Estrutura
 
 ```
+wrangler.jsonc           ← configuração do Worker (publica a pasta public/)
 public/                  ← pasta publicada pela Cloudflare
   index.html             ← o app inteiro (HTML + CSS + JS; logo embutido)
   manifest.webmanifest   ← nome e ícones para "Adicionar à Tela de Início"
@@ -24,29 +25,29 @@ tests/
 
 ---
 
-## Publicar na Cloudflare Pages (uma vez só)
+## Publicação (Cloudflare Workers)
 
-1. Painel da Cloudflare → **Workers & Pages** → **Create** → aba **Pages** → **Connect to Git**.
-2. Escolha este repositório (`Pet-Lar`) e a branch **main**.
-3. Configuração de build:
+**Endereço:** https://pet-lar.brunojosechavescarvalho.workers.dev
 
-   | Campo | Valor |
-   |---|---|
-   | Framework preset | **None** |
-   | Build command | *(deixar vazio)* |
-   | Build output directory | **`public`** |
+O site roda como um **Cloudflare Worker só com arquivos estáticos**, o projeto `pet-lar`, ligado a este repositório pelo Workers Builds.
+- `wrangler.jsonc` diz à Cloudflare para publicar a pasta `public/`.
+- Todo `git push` na `main` publica sozinho em cerca de 1 minuto. O status aparece no commit do GitHub ("Workers Builds: pet-lar").
+- Painel: Cloudflare → Workers & Pages → `pet-lar` (Deployments, Domains, Settings).
 
-4. **Save and Deploy**. O site fica em `https://<nome-do-projeto>.pages.dev`.
-5. (Opcional) **Custom domains** → por exemplo `propostas.petlar.com.br`.
+Configuração de build no painel (já feita):
 
-> Um projeto do Pages criado por **upload direto** (arrastar arquivos) não pode ser ligado ao Git depois. Nesse caso, crie um projeto novo pelo passo 1. Se quiser, apague o antigo depois.
+| Campo | Valor |
+|---|---|
+| Build command | *(vazio)* |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | `/` |
 
-### Atualizações
-Todo `git push` na branch `main` publica sozinho em cerca de 1 minuto. Outras branches geram um link de prévia, sem mexer no site oficial.
+### Domínio próprio (opcional)
+`pet-lar` → **Domains** → *Add custom domain*, por exemplo `propostas.petlar.com.br`. O domínio precisa estar na Cloudflare.
 
 ### Proteger o acesso (opcional, recomendado)
 A tabela de preços está dentro do código. Para só a Larissa (e você) abrir:
-**Zero Trust → Access → Applications → Add → Self-hosted**, com o domínio do site e a política "Emails: e-mail da Larissa, e-mail do Bruno". O login é por código enviado ao e-mail. É grátis até 50 usuários.
+no painel do Worker `pet-lar` → **Settings → Domains & Routes → workers.dev → Cloudflare Access** (ativar), ou em **Zero Trust → Access → Applications → Self-hosted**, com a política "Emails: e-mail da Larissa, e-mail do Bruno". O login é por código enviado ao e-mail. É grátis até 50 usuários.
 
 ---
 
@@ -83,5 +84,5 @@ Regras de preço oficiais: nota **Pet Lar - Servicos e Precos** (Obsidian › 30
 pip install playwright && python -m playwright install chromium webkit
 python tests/test_petlar.py          # valores da tabela
 python tests/test_iphone.py webkit   # app inteiro no iPhone 16 Pro Max
-PETLAR_URL=https://<seu-site>.pages.dev python tests/test_iphone.py webkit   # testar o site publicado
+PETLAR_URL=https://pet-lar.brunojosechavescarvalho.workers.dev python tests/test_iphone.py webkit   # testar o site publicado
 ```
