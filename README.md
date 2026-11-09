@@ -27,7 +27,7 @@ tests/
 ## Publicar na Cloudflare Pages (uma vez só)
 
 1. Painel da Cloudflare → **Workers & Pages** → **Create** → aba **Pages** → **Connect to Git**.
-2. Escolha este repositório (`petlar-propostas`) e a branch **main**.
+2. Escolha este repositório (`Pet-Lar`) e a branch **main**.
 3. Configuração de build:
 
    | Campo | Valor |
