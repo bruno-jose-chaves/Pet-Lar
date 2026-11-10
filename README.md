@@ -5,6 +5,7 @@ Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, W
 - **Site:** https://propostas.petlar.workers.dev (Cloudflare Worker `propostas`, conta com subdomínio `petlar`).
 - **Banco:** Supabase, projeto `pet-lar` (São Paulo), com login e fotos privadas.
 - **Publicação:** todo `git push` na `main` publica o site sozinho (Workers Builds) e o Supabase aplica as migrações novas de `supabase/migrations` (integração GitHub).
+- **Backlog de ajustes:** `docs/AJUSTES.md` (pedidos para depois do MVP; cópia no Obsidian).
 - **Manual de uso:** `public/manual.md`, aberto dentro do painel em **Como usar** (`#/ajuda`). A mesma nota fica no Obsidian. **Atualize os dois a cada mudança.**
 
 ---
