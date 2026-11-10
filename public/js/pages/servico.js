@@ -1,6 +1,7 @@
 // Serviço confirmado, visão da assistente: quem, quando, onde e os cuidados. Sem valores.
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import { ic } from "../icones.js";
 
 export async function mount(root, { params }) {
   let p;
@@ -14,14 +15,14 @@ export async function mount(root, { params }) {
   root.innerHTML = `<a class="backlink" href="#/agenda">‹ Agenda</a>
     <h1 class="pg">${U.esc(pets.map(x => x.nome).filter(Boolean).join(" e ") || p.tutor_nome || "Serviço")}</h1>
     <p class="muted" style="margin-top:-6px">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")} · ${U.esc(p.numero || "")}</p>
-    <div class="row-actions" style="margin-bottom:12px"><a class="btn primary" href="#/diario/${p.id}">📓 Abrir diário</a></div>
+    <div class="row-actions" style="margin-bottom:12px"><a class="btn primary" href="#/diario/${p.id}">${ic("diario")} Abrir diário</a></div>
     <div class="grid2">
       <div>
         <h2 class="sec" style="margin-top:0">Pets</h2>
         <div class="list">${pets.map(x => `<a class="item" href="#/pet/${x.id}"><div class="av">${x.foto_path && fotos[x.foto_path] ? `<img src="${fotos[x.foto_path]}" alt="" loading="lazy">` : U.PAW}</div>
           <div class="main"><div class="t">${U.esc(x.nome || "Sem nome")}${x.reativo ? ' <span class="pill recusada">reativo</span>' : ""}</div>
           <div class="s" style="white-space:normal">${U.esc([x.especie === "gato" ? "Gato" : "Cão " + (U.PORTE_TXT[x.porte] || "").toLowerCase(), x.raca].filter(Boolean).join(" · "))}
-          ${x.alimentacao ? "<br>🥣 " + U.esc(x.alimentacao) : ""}${x.medicacao ? "<br>💊 " + U.esc(x.medicacao) : ""}${x.limitacoes ? "<br>⚠️ " + U.esc(x.limitacoes) : ""}${x.comportamento ? "<br>🐾 " + U.esc(x.comportamento) : ""}</div></div></a>`).join("") || `<div class="empty">Sem pets ligados.</div>`}</div>
+          ${x.alimentacao ? "<br><b>Alimentação:</b> " + U.esc(x.alimentacao) : ""}${x.medicacao ? "<br><b>Remédio:</b> " + U.esc(x.medicacao) : ""}${x.limitacoes ? "<br><b>Atenção:</b> " + U.esc(x.limitacoes) : ""}${x.comportamento ? "<br><b>Comportamento:</b> " + U.esc(x.comportamento) : ""}</div></div></a>`).join("") || `<div class="empty">Sem pets ligados.</div>`}</div>
       </div>
       <div class="panel">
         <h3>Tutor</h3>

@@ -24,8 +24,8 @@ export const PORTE_TXT = { P: "Pequeno", M: "Médio", G: "Grande", GG: "Gigante"
 export const pill = st => `<span class="pill ${st}">${STATUS[st] || st}</span>`;
 export const svcPill = sv => `<span class="pill ${sv}">${SERVICOS[sv] || sv}</span>`;
 
-export const PAW = `<svg viewBox="0 0 64 64"><g fill="#C7694A" opacity=".75"><ellipse cx="32" cy="42" rx="12" ry="10"/><ellipse cx="17" cy="28" rx="5" ry="6.5"/><ellipse cx="26" cy="19" rx="5" ry="6.5"/><ellipse cx="38" cy="19" rx="5" ry="6.5"/><ellipse cx="47" cy="28" rx="5" ry="6.5"/></g></svg>`;
-export const USER = `<svg viewBox="0 0 24 24" fill="none" stroke="#5A3B2A" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>`;
+export const PAW = `<svg viewBox="0 0 24 24" fill="none" stroke="#6E7F63" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5C6 5 4 6.5 3.5 9.5 3 12 4 14 5.5 14l1-4"/><path d="M16 5.5c2-.5 4 1 4.5 4 .5 2.5-.5 4.5-2 4.5l-1-4"/><path d="M7 7.5C8 5.8 10 5 12 5s4 .8 5 2.5c.6 1.3 1 3.5 1 5.5 0 3.5-2.7 6-6 6s-6-2.5-6-6c0-2 .4-4.2 1-5.5z"/><path d="M10 12h.01M14 12h.01"/><path d="M10.8 15.2c.4.5.8.7 1.2.7s.8-.2 1.2-.7"/></svg>`;
+export const USER = `<svg viewBox="0 0 24 24" fill="none" stroke="#6E7F63" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c1.3-3.6 4-5.4 7-5.4s5.7 1.8 7 5.4"/></svg>`;
 
 export function debounce(fn, ms = 300) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 

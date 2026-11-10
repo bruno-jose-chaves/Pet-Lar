@@ -42,7 +42,7 @@ with sync_playwright() as p:
 
     pg.goto(URL); pg.wait_for_timeout(1500)
     # ---------- Hoje ----------
-    check("abre logado na tela Hoje", pg.locator("h1.pg").inner_text().strip().endswith("🐾"))
+    check("abre logado na tela Hoje", pg.locator("h1.pg").inner_text().strip().endswith("!"))
     check("4 indicadores no topo", pg.locator(".kpi").count() == 4)
     check("menu de baixo visível no celular", pg.is_visible(".bottomnav"))
     no_hscroll("Hoje")
@@ -465,6 +465,8 @@ with sync_playwright() as p:
 
     real_errs = [e for e in errs if "falha simulada" not in e and "Failed to load resource" not in e]
     check("Sem erros de JavaScript", not real_errs, " | ".join(real_errs)[:300])
+    try: (OUT / "db.json").write_text(json.dumps(pg.evaluate("({db: window.__FAKE_DB, store: window.__FAKE_STORE})")))  # base para tests/telas.py
+    except Exception: pass
     br.close()
 srv.shutdown()
 bad = [r for r in results if not r[0]]

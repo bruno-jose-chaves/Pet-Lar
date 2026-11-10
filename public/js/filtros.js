@@ -1,6 +1,7 @@
 // Barra de filtros padrão: botão "Filtros", etiquetas removíveis e uma janela com os campos.
 // A escolha fica salva no aparelho (por tela). Períodos como "este mês" são recalculados a cada dia.
 import * as U from "./ui.js";
+import { ic } from "./icones.js";
 
 const hoje = () => U.today();
 const iniMes = (d, k = 0) => { const x = U.pd(d); return U.iso(new Date(x.getFullYear(), x.getMonth() + k, 1)); };
@@ -43,8 +44,8 @@ export function criar(el, { chave, campos, aoMudar }) {
 
   function pintar() {
     const at = ativos();
-    el.innerHTML = `<div class="fbar"><button class="btn soft small fbtn ${at.length ? "on" : ""}" type="button" data-fabrir>⚙️ Filtros${at.length ? ` · ${at.length}` : ""}</button>
-      ${at.map(c => `<button class="ftag" type="button" data-ftira="${c.k}" title="Tirar filtro">${U.esc(c.rotulo)}: ${U.esc(rotuloValor(c, val[c.k]))} ✕</button>`).join("")}
+    el.innerHTML = `<div class="fbar"><button class="btn soft small fbtn ${at.length ? "on" : ""}" type="button" data-fabrir>${ic("filtro")} Filtros${at.length ? ` · ${at.length}` : ""}</button>
+      ${at.map(c => `<button class="ftag" type="button" data-ftira="${c.k}" title="Tirar filtro">${U.esc(c.rotulo)}: ${U.esc(rotuloValor(c, val[c.k]))} ${ic("x")}</button>`).join("")}
       ${at.length > 1 ? `<button class="ftag limpar" type="button" data-flimpar>Limpar tudo</button>` : ""}</div>`;
   }
   function abrir() {

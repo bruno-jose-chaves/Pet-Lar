@@ -2,6 +2,7 @@
 // Usado em Propostas, Cobrar e Hoje.
 import * as U from "./ui.js";
 import * as db from "./db.js";
+import { ic } from "./icones.js";
 
 // Separa as enviadas em: cobrar agora, recém-enviadas, adiadas e antigas (sem resposta há muito tempo)
 export function agrupar(todas, fu = 2, exp = 15) {
@@ -36,12 +37,12 @@ export function msgCobranca(p) {
 export function botoes(p, { cobrar = true } = {}) {
   if (p.status !== "enviada" && p.status !== "rascunho") return "";
   const zap = cobrar && p.status === "enviada"
-    ? `<a class="qa-b zap" data-qa="cobrar" data-id="${p.id}" href="${U.waLink(p.tutores?.whatsapp, msgCobranca(p))}" target="_blank" rel="noopener">💬 Cobrar${p.cobrancas ? ` (${p.cobrancas + 1}ª)` : ""}</a>` : "";
+    ? `<a class="qa-b zap" data-qa="cobrar" data-id="${p.id}" href="${U.waLink(p.tutores?.whatsapp, msgCobranca(p))}" target="_blank" rel="noopener">${ic("conversa")} Cobrar${p.cobrancas ? ` (${p.cobrancas + 1}ª)` : ""}</a>` : "";
   return `<div class="qa" data-qa-row="${p.id}">
-    <button class="qa-b ok" data-qa="aceita" data-id="${p.id}">✅ Aceitou</button>
-    <button class="qa-b no" data-qa="recusada" data-id="${p.id}">✖ Recusou</button>
+    <button class="qa-b ok" data-qa="aceita" data-id="${p.id}">${ic("check")} Aceitou</button>
+    <button class="qa-b no" data-qa="recusada" data-id="${p.id}">${ic("x")} Recusou</button>
     ${zap}
-    ${p.status === "enviada" ? `<button class="qa-b" data-qa="adiar" data-id="${p.id}">⏰ Adiar</button>` : ""}
+    ${p.status === "enviada" ? `<button class="qa-b" data-qa="adiar" data-id="${p.id}">${ic("relogio")} Adiar</button>` : ""}
   </div>`;
 }
 
@@ -76,7 +77,7 @@ export async function aceitar(p) {
     if (!ok) return false;
   }
   await db.atualizarProposta(p.id, row); db.invalidate("lista");
-  U.toast(`Aceita! Sinal de ${U.brl(Number(p.valor_total) / 2)} lançado no Financeiro 💛`, 4000);
+  U.toast(`Aceita! Sinal de ${U.brl(Number(p.valor_total) / 2)} lançado no Financeiro.`, 4000);
   return true;
 }
 
@@ -103,7 +104,7 @@ export function ligar(container, getP, depoisTela) {
         try { await db.atualizarProposta(p.id, { status: "recusada" }); db.invalidate("lista"); }
         catch { p.status = antes; depois(p, "erro"); U.toast("Não consegui mudar. Confira a internet."); return; }
         U.toastAcao(`${p.tutor_nome || "Proposta"}: recusada`, "Desfazer", async () => {
-          await db.atualizarProposta(p.id, { status: antes }); p.status = antes; db.invalidate("lista"); depois(p, "desfeito"); U.toast("Desfeito ✓");
+          await db.atualizarProposta(p.id, { status: antes }); p.status = antes; db.invalidate("lista"); depois(p, "desfeito"); U.toast("Desfeito");
         });
       }
       else if (acao === "adiar") {

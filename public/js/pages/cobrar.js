@@ -16,7 +16,7 @@ export async function mount(root) {
   const linha = p => {
     const pets = A.nomesPets(p).join(", "); const d = U.diasDesde(p.enviada_em);
     const info = [d === null ? "sem data de envio" : d === 0 ? "enviada hoje" : `enviada há ${d} dia${d > 1 ? "s" : ""}`,
-      p.cobrancas ? `cobrada ${p.cobrancas}× (última em ${U.fmt(p.cobrada_em.slice(0, 10))})` : "ainda não cobrada",
+      p.cobrancas ? `cobrada ${p.cobrancas}×${p.cobrada_em ? ` (última em ${U.fmt(p.cobrada_em.slice(0, 10))})` : ""}` : "ainda não cobrada",
       p.lembrar_em && p.lembrar_em > U.today() ? `lembrar em ${U.fmt(p.lembrar_em)}` : ""].filter(Boolean).join(" · ");
     return `<div class="pwrap" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
       <div class="main"><div class="t">${U.esc(p.tutor_nome || "Sem tutor")}${pets ? ` <span class="muted" style="font-weight:400">· ${U.esc(pets)}</span>` : ""}</div>
@@ -35,15 +35,15 @@ export async function mount(root) {
         <div class="kpi"><span>Aguardando</span><b>${g.recentes.length + g.adiadas.length}</b><small>enviadas há pouco ou adiadas</small></div>
         <div class="kpi"><span>Sem resposta há ${exp}+ dias</span><b>${g.antigas.length}</b></div>
       </div>
-      ${sec("Cobrar agora", g.agora, "Ninguém para cobrar agora 🎉")}
+      ${sec("Cobrar agora", g.agora, "Ninguém para cobrar agora.")}
       ${sec("Enviadas há pouco", g.recentes, `Nada enviado nos últimos ${fu} dias.`)}
       ${g.adiadas.length ? sec("Adiadas", g.adiadas, "") : ""}
-      ${g.antigas.length ? sec(`Sem resposta há mais de ${exp} dias`, g.antigas, "", `<div class="row-actions" style="margin:-4px 0 8px"><button class="btn soft small" id="bExpirar">⌛ Marcar todas como sem resposta</button></div>`) : ""}`;
+      ${g.antigas.length ? sec(`Sem resposta há mais de ${exp} dias`, g.antigas, "", `<div class="row-actions" style="margin:-4px 0 8px"><button class="btn soft small" id="bExpirar">Marcar todas como sem resposta</button></div>`) : ""}`;
     const bx = U.$("#bExpirar", root);
     if (bx) bx.onclick = async () => {
       const ids = grupos().antigas.map(p => p.id);
       if (!(await U.confirmDialog(`Marcar ${ids.length} proposta${ids.length > 1 ? "s" : ""} como sem resposta (expirada)? Elas saem desta lista.`, { ok: "Marcar" }))) return;
-      try { await db.statusEmLote(ids, "expirada"); todas.forEach(p => { if (ids.includes(p.id)) p.status = "expirada"; }); db.invalidate("lista"); U.toast("Pronto ✓"); pintar(); window.dispatchEvent(new Event("petlar:propostas")); }
+      try { await db.statusEmLote(ids, "expirada"); todas.forEach(p => { if (ids.includes(p.id)) p.status = "expirada"; }); db.invalidate("lista"); U.toast("Pronto"); pintar(); window.dispatchEvent(new Event("petlar:propostas")); }
       catch { U.toast("Não consegui atualizar."); }
     };
   }

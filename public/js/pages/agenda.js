@@ -2,6 +2,7 @@
 import * as U from "../ui.js";
 import * as db from "../db.js";
 import * as F from "../filtros.js";
+import { ic } from "../icones.js";
 
 const DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -12,7 +13,7 @@ export async function mount(root) {
   root.innerHTML = `<h1 class="pg">Agenda</h1>
     <div class="cal-head"><button class="btn soft small" id="prev" aria-label="Mês anterior">‹</button><b id="mesNome"></b><button class="btn soft small" id="hojeB">Hoje</button><button class="btn soft small" id="next" aria-label="Próximo mês">›</button></div>
     <div id="fbar"></div><div id="alerta"></div><div id="cal" class="cal"></div>
-    <div class="legend"><span><span class="pill hosp">Hospedagem</span></span><span><span class="pill visitas">Visitas / pacote</span></span><span><span class="pill banho">Banho</span></span><span>Fundo rosado = mais hóspedes que a capacidade (${cap})</span></div>
+    <div class="legend"><span><span class="pill hosp">Hospedagem</span></span><span><span class="pill visitas">Visitas / pacote</span></span><span><span class="pill banho">Banho</span></span><span>Fundo terracota = mais hóspedes que a capacidade (${cap})</span></div>
     <h2 class="sec" id="selT"></h2><div id="selL"></div>`;
   let props = [], fotos = {};
   const filtros = F.criar(U.$("#fbar", root), { chave: "agenda", aoMudar: () => render(), campos: [
@@ -49,11 +50,11 @@ export async function mount(root) {
       const evs = doDia(ds); const h = hospDia(ds); const conf = h > cap;
       if (conf && d.getMonth() === mes) conflitos.push(ds);
       html += `<div class="day ${d.getMonth() !== mes ? "out" : ""} ${ds === hoje ? "today" : ""} ${ds === sel ? "sel" : ""} ${conf ? "conf" : ""}" data-d="${ds}">
-        <span class="n">${d.getDate()}</span>${h ? ` <small title="hóspedes">🏠${h}</small>` : ""}
+        <span class="n">${d.getDate()}</span>${h ? ` <small class="hosp-n" title="hóspedes">${ic("casa")}${h}</small>` : ""}
         ${evs.slice(0, 3).map(p => `<span class="ev ${p.servico}">${U.esc(nomes(p))}</span>`).join("")}${evs.length > 3 ? `<div class="more-ev">+${evs.length - 3}</div>` : ""}</div>`;
     }
     U.$("#cal", root).innerHTML = html;
-    U.$("#alerta", root).innerHTML = conflitos.length ? `<div class="warn" style="margin-bottom:10px">⚠️ Mais hóspedes que a capacidade (${cap}) em: <b>${conflitos.map(U.fmt).join(", ")}</b>. Confira se dá conta ou ajuste a capacidade em Configurações.</div>` : "";
+    U.$("#alerta", root).innerHTML = conflitos.length ? `<div class="warn" style="margin-bottom:10px">${ic("alerta")} Mais hóspedes que a capacidade (${cap}) em: <b>${conflitos.map(U.fmt).join(", ")}</b>. Confira se dá conta ou ajuste a capacidade em Configurações.</div>` : "";
     renderSel();
   }
   function renderSel() {

@@ -2,16 +2,8 @@
 import { $, esc, toast, modal } from "./ui.js";
 import { perfil, gestao, PAPEIS } from "./perfil.js";
 
-const ICON = {
-  hoje: '<path d="M4 11l8-7 8 7M6 10v10h12V10"/>',
-  propostas: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
-  pets: '<ellipse cx="12" cy="16" rx="4.5" ry="3.6"/><circle cx="6.5" cy="10.5" r="1.8"/><circle cx="9.8" cy="7" r="1.8"/><circle cx="14.2" cy="7" r="1.8"/><circle cx="17.5" cy="10.5" r="1.8"/>',
-  agenda: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
-  tutores: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
-  cobrar: '<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/><path d="M9 11h6M9 14h4"/>',
-  mais: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
-};
-const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+import { ic } from "./icones.js";
+const svg = k => ic(k);
 
 // rota → módulo (cada tela é carregada só quando abre)
 const ROUTES = [
@@ -46,7 +38,7 @@ function shell() {
   document.body.classList.toggle("papel-assistente", !g);
   $("#root").innerHTML = `<div class="app">
     <header class="appbar">
-      <a class="brand" href="#/hoje"><img src="/assets/avatar.webp" alt="Pet Lar" width="36" height="36"><b>Pet Lar</b></a>
+      <a class="brand" href="#/hoje"><img src="/assets/avatar.webp" alt="" width="36" height="36"><img class="wm-img" src="/assets/wordmark.webp" alt="Pet Lar" width="106" height="24"></a>
       <span class="page-title" id="pageTitle"></span>
       <nav class="topnav" aria-label="Menu">${top.map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${t}${k === "cobrar" ? '<i class="badge-n hide" data-badge></i>' : ""}</a>`).join("")}</nav>
       <span class="sp"></span><span class="save-state" id="saveState"></span>
@@ -59,12 +51,12 @@ function shell() {
   $("#navMais").addEventListener("click", e => {
     e.preventDefault();
     const m = modal(`<h3>Mais</h3><div class="acts">
-      ${g ? `<a class="btn soft" href="#/tutores" data-close>👤 Tutores</a>
-      <a class="btn soft" href="#/financeiro" data-close>💰 Financeiro</a>` : ""}
-      <a class="btn soft" href="#/config" data-close>⚙️ Configurações</a>
-      <a class="btn soft" href="#/ajuda" data-close>❔ Como usar</a>
+      ${g ? `<a class="btn soft" href="#/tutores" data-close>${ic("tutores")} Tutores</a>
+      <a class="btn soft" href="#/financeiro" data-close>${ic("financeiro")} Financeiro</a>` : ""}
+      <a class="btn soft" href="#/config" data-close>${ic("config")} Configurações</a>
+      <a class="btn soft" href="#/ajuda" data-close>${ic("ajuda")} Como usar</a>
       <p class="muted" style="margin:4px 0 0;text-align:center">${esc(perfil.email || "")} · ${esc(PAPEIS[perfil.papel]?.nome || "")}</p>
-      <button class="btn danger" data-sair>Sair</button></div>`);
+      <button class="btn danger" data-sair>${ic("sair")} Sair</button></div>`);
     m.el.querySelector("[data-sair]").addEventListener("click", async () => { m.close(); await sair(); });
   });
 }
@@ -154,7 +146,7 @@ function novaSenha() {
   m.el.querySelector("form").addEventListener("submit", async e => {
     e.preventDefault(); const { sb } = await import("./db.js");
     const { error } = await sb.auth.updateUser({ password: e.target.s.value });
-    if (error) toast(error.message); else { toast("Senha alterada ✓"); m.close(); }
+    if (error) toast(error.message); else { toast("Senha alterada"); m.close(); }
   });
 }
 

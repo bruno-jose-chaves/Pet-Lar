@@ -53,7 +53,7 @@ export async function mount(root, { params }) {
     e.preventDefault(); const fd = Object.fromEntries(new FormData(e.target));
     if (!fd.nome.trim()) { U.toast("Coloque o nome do tutor."); return; }
     const v = Object.fromEntries(Object.entries(fd).map(([k, x]) => [k, String(x).trim() || null]));
-    try { const r = await db.saveTutor(id ? { id, ...v } : v); U.toast("Tutor salvo ✓"); if (!id) location.hash = "#/tutor/" + r.id; else U.$("h1.pg", root).textContent = r.nome; }
+    try { const r = await db.saveTutor(id ? { id, ...v } : v); U.toast("Tutor salvo"); if (!id) location.hash = "#/tutor/" + r.id; else U.$("h1.pg", root).textContent = r.nome; }
     catch (err) { U.toast("Não consegui salvar: " + err.message); }
   });
   if (!id || !g) return;

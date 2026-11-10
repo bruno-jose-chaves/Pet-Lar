@@ -2,6 +2,7 @@
 import * as U from "../ui.js";
 import * as db from "../db.js";
 import { gestao } from "../perfil.js";
+import { ic } from "../icones.js";
 
 function squareBlob(file, size = 900) {
   return new Promise((res, rej) => {
@@ -30,12 +31,12 @@ export async function mount(root, { params }) {
         <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px">
           <div class="ph" id="ph" style="width:96px;height:96px">${fotoUrl ? `<img src="${fotoUrl}" alt=""><span class="chg">trocar</span>` : U.PAW + "<small>foto</small>"}</div>
           <div class="photo-actions" style="margin:0;flex-direction:column;align-items:flex-start">
-            <button type="button" class="btn mini" id="bFoto">📷 ${fotoUrl ? "Trocar" : "Adicionar"} foto</button>
-            ${fotoUrl ? `<button type="button" class="btn mini danger" id="bRmFoto">🗑 Remover foto</button>` : ""}
+            <button type="button" class="btn mini" id="bFoto">${ic("camera")} ${fotoUrl ? "Trocar" : "Adicionar"} foto</button>
+            ${fotoUrl ? `<button type="button" class="btn mini danger" id="bRmFoto">${ic("lixo")} Remover foto</button>` : ""}
           </div>
         </div>
         ${f("nome", "Nome", "text", "Ex.: Bento")}
-        <div class="chips"><button type="button" class="chip" data-esp="cao">🐶 Cão</button><button type="button" class="chip" data-esp="gato">🐱 Gato</button></div>
+        <div class="chips"><button type="button" class="chip" data-esp="cao">${ic("cao")} Cão</button><button type="button" class="chip" data-esp="gato">${ic("gato")} Gato</button></div>
         <div class="row">${f("raca", "Raça", "text", "Ex.: SRD")}${f("idade", "Idade", "text", "Ex.: 4 anos")}</div>
         <label class="f" id="wPorte">Porte<select name="porte">${Object.entries({ P: "Pequeno (até 10 kg)", M: "Médio (10–25 kg)", G: "Grande (25–40 kg)", GG: "Gigante (40 kg+)" }).map(([k, v]) => `<option value="${k}" ${pet.porte === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="check" id="wPasseia"><input type="checkbox" name="passeia" ${pet.passeia ? "checked" : ""}> Vai passear nas visitas</label>
@@ -87,7 +88,7 @@ export async function mount(root, { params }) {
       passeia: !!fd.get("passeia"), alimentacao: fd.get("alimentacao") || null, medicacao: fd.get("medicacao") || null, comportamento: fd.get("comportamento") || null,
       limitacoes: fd.get("limitacoes") || null, veterinario: fd.get("veterinario") || null, observacoes: fd.get("observacoes") || null,
       reativo: !!fd.get("reativo"), ativo: !!fd.get("ativo"), tutor_id: tutor ? tutor.id : null };
-    try { const r = await db.savePet(id ? { id, ...v } : v); U.toast("Pet salvo ✓"); if (!id) location.hash = "#/pet/" + r.id; else { pet = { ...pet, ...r }; U.$("h1.pg", root).textContent = r.nome || "Pet sem nome"; } }
+    try { const r = await db.savePet(id ? { id, ...v } : v); U.toast("Pet salvo"); if (!id) location.hash = "#/pet/" + r.id; else { pet = { ...pet, ...r }; U.$("h1.pg", root).textContent = r.nome || "Pet sem nome"; } }
     catch (err) { U.toast("Não consegui salvar: " + err.message); } finally { b.disabled = false; }
   });
 
@@ -99,7 +100,7 @@ export async function mount(root, { params }) {
     try {
       const blob = await squareBlob(file); const old = pet.foto_path;
       const path = await db.uploadFoto(id, blob); await db.savePet({ id, foto_path: path }); if (old) db.removeFoto(old).catch(() => {});
-      U.toast("Foto salva ✓"); mount(root, { params });
+      U.toast("Foto salva"); mount(root, { params });
     } catch (err) { U.toast("Não consegui enviar a foto: " + err.message); mount(root, { params }); }
   });
   const rm = U.$("#bRmFoto", root);

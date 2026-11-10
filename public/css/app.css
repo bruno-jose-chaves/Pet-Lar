@@ -227,3 +227,115 @@ input[type=email],input[type=password]{width:100%;min-height:46px;-webkit-appear
 .tl-dia{margin-bottom:12px}
 .tl-dia > b{display:inline-block;margin:4px 0 6px}
 .qa-b.diario{background:#FFF4E8;border-color:#F2D9BC}
+
+/* ===== v2.0 · identidade Pet Lar (Manual de Identidade Visual, nov/2026) =====
+   Fundo creme, cartões claros, títulos em Playfair, rótulos em Lato espaçado na cor terracota,
+   ícones de traço fino com fundo sálvia. Sem emojis, sem cores fora da paleta, sem degradês. */
+:root{
+  --page:#F6EEE5; --card:#FDF9F4; --sand2:#ECE1D4;
+  --terra-t:#F5E3DA; --terra-d:#9E4E33;
+  --sage-t:#E6EBE1; --sage-d:#4E6045; --sage-i:#6E7F63;
+}
+body{background:var(--page)}
+.ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
+.ic.sm{width:.95em;height:.95em}
+.btn .ic{width:18px;height:18px}
+.btn.small .ic,.btn.mini .ic{width:15px;height:15px}
+
+/* barra de cima clara, com o símbolo e o nome em imagem (o manual não deixa redigitar "Pet Lar") */
+.appbar{background:var(--card);color:var(--char);border-bottom:1px solid var(--line)}
+.appbar .brand img{width:34px;height:34px}
+.appbar .brand .wm-img{width:auto;height:22px;border-radius:0}
+.topnav a{opacity:1;color:var(--muted);font-weight:700;border-radius:0;padding:8px 9px;border-bottom:2px solid transparent}
+.topnav a:hover{color:var(--char)}
+.topnav a.on{background:none;color:var(--terra);border-bottom-color:var(--terra)}
+.save-state{color:var(--muted);opacity:1}
+.appbar .page-title{color:var(--char)}
+
+/* menu de baixo (celular) */
+@media (max-width:900px){
+  .appbar .brand .wm-img{display:none}
+  .bottomnav{background:var(--card);border-top:1px solid var(--line)}
+  .bottomnav a{color:var(--muted);opacity:1}
+  .bottomnav a.on{color:var(--terra)}
+  .bottomnav svg{width:23px;height:23px}
+}
+
+/* superfícies */
+.kpi,.item,.panel,.card,.empty,.modal,.cal .day{background:var(--card)}
+.item,.kpi,.panel,.card{border:1px solid var(--line)}
+.item{border-color:#EFE4D7}
+a.item:hover{border-color:#DCC9B6}
+.pwrap{background:var(--card);border:1px solid #EFE4D7}
+.list .pwrap .item{border:0}
+.kpi span,.fcampo b,.ficha-l span{color:var(--terra);letter-spacing:.14em;font-size:10.5px}
+.kpi b{color:var(--char)}
+.kpi.alert{background:var(--terra-t);border-color:#EBCBBC}
+.kpi.alert b{color:var(--terra-d)}
+h2.sec .count{background:var(--sand2);color:var(--brown)}
+.item .av{background:var(--sage-t)}
+.item .av svg{width:26px;height:26px}
+.ph,.pcard .pimg,.wc-paw{background:var(--sage-t)}
+.empty{border-color:#DCC9B6;color:var(--muted)}
+.fab{box-shadow:0 6px 16px rgba(48,37,31,.18)}
+.warn{background:var(--terra-t);color:#7E3F28;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.warn > .ic{margin-top:2px;color:var(--terra)}
+.linked{background:var(--sage-t);color:var(--sage-d)}
+.toast{border-radius:14px}
+
+/* etiquetas de status e de serviço: só tons da paleta */
+.pill{font-weight:700;letter-spacing:.02em}
+.pill.rascunho{background:var(--sand2);color:#6B5A4E}
+.pill.enviada{background:var(--terra-t);color:var(--terra-d)}
+.pill.aceita{background:var(--sage-t);color:var(--sage-d)}
+.pill.recusada,.pill.cancelada,.pill.expirada{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px #DCC9B6}
+.pill.hosp{background:transparent;color:var(--terra-d);box-shadow:inset 0 0 0 1px #E3B5A2}
+.pill.visitas,.pill.pacote,.pill.estendida{background:transparent;color:var(--brown);box-shadow:inset 0 0 0 1px #D6C3AE}
+.pill.banho{background:transparent;color:var(--sage-d);box-shadow:inset 0 0 0 1px #BCC7B2}
+.cal .ev.hosp{background:var(--terra-t);color:var(--terra-d)}
+.cal .ev.visitas,.cal .ev.pacote,.cal .ev.estendida{background:var(--sand2);color:var(--brown)}
+.cal .ev.banho{background:var(--sage-t);color:var(--sage-d)}
+.cal .day.conf{background:var(--terra-t)}
+.cal .hosp-n{display:inline-flex;align-items:center;gap:1px;color:var(--terra-d);font-weight:700}
+.cal .hosp-n .ic{width:11px;height:11px}
+
+/* botões */
+.btn.wa{background:var(--char);color:var(--card)}
+.btn.danger{background:transparent;color:#9A3F2A;border:1px solid #E3C3B6}
+.btn.soft{background:var(--sand2)}
+.chip .ic{width:17px;height:17px;vertical-align:-3px}
+
+/* ações rápidas nas listas */
+.qa-b{background:transparent;border-color:#E2D3C2;color:var(--brown)}
+.qa-b .ic{width:15px;height:15px}
+.qa-b.ok{background:transparent;border-color:#C5D0BC;color:var(--sage-d)}
+.qa-b.no{background:transparent;border-color:#E2D3C2;color:var(--muted)}
+.qa-b.zap{background:var(--terra);border-color:var(--terra);color:#fff}
+.qa-b.diario{background:var(--sage-t);border-color:#C5D0BC;color:var(--sage-d)}
+.pwrap .ck{display:inline-flex}
+.pwrap .ck .ic{width:22px;height:22px}
+.ftag{background:var(--card);display:inline-flex;align-items:center;gap:4px}
+.ftag .ic{width:13px;height:13px}
+.fbtn .ic{width:15px;height:15px}
+
+/* diário */
+.dbtn{background:var(--card);color:var(--brown);border-color:#E9DCCD}
+.dbtn span{width:42px;height:42px;border-radius:50%;background:var(--sage-t);color:var(--sage-d);display:grid;place-items:center;font-size:0}
+.dbtn span .ic{width:24px;height:24px}
+.dbtn:active,.dbtn.pulse{background:var(--terra-t)}
+.tl-i{background:var(--card);border:1px solid #EFE4D7}
+.tl-ic{width:30px;height:30px;border-radius:50%;background:var(--sage-t);color:var(--sage-d);display:grid;place-items:center;flex:none}
+.tl-ic .ic{width:17px;height:17px}
+.modal h3 .ic{color:var(--terra);vertical-align:-.12em}
+.wc-inc li .ic{color:var(--terra);width:14px;height:14px;vertical-align:-2px}
+.modal .acts .btn .ic{width:18px;height:18px}
+
+/* login */
+.login{background:var(--page)}
+.login form{background:var(--card);border:1px solid var(--line);box-shadow:none}
+.login .msg{background:var(--sage-t);color:var(--sage-d)}
+.login .msg.err{background:var(--terra-t);color:var(--terra-d)}
+a.btn,.btn{text-decoration:none}
+@media (max-width:900px){ main.view{padding-bottom:calc(150px + env(safe-area-inset-bottom))} }
+.grid2>*,.row>*,.kpis>*{min-width:0}
+.row input,.row select{min-width:0}

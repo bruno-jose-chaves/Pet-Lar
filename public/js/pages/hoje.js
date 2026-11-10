@@ -3,6 +3,7 @@ import * as U from "../ui.js";
 import * as db from "../db.js";
 import { gestao } from "../perfil.js";
 import * as A from "../acoes.js";
+import { ic } from "../icones.js";
 
 export function itemProposta(p, fotos = {}, extra = "") {
   const pets = (p.proposta_pets || []).map(x => x.pets).filter(Boolean);
@@ -19,7 +20,7 @@ export async function mount(root) {
   const hoje = U.today();
   const g = gestao();
   const h = new Date().getHours(); const saud = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
-  root.innerHTML = `<h1 class="pg">${saud}! 🐾</h1>
+  root.innerHTML = `<h1 class="pg">${saud}!</h1>
     <div class="kpis" id="kpis">${'<div class="sk sk-kpi"></div>'.repeat(4)}</div>
     <h2 class="sec">Hoje · ${U.fmtY(hoje)} <span class="count" id="cHoje"></span></h2><div id="hoje">${U.skeleton(2)}</div>
     <h2 class="sec">Próximos 7 dias <span class="count" id="cProx"></span></h2><div id="prox">${U.skeleton(2)}</div>
@@ -43,7 +44,7 @@ export async function mount(root) {
   const fotos = await db.fotoUrls(paths).catch(() => ({}));
   const svcHoje = p => p.servico === "hosp" ? (p.data_inicio === hoje ? "chega hoje" : p.data_fim === hoje ? "vai embora hoje" : "hospedado") : p.servico === "visitas" ? "visita hoje" : p.servico === "banho" ? "banho" : "rotina";
   U.$("#cHoje", root).textContent = ativos.length;
-  U.$("#hoje", root).innerHTML = ativos.length ? `<div class="list">${ativos.map(p => `<div class="pwrap">${itemProposta(p, fotos, `<span class="pill aceita">${svcHoje(p)}</span>`)}<div class="qa"><a class="qa-b diario" href="#/diario/${p.id}">📓 Diário de hoje</a></div></div>`).join("")}</div>` : `<div class="empty">Nenhum serviço hoje. Dia de descanso? 😌</div>`;
+  U.$("#hoje", root).innerHTML = ativos.length ? `<div class="list">${ativos.map(p => `<div class="pwrap">${itemProposta(p, fotos, `<span class="pill aceita">${svcHoje(p)}</span>`)}<div class="qa"><a class="qa-b diario" href="#/diario/${p.id}">${ic("diario")} Diário de hoje</a></div></div>`).join("")}</div>` : `<div class="empty">Nenhum serviço hoje. Dia de descanso? 😌</div>`;
   U.$("#cProx", root).textContent = prox.length;
   U.$("#prox", root).innerHTML = prox.length ? `<div class="list">${prox.map(p => itemProposta(p, fotos, `<b style="font-size:13px">${U.fmt(p.data_inicio)}</b>`)).join("")}</div>` : `<div class="empty">Nada confirmado para a próxima semana.</div>`;
   if (!g) return;
@@ -56,7 +57,7 @@ export async function mount(root) {
     const lista = cob.filter(p => p.status === "enviada" && !(p.lembrar_em && p.lembrar_em > hoje) && !(p.cobrada_em && U.diasDesde(p.cobrada_em) < (set.follow_up_dias || 2)));
     U.$("#cFu", root).textContent = lista.length;
     U.$("#fu", root).innerHTML = lista.length ? `<div class="list">${lista.slice(0, 5).map(linha).join("")}</div><a class="btn soft small" href="#/cobrar" style="margin-top:8px">Ver todas em Cobrar resposta ›</a>`
-      : `<div class="empty">Ninguém para cobrar agora ✓ <a href="#/cobrar">Ver enviadas</a></div>`;
+      : `<div class="empty">Ninguém para cobrar agora. <a href="#/cobrar">Ver enviadas</a></div>`;
   };
   pintar();
   A.ligar(U.$("#fu", root), id => cob.find(x => x.id === id), () => pintar());

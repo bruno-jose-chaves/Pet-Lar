@@ -3,8 +3,9 @@ import * as U from "../ui.js";
 import * as db from "../db.js";
 import * as A from "../acoes.js";
 import * as F from "../filtros.js";
+import { ic } from "../icones.js";
 
-const FILTROS = [["", "Todas"], ["rascunho", "Rascunho"], ["enviada", "Enviadas"], ["aceita", "Aceitas"], ["recusada", "Recusadas"], ["cliente", "👤 Por cliente"]];
+const FILTROS = [["", "Todas"], ["rascunho", "Rascunho"], ["enviada", "Enviadas"], ["aceita", "Aceitas"], ["recusada", "Recusadas"], ["cliente", "Por cliente"]];
 
 export async function mount(root) {
   let st = sessionStorage.getItem("petlar_filtro_prop") || "", q = "", page = 0, total = 0, items = [];
@@ -16,8 +17,8 @@ export async function mount(root) {
     <div id="lista">${U.skeleton(5)}</div><div class="more" id="more"></div>
     <a class="btn primary fab" id="fabNova" href="#/proposta/nova">+ Nova proposta</a>
     <div class="lote hide" id="lote"><span id="loteN">0 selecionadas</span>
-      <button class="btn small primary" data-lote="aceita">✅ Aceitaram</button><button class="btn small soft" data-lote="recusada">✖ Recusaram</button>
-      <button class="btn small soft" data-lote="expirada">⌛ Sem resposta</button><button class="btn small soft" data-lote="sair">Cancelar</button></div>`;
+      <button class="btn small primary" data-lote="aceita">${ic("check")} Aceitaram</button><button class="btn small soft" data-lote="recusada">${ic("x")} Recusaram</button>
+      <button class="btn small soft" data-lote="expirada">${ic("relogio")} Sem resposta</button><button class="btn small soft" data-lote="sair">Cancelar</button></div>`;
   let modoSel = false; const sel = new Set();
   const filtros = F.criar(U.$("#fbar", root), { chave: "propostas", aoMudar: () => { load(); funil(); }, campos: [
     { k: "criado", rotulo: "Feita em", tipo: "periodo", presets: ["hoje", "ult7", "mes", "mesPassado", "ult30", "ano"], dica: "Data em que o orçamento foi criado" },
@@ -32,7 +33,7 @@ export async function mount(root) {
 
   const row = p => { const pets = A.nomesPets(p).join(", ");
     return `<div class="pwrap ${sel.has(p.id) ? "sel" : ""}" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
-    ${modoSel ? `<span class="ck" aria-hidden="true">${sel.has(p.id) ? "☑" : "☐"}</span>` : ""}
+    ${modoSel ? `<span class="ck" aria-hidden="true">${sel.has(p.id) ? ic("marcado") : ic("vazio")}</span>` : ""}
     <div class="main"><div class="t">${U.esc(p.tutor_nome || "Sem tutor")} <span class="muted" style="font-weight:400">· ${U.esc(p.numero || "")}</span></div>
     <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}${pets ? " · " + U.esc(pets) : ""}${Array.isArray(p.opcoes) ? " · 2 opções" : ""}${p.status === "enviada" && p.cobrancas ? ` · cobrada ${p.cobrancas}×` : ""}</div></div>
     <div class="r"><div class="v">${U.brl(p.valor_total)}</div>${U.pill(p.status)}</div></a>${modoSel ? "" : A.botoes(p)}</div>`; };
@@ -92,7 +93,7 @@ export async function mount(root) {
     const soma = escolhidas.reduce((a, p) => a + Number(p.valor_total || 0), 0);
     const txt = { aceita: `Marcar ${sel.size} como aceitas (${U.brl(soma)})? Cada uma lança sinal e saldo no Financeiro.${escolhidas.some(p => Array.isArray(p.opcoes)) ? " As de duas opções ficam com a recomendada." : ""}`, recusada: `Marcar ${sel.size} como recusadas?`, expirada: `Marcar ${sel.size} como sem resposta (expiradas)?` }[st2];
     if (!(await U.confirmDialog(txt, { ok: "Confirmar" }))) return;
-    try { await db.statusEmLote([...sel], st2); escolhidas.forEach(p => p.status = st2); db.invalidate("lista"); U.toast(`${sel.size} proposta${sel.size > 1 ? "s" : ""} atualizada${sel.size > 1 ? "s" : ""} ✓`); sairSel(); funil(); window.dispatchEvent(new Event("petlar:propostas")); }
+    try { await db.statusEmLote([...sel], st2); escolhidas.forEach(p => p.status = st2); db.invalidate("lista"); U.toast(`${sel.size} proposta${sel.size > 1 ? "s" : ""} atualizada${sel.size > 1 ? "s" : ""}`); sairSel(); funil(); window.dispatchEvent(new Event("petlar:propostas")); }
     catch { U.toast("Não consegui atualizar. Confira a internet."); }
   });
   U.$("#q", root).addEventListener("input", U.debounce(e => { q = e.target.value.trim(); load(); }, 300));

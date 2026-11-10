@@ -48,7 +48,7 @@ export async function mount(root) {
       return `<div class="item" data-id="${g.id}"><a class="main" href="#/proposta/${g.proposta_id}" style="text-decoration:none"><div class="t">${U.esc(p.tutor_nome || p.numero || "")} · ${U.brl2(g.valor)}</div>
         <div class="s">${U.esc(g.descricao)} · ${U.esc(p.numero || "")} · <span style="${venc ? "color:#A4402A;font-weight:700" : ""}">${venc ? "venceu" : "vence"} ${U.fmt(g.vencimento)}</span></div></a>
         <div class="row-actions">${venc && p.tutores?.whatsapp ? `<a class="btn wa small" href="${U.waLink(p.tutores.whatsapp, msg)}" target="_blank" rel="noopener">Lembrar</a>` : ""}<button class="btn primary small" data-pagar="${g.id}">Recebi</button></div></div>`;
-    }).join("")}</div>` : `<div class="empty">Nada a receber ✓</div>`;
+    }).join("")}</div>` : `<div class="empty">Nada a receber</div>`;
   }
   async function loadMes() {
     const ini = U.iso(new Date(ano, mes, 1)), fim = U.iso(new Date(ano, mes + 1, 0));
@@ -74,7 +74,7 @@ export async function mount(root) {
       m.el.addEventListener("click", async ev => {
         const b = ev.target.closest("[data-f]"); if (!b) return; m.close();
         const id = pg.dataset.pagar; const antes = abertosTodos; abertosTodos = abertosTodos.filter(g => g.id !== id); aplicar(); // otimista
-        try { await db.marcarPago(id, b.dataset.f); U.toast("Recebido ✓"); loadMes(); } catch { abertosTodos = antes; aplicar(); U.toast("Não consegui salvar."); }
+        try { await db.marcarPago(id, b.dataset.f); U.toast("Recebido"); loadMes(); } catch { abertosTodos = antes; aplicar(); U.toast("Não consegui salvar."); }
       });
       return;
     }

@@ -4,6 +4,7 @@ import * as db from "../db.js";
 import { sair } from "../app.js";
 import { pixPayload, pixQR } from "../pix.js";
 import { perfil, gestao, admin, PAPEIS } from "../perfil.js";
+import { ic } from "../icones.js";
 
 export async function mount(root) {
   const [s, admins, user] = await Promise.all([db.getSettings(), admin() ? db.listAdmins().catch(() => []) : [], db.sb.auth.getUser().then(r => r.data.user)]);
@@ -28,8 +29,8 @@ export async function mount(root) {
         ${A ? `<div class="panel"><h3>Quem tem acesso</h3>
           <div class="list" id="adm">${admins.map(a => `<div class="item" style="background:#fff;flex-wrap:wrap"><div class="main"><div class="t">${U.esc(a.nome || a.email)}${a.email === user?.email ? ' <span class="muted">(você)</span>' : ""}</div><div class="s">${U.esc(a.email)}</div></div>
             <select data-papel="${U.esc(a.email)}" aria-label="Nível de acesso" style="min-height:36px;border-radius:10px;border:1px solid var(--line);padding:4px 8px">${optPapel(a.papel || "gestora")}</select>
-            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">🔑 link de senha</button><button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
-          <p class="muted" style="margin:6px 0 0">🔑 manda para a pessoa um e-mail com link para criar uma senha nova (serve para quem esqueceu a senha ou ainda não fez o primeiro acesso).</p>
+            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">${ic("chave")} link de senha</button><button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
+          <p class="muted" style="margin:6px 0 0">O link de senha manda para a pessoa um e-mail com link para criar uma senha nova (serve para quem esqueceu a senha ou ainda não fez o primeiro acesso).</p>
           <form id="fA" style="margin-top:12px"><div class="row"><label class="f">Nome<input type="text" name="nome" placeholder="Larissa"></label><label class="f">E-mail<input type="text" name="email" inputmode="email" placeholder="email@exemplo.com"></label></div>
           <label class="f">Nível<select name="papel">${optPapel("gestora")}</select></label>
           <button class="btn soft" type="submit">Dar acesso</button>
@@ -56,14 +57,14 @@ export async function mount(root) {
     e.preventDefault(); const v = Object.fromEntries(new FormData(e.target));
     v.capacidade_hospedagem = Number(v.capacidade_hospedagem) || 3; v.follow_up_dias = Number(v.follow_up_dias) || 2; v.expira_dias = Number(v.expira_dias) || 15;
     for (const k of ["pix_chave", "pix_nome", "pix_cidade", "whatsapp", "instagram"]) v[k] = String(v[k]).trim() || null;
-    try { await db.saveSettings(v); U.toast("Configurações salvas ✓"); } catch (err) { U.toast("Não consegui salvar: " + err.message); }
+    try { await db.saveSettings(v); U.toast("Configurações salvas"); } catch (err) { U.toast("Não consegui salvar: " + err.message); }
   });
   }
   if (A) {
   U.$("#fA", root).addEventListener("submit", async e => {
     e.preventDefault(); const v = Object.fromEntries(new FormData(e.target));
     if (!/^\S+@\S+\.\S+$/.test(v.email.trim())) { U.toast("E-mail inválido."); return; }
-    try { await db.addAdmin(v.email, v.nome.trim() || null, v.papel); U.toast("Acesso liberado ✓"); mount(root); } catch (err) { U.toast(err.message.includes("duplicate") ? "Esse e-mail já tem acesso." : err.message); }
+    try { await db.addAdmin(v.email, v.nome.trim() || null, v.papel); U.toast("Acesso liberado"); mount(root); } catch (err) { U.toast(err.message.includes("duplicate") ? "Esse e-mail já tem acesso." : err.message); }
   });
   U.$("#adm", root).addEventListener("click", async e => {
     const b = e.target.closest("[data-rm]"); if (!b) return;
@@ -75,19 +76,19 @@ export async function mount(root) {
     const email = b.dataset.senha;
     if (!(await U.confirmDialog(`Mandar para ${email} um link para criar uma senha nova?`, { ok: "Mandar link" }))) return;
     b.disabled = true;
-    try { await db.linkNovaSenha(email); U.toast(`Link enviado para ${email} ✓ Ele vale por 1 hora.`, 4500); }
+    try { await db.linkNovaSenha(email); U.toast(`Link enviado para ${email} . Ele vale por 1 hora.`, 4500); }
     catch (err) { U.toast(/rate|limit|seconds/i.test(err.message || "") ? "Muitos e-mails em pouco tempo. Espere alguns minutos e tente de novo." : "Não consegui mandar: " + err.message, 4500); }
     finally { b.disabled = false; }
   });
   U.$("#adm", root).addEventListener("change", async e => {
     const sel = e.target.closest("[data-papel]"); if (!sel) return;
-    try { await db.setPapel(sel.dataset.papel, sel.value); U.toast("Nível alterado para " + PAPEIS[sel.value].nome + " ✓"); if (sel.dataset.papel === user?.email) setTimeout(() => location.reload(), 900); }
+    try { await db.setPapel(sel.dataset.papel, sel.value); U.toast("Nível alterado para " + PAPEIS[sel.value].nome); if (sel.dataset.papel === user?.email) setTimeout(() => location.reload(), 900); }
     catch (err) { U.toast(err.message.includes("administrador") ? "Precisa existir pelo menos um administrador." : err.message); mount(root); }
   });
   }
   U.$("#fP", root).addEventListener("submit", async e => {
     e.preventDefault(); const p = e.target.s.value; if (p.length < 6) { U.toast("Mínimo 6 caracteres."); return; }
-    const { error } = await db.sb.auth.updateUser({ password: p }); U.toast(error ? error.message : "Senha alterada ✓"); e.target.reset();
+    const { error } = await db.sb.auth.updateUser({ password: p }); U.toast(error ? error.message : "Senha alterada"); e.target.reset();
   });
   U.$("#bSair", root).onclick = sair;
 }

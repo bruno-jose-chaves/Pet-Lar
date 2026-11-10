@@ -37,7 +37,7 @@ export async function mount(root) {
       U.$("#lista", root).innerHTML = items.length ? `<div class="list">${items.map(t => `<a class="item" href="#/tutor/${t.id}">
         <div class="av round">${U.USER}</div>
         <div class="main"><div class="t">${U.esc(t.nome)}</div><div class="s">${U.esc([t.whatsapp, t.bairro, t.cidade].filter(Boolean).join(" · "))}</div></div>
-        <div class="r muted">${(t.pets || []).length ? "🐾 " + (t.pets || []).map(p => U.esc(p.nome || "pet")).join(", ") : ""}</div></a>`).join("")}</div>`
+        <div class="r muted">${(t.pets || []).length ? "" + (t.pets || []).map(p => U.esc(p.nome || "pet")).join(", ") : ""}</div></a>`).join("")}</div>`
         : `<div class="empty">${q || filtros.ativos() ? "Nenhum tutor com essa busca ou filtro." : "Nenhum tutor ainda. Eles entram sozinhos quando você salva uma proposta."}</div>`;
       U.$("#more", root).innerHTML = items.length < total ? `<button class="btn soft" id="bMore">Carregar mais</button>` : "";
       const b = U.$("#bMore", root); if (b) b.onclick = () => { page++; load(false); };

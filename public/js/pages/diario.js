@@ -2,11 +2,12 @@
 // e manda o resumo do dia para o tutor pelo WhatsApp.
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import { ic } from "../icones.js";
 
 export const TIPOS = {
-  comeu: ["🍽️", "Comeu"], agua: ["💧", "Bebeu água"], passeio: ["🦮", "Passeou"], xixi: ["💛", "Fez xixi"], coco: ["💩", "Fez cocô"],
-  remedio: ["💊", "Tomou remédio"], dormiu: ["😴", "Dormiu"], brincou: ["🎾", "Brincou"], banho: ["🛁", "Banho"],
-  chegou: ["🏠", "Chegou"], saiu: ["👋", "Foi para casa"], foto: ["📸", "Foto"], nota: ["📝", "Recado"],
+  comeu: [ic("comeu"), "Comeu", "🍽️"], agua: [ic("agua"), "Bebeu água", "💧"], passeio: [ic("passeio"), "Passeou", "🦮"], xixi: [ic("xixi"), "Fez xixi", "✅"], coco: [ic("coco"), "Fez cocô", "✅"],
+  remedio: [ic("remedio"), "Tomou remédio", "💊"], dormiu: [ic("dormiu"), "Dormiu", "😴"], brincou: [ic("brincou"), "Brincou", "🎾"], banho: [ic("banho"), "Banho", "🛁"],
+  chegou: [ic("chegou"), "Chegou", "🏠"], saiu: [ic("saiu"), "Foi para casa", "👋"], foto: [ic("foto"), "Foto", "📸"], nota: [ic("nota"), "Recado", "📝"],
 };
 const BOTOES = ["comeu", "agua", "passeio", "xixi", "coco", "remedio", "dormiu", "brincou", "foto", "nota"];
 const hora = iso => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -41,7 +42,7 @@ export function relatorio(serv, pets, grupos, dia) {
   const quem = juntar(pets.map(nomePet));
   let t = `${oi} 🐾 Resumo de hoje ${pets.length > 1 ? "da turma" : "de " + quem} (${U.fmt(dia)}):\n`;
   for (const g of grupos) {
-    const [ic, txt] = TIPOS[g.tipo] || ["•", g.tipo];
+    const [, txt, ic] = TIPOS[g.tipo] || ["", g.tipo, "•"];
     const p = pets.length > 1 ? ` · ${juntar(g.pets.map(nomePet))}` : "";
     t += `\n${hora(g.criado_em)} ${ic} ${g.tipo === "nota" ? "" : txt}${p}${g.nota ? (g.tipo === "nota" ? g.nota : ` (${g.nota})`) : ""}`;
   }
@@ -70,7 +71,7 @@ export async function mount(root, { params }) {
     <input type="file" accept="image/*" id="dFoto" class="hide">
     <h2 class="sec">Linha do tempo <span class="count" id="dCount"></span></h2>
     <div id="dLista">${U.skeleton(3)}</div>
-    <div class="row-actions" style="margin-top:14px"><button class="btn primary" id="dRel">📤 Mandar resumo do dia</button></div>`;
+    <div class="row-actions" style="margin-top:14px"><button class="btn primary" id="dRel">${ic("enviar")} Mandar resumo do dia</button></div>`;
 
   const nomeDia = () => { const d = U.pd(dia); const t = d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" }); return (dia === hoje ? "Hoje, " : "") + t; };
   function quandoRegistrar() { // hoje = agora; outro dia = meio-dia daquele dia (dá para ajustar a hora depois)
@@ -89,7 +90,7 @@ export async function mount(root, { params }) {
   function pintar() {
     const gs = agrupar(regs, petsById);
     U.$("#dCount", root).textContent = gs.length;
-    U.$("#dLista", root).innerHTML = gs.length ? `<div class="tl">${gs.map(g => { const [ic, txt] = TIPOS[g.tipo] || ["•", g.tipo];
+    U.$("#dLista", root).innerHTML = gs.length ? `<div class="tl">${gs.map(g => { const [ic, txt] = TIPOS[g.tipo] || ["", g.tipo];
       return `<button class="tl-i" data-ids="${g.ids.join(",")}"><span class="tl-h">${hora(g.criado_em)}</span><span class="tl-ic">${ic}</span>
         <span class="tl-t"><b>${g.tipo === "nota" ? "Recado" : txt}</b>${pets.length > 1 ? ` <span class="muted">· ${U.esc(juntar(g.pets.map(p => p?.nome || "pet")))}</span>` : ""}${g.nota ? `<br><span>${U.esc(g.nota)}</span>` : ""}
         ${g.foto_path && fotos[g.foto_path] ? `<img src="${fotos[g.foto_path]}" alt="" loading="lazy">` : ""}</span></button>`; }).join("")}</div>`
@@ -103,7 +104,7 @@ export async function mount(root, { params }) {
       const novos = await db.addDiario(rows); regs = regs.concat(novos).sort((a, b) => a.criado_em.localeCompare(b.criado_em));
       if (extra.foto_path) fotos = await db.fotoUrls(regs.map(r => r.foto_path)).catch(() => fotos);
       pintar();
-      U.toastAcao(`${TIPOS[tipo][0]} ${TIPOS[tipo][1]} · ${hora(quando)}`, "Desfazer", async () => { await db.deleteDiario(novos.map(r => r.id)); regs = regs.filter(r => !novos.some(n => n.id === r.id)); pintar(); });
+      U.toastAcao(`${TIPOS[tipo][1]} · ${hora(quando)}`, "Desfazer", async () => { await db.deleteDiario(novos.map(r => r.id)); regs = regs.filter(r => !novos.some(n => n.id === r.id)); pintar(); });
     } catch { U.toast("Não consegui registrar. Confira a internet e tente de novo."); }
   }
   function pedirTexto(titulo, ph, valor = "") {
@@ -118,7 +119,7 @@ export async function mount(root, { params }) {
   U.$("#dBtns", root).addEventListener("click", async e => {
     const b = e.target.closest("[data-t]"); if (!b) return; const t = b.dataset.t;
     if (t === "foto") { U.$("#dFoto", root).click(); return; }
-    if (t === "nota") { const v = await pedirTexto("Recado", "Ex.: Comeu tudo e dormiu no sofá 😴"); if (v) registrar("nota", { nota: v }); return; }
+    if (t === "nota") { const v = await pedirTexto("Recado", "Ex.: Comeu tudo e dormiu no sofá"); if (v) registrar("nota", { nota: v }); return; }
     if (t === "remedio") { const v = await pedirTexto("Remédio", "Qual remédio e dose (opcional)"); if (v !== null) registrar("remedio", { nota: v || null }); return; }
     b.classList.add("pulse"); setTimeout(() => b.classList.remove("pulse"), 400);
     registrar(t);
@@ -160,11 +161,11 @@ export async function mount(root, { params }) {
     const gs = agrupar(regs, petsById); if (!gs.length) { U.toast("Registre alguma coisa antes de mandar o resumo."); return; }
     const txt = relatorio(serv, pets, gs, dia); const comFoto = regs.filter(r => r.foto_path);
     const m = U.modal(`<h3>Resumo do dia</h3><pre>${U.esc(txt)}</pre>
-      <div class="acts"><a class="btn wa" href="${U.waLink(serv.tutores?.whatsapp, txt)}" target="_blank" rel="noopener">💬 Mandar no WhatsApp</a>
-      ${comFoto.length ? `<button class="btn soft" data-fotos>📷 Compartilhar as ${comFoto.length} foto${comFoto.length > 1 ? "s" : ""}</button>` : ""}
-      <button class="btn soft" data-copiar>📋 Copiar texto</button><button class="btn soft" data-close>Fechar</button></div>`);
+      <div class="acts"><a class="btn wa" href="${U.waLink(serv.tutores?.whatsapp, txt)}" target="_blank" rel="noopener">${ic("conversa")} Mandar no WhatsApp</a>
+      ${comFoto.length ? `<button class="btn soft" data-fotos>${ic("foto")} Compartilhar ${comFoto.length > 1 ? `as ${comFoto.length} fotos` : "a foto"}</button>` : ""}
+      <button class="btn soft" data-copiar>${ic("copiar")} Copiar texto</button><button class="btn soft" data-close>Fechar</button></div>`);
     m.el.addEventListener("click", async ev => {
-      if (ev.target.closest("[data-copiar]")) { await U.copyText(txt); U.toast("Texto copiado ✓"); }
+      if (ev.target.closest("[data-copiar]")) { await U.copyText(txt); U.toast("Texto copiado"); }
       if (ev.target.closest("[data-fotos]")) {
         try {
           const files = await Promise.all(comFoto.map(async (r, i) => new File([await db.fotoBlob(r.foto_path)], `pet-lar-${dia}-${i + 1}.jpg`, { type: "image/jpeg" })));

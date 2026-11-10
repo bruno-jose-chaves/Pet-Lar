@@ -3,6 +3,7 @@ import * as U from "../ui.js";
 import * as db from "../db.js";
 import { pixPayload, pixQR } from "../pix.js";
 import { setNavGuard, replaceHash } from "../app.js";
+import { ic } from "../icones.js";
 
 const toast = U.toast;
 
@@ -114,7 +115,7 @@ const TEMPLATE = `
         <button class="chip" data-preset="reativo">+ Pet reativo</button>
         <button class="chip" data-preset="outro">+ Outro adicional</button>
       </div>
-      <label class="f">Recado / observações (aparece no PDF)<textarea data-k="obs" placeholder="Ex.: Vou mandar fotinhos todo dia e na virada fico com ele por causa dos fogos 🎆"></textarea></label>
+      <label class="f">Recado / observações (aparece no PDF)<textarea data-k="obs" placeholder="Ex.: Vou mandar fotinhos todo dia e na virada fico com ele por causa dos fogos"></textarea></label>
     </div>
     <div class="calc">
       <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;margin-bottom:6px">Conta (só você vê)</div>
@@ -360,8 +361,8 @@ export async function mount(root, ctx) {
     $("#ajOpt").textContent = S.alt ? `· opção ${e}` : "";
     if(!S.alt){ box.innerHTML=`<button class="btn soft small" data-opt="add">+ Adicionar opção 2</button> <span class="hint">Para mandar duas opções no mesmo PDF, por exemplo hospedagem ou visitas.</span>`; return; }
     const Rs={1:withOpt(1,calc),2:withOpt(2,calc)}; const pr=principal();
-    box.innerHTML=`<div class="chips">${[1,2].map(n=>`<button class="chip ${e===n?"on":""}" data-opt="${n}">Opção ${n}${Rs[n].ok?" · "+brl(Rs[n].final):""}${pr===n?" ⭐":""}</button>`).join("")}</div>
-      <div class="row-actions" style="margin:6px 0 2px">${pr!==e?`<button class="btn soft small" data-opt="rec">⭐ Recomendar a opção ${e}</button>`:`<span class="hint">⭐ Opção ${e} ${S.escolhida?"escolhida pelo cliente":"recomendada (fica em destaque no PDF)"}</span>`}<button class="x" data-opt="rm">remover opção ${e}</button></div>
+    box.innerHTML=`<div class="chips">${[1,2].map(n=>`<button class="chip ${e===n?"on":""}" data-opt="${n}">Opção ${n}${Rs[n].ok?" · "+brl(Rs[n].final):""}${pr===n?" "+ic("estrela","sm"):""}</button>`).join("")}</div>
+      <div class="row-actions" style="margin:6px 0 2px">${pr!==e?`<button class="btn soft small" data-opt="rec">${ic("estrela")} Recomendar a opção ${e}</button>`:`<span class="hint">${ic("estrela","sm")} Opção ${e} ${S.escolhida?"escolhida pelo cliente":"recomendada (fica em destaque no PDF)"}</span>`}<button class="x" data-opt="rm">remover opção ${e}</button></div>
       <p class="hint" style="margin:0 0 8px">Editando a <b>opção ${e}</b>: serviço, datas e o passo 4 valem só para ela. Cliente, pets e recado valem para as duas.</p>`;
   }
   $("#optTabs").addEventListener("click", async ev=>{
@@ -411,7 +412,7 @@ export async function mount(root, ctx) {
     ["shield","Sem estresse","O pet não sai de casa e você não perde tempo levando e buscando"],
     ["broom","Ambiente do jeito que estava","A gente deixa tudo limpinho no final"]]; }
   const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="#C7694A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]||IC.heart}</svg>`;
-  const PAW = `<svg viewBox="0 0 64 64"><g fill="#C7694A" opacity=".75"><ellipse cx="32" cy="42" rx="12" ry="10"/><ellipse cx="17" cy="28" rx="5" ry="6.5"/><ellipse cx="26" cy="19" rx="5" ry="6.5"/><ellipse cx="38" cy="19" rx="5" ry="6.5"/><ellipse cx="47" cy="28" rx="5" ry="6.5"/></g></svg>`;
+  const PAW = `<svg viewBox="0 0 24 24" fill="none" stroke="#6E7F63" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5C6 5 4 6.5 3.5 9.5 3 12 4 14 5.5 14l1-4"/><path d="M16 5.5c2-.5 4 1 4.5 4 .5 2.5-.5 4.5-2 4.5l-1-4"/><path d="M7 7.5C8 5.8 10 5 12 5s4 .8 5 2.5c.6 1.3 1 3.5 1 5.5 0 3.5-2.7 6-6 6s-6-2.5-6-6c0-2 .4-4.2 1-5.5z"/><path d="M10 12h.01M14 12h.01"/><path d="M10.8 15.2c.4.5.8.7 1.2.7s.8-.2 1.2-.7"/></svg>`;
   const MARK = `<svg class="mk" viewBox="0 0 48 48" fill="none" stroke="#C7694A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 23 24 7l19 16"/><path d="M10 19v21h28V19"/><g fill="#F9F3EC" stroke="none"><ellipse cx="24" cy="31.5" rx="5.2" ry="4.2"/><circle cx="18.3" cy="25.8" r="2.1"/><circle cx="22" cy="22.6" r="2.1"/><circle cx="26" cy="22.6" r="2.1"/><circle cx="29.7" cy="25.8" r="2.1"/></g></svg>`;
 
   /* ================= RENDER: FORM ================= */
@@ -444,10 +445,10 @@ export async function mount(root, ctx) {
             <label class="f" style="margin:0">Nome do pet ${i? "#"+(i+1):""}<input type="text" data-pk="nome" value="${esc(p.nome)}" placeholder="Ex.: Bento"></label>
           </div>
         </div>
-        ${p.foto?`<div class="photo-actions"><button class="btn mini" data-photo="${p.id}">📷 Trocar foto</button><button class="btn mini danger" data-rmfoto="${p.id}">🗑 Remover foto</button></div>`:""}
+        ${p.foto?`<div class="photo-actions"><button class="btn mini" data-photo="${p.id}">${ic("camera")} Trocar foto</button><button class="btn mini danger" data-rmfoto="${p.id}">${ic("lixo")} Remover foto</button></div>`:""}
         <div class="chips" style="margin-bottom:10px">
-          <button class="chip ${p.especie==="cao"?"on":""}" data-pc="especie" data-v="cao">🐶 Cão</button>
-          <button class="chip ${p.especie==="gato"?"on":""}" data-pc="especie" data-v="gato">🐱 Gato</button>
+          <button class="chip ${p.especie==="cao"?"on":""}" data-pc="especie" data-v="cao">${ic("cao")} Cão</button>
+          <button class="chip ${p.especie==="gato"?"on":""}" data-pc="especie" data-v="gato">${ic("gato")} Gato</button>
         </div>
         <div class="row">
           <label class="f">Raça<input type="text" data-pk="raca" value="${esc(p.raca)}" placeholder="Ex.: SRD"></label>
@@ -520,7 +521,7 @@ export async function mount(root, ctx) {
     $("#autoDesc").textContent = R.ok ? (R.discAuto? Math.round(R.discAuto*100)+"%" : "sem desconto") : "—";
     $("#descWarn").classList.toggle("hide", !(Number(S.descManual)>15));
     if(!R.ok){ $("#calcLines").innerHTML=`<div><span>${R.msg}</span></div>`; $("#calcTot").textContent="—"; $("#calcInt").textContent=""; return; }
-    let h = (S.alt?`<div><span><b>Opção ${edit()}</b>${principal()===edit()?" ⭐":""}</span><span></span></div>`:"") + R.lines.map(x=>`<div><span>${esc(x.l)}</span><span>${x.v<0?"− "+brl2(-x.v):brl2(x.v)}</span></div>`).join("");
+    let h = (S.alt?`<div><span><b>Opção ${edit()}</b>${principal()===edit()?" "+ic("estrela","sm"):""}</span><span></span></div>`:"") + R.lines.map(x=>`<div><span>${esc(x.l)}</span><span>${x.v<0?"− "+brl2(-x.v):brl2(x.v)}</span></div>`).join("");
     if(R.disc) h+=`<div><span>Desconto ${Math.round(R.disc*100)}%${S.descManual!==""?" (especial)":""}</span><span>− ${brl2(R.discountable*R.disc)}</span></div>`;
     if(S.servico==="banho"&&R.second2) h+=`<div><span>2º pet no banho −10%</span><span>− ${brl2(R.second2*(1-R.disc)*T.banho2pet)}</span></div>`;
     h += R.addLines.map(x=>`<div><span>${esc(x.l)}${x.show?"":" · interno"}</span><span>${brl2(x.v)}</span></div>`).join("");
@@ -668,7 +669,7 @@ export async function mount(root, ctx) {
   const acList = $("#acList"); const tutorInput = $('[data-k="tutor"]');
   let tutorPetsCache = [];
   function renderLinked() {
-    $("#tutorLinked").innerHTML = S.tutor_id ? `<div class="linked">✓ Cliente cadastrado <a href="#/tutor/${S.tutor_id}" style="font-weight:700">ver ficha</a><button class="x" id="unlink" type="button">desvincular</button></div>` : "";
+    $("#tutorLinked").innerHTML = S.tutor_id ? `<div class="linked">${ic("check")} Cliente cadastrado <a href="#/tutor/${S.tutor_id}" style="font-weight:700">ver ficha</a><button class="x" id="unlink" type="button">desvincular</button></div>` : "";
     const u = $("#unlink"); if (u) u.addEventListener("click", () => { S.tutor_id = null; tutorPetsCache = []; renderLinked(); renderTutorPets(); markDirty(); });
   }
   function renderTutorPets() {
@@ -706,7 +707,7 @@ export async function mount(root, ctx) {
   const buscaTutor = U.debounce(async q => {
     if (S.tutor_id || q.trim().length < 2) { acList.classList.add("hide"); return; }
     const r = await db.searchTutores(q).catch(() => []);
-    if (tutorInput.value !== q || S.tutor_id) return;
+    if (tutorInput.value !== q || S.tutor_id || document.activeElement !== tutorInput) return; // já saiu do campo: não abre a lista
     acList.innerHTML = r.map(t => `<button type="button" data-tid="${t.id}">${esc(t.nome)}<small>${esc(t.whatsapp || "")} ${esc(t.cidade || "")}</small></button>`).join("")
       + `<button type="button" data-novo>+ Cliente novo: <b>${esc(q)}</b></button>`;
     acList.classList.remove("hide"); acList._data = r;
@@ -761,7 +762,7 @@ export async function mount(root, ctx) {
   function nomeTutorPronto(auto) {
     const nome = S.tutor.trim(); if (nome.length < 2) return false;
     if (!auto) return true;
-    return document.activeElement !== tutorInput && acList.classList.contains("hide");
+    return document.activeElement !== tutorInput && !acList.contains(document.activeElement);
   }
   async function doSave({ auto = false } = {}) {
     setState("Salvando…");
@@ -824,19 +825,19 @@ export async function mount(root, ctx) {
     try { await db.updateProposta(META.id, { status: st }); db.invalidate("lista"); }
     catch (e) { META.status = antes; renderHead(); toast("Não consegui mudar o status."); return; }
     window.dispatchEvent(new Event("petlar:propostas"));
-    if (st === "aceita") { toast("Proposta aceita! Sinal e saldo foram lançados no Financeiro 💛", 4000); loadPagtos(); }
+    if (st === "aceita") { toast("Proposta aceita! Sinal e saldo foram lançados no Financeiro.", 4000); loadPagtos(); }
     else toast("Status: " + U.STATUS[st]);
   }
   on($("#pMenu"), "click", () => {
     const st = META.status;
     const m = U.modal(`<h3>${esc(META.numero || "Proposta")}</h3><div class="acts">
-      ${META.id && st !== "aceita" ? (S.alt ? [1, 2].map(n => { const r = withOpt(n, calc); return `<button class="btn ${n === principal() ? "primary" : "soft"}" data-st="aceita" data-esc="${n}">✅ Aceitou a opção ${n}${r.ok ? " · " + brl(r.final) : ""}</button>`; }).join("") : `<button class="btn primary" data-st="aceita">✅ Cliente aceitou</button>`) : ""}
-      ${META.id && st !== "recusada" && st !== "aceita" ? `<button class="btn soft" data-st="recusada">✖ Cliente recusou</button>` : ""}
-      ${META.id && st !== "enviada" && st !== "rascunho" ? `<button class="btn soft" data-st="enviada">↩ Voltar para “Enviada”</button>` : ""}
+      ${META.id && st !== "aceita" ? (S.alt ? [1, 2].map(n => { const r = withOpt(n, calc); return `<button class="btn ${n === principal() ? "primary" : "soft"}" data-st="aceita" data-esc="${n}">${ic("check")} Aceitou a opção ${n}${r.ok ? " · " + brl(r.final) : ""}</button>`; }).join("") : `<button class="btn primary" data-st="aceita">${ic("check")} Cliente aceitou</button>`) : ""}
+      ${META.id && st !== "recusada" && st !== "aceita" ? `<button class="btn soft" data-st="recusada">${ic("x")} Cliente recusou</button>` : ""}
+      ${META.id && st !== "enviada" && st !== "rascunho" ? `<button class="btn soft" data-st="enviada">${ic("voltar")} Voltar para “Enviada”</button>` : ""}
       ${META.id && st === "aceita" ? `<button class="btn soft" data-st="cancelada">Cancelar serviço</button>` : ""}
-      ${META.id && st === "aceita" ? `<a class="btn soft" href="#/diario/${META.id}" data-close>📓 Diário do serviço</a>` : ""}
-      <button class="btn soft" data-salvar>💾 Salvar agora</button>
-      ${META.id ? `<button class="btn soft" data-dup>⧉ Duplicar proposta</button>` : ""}
+      ${META.id && st === "aceita" ? `<a class="btn soft" href="#/diario/${META.id}" data-close>${ic("diario")} Diário do serviço</a>` : ""}
+      <button class="btn soft" data-salvar>${ic("salvar")} Salvar agora</button>
+      ${META.id ? `<button class="btn soft" data-dup>${ic("copiar")} Duplicar proposta</button>` : ""}
       ${META.id ? `<button class="btn danger" data-del>Excluir proposta</button>` : ""}
       <button class="btn soft" data-close>Fechar</button></div>`);
     m.el.addEventListener("click", async e => {
@@ -845,7 +846,7 @@ export async function mount(root, ctx) {
       if (b.dataset.esc) { S.escolhida = Number(b.dataset.esc); dirty = true; update(); }
       if (b.dataset.st === "enviada" && S.escolhida) { S.escolhida = null; dirty = true; update(); }
       if (b.dataset.st) setStatus(b.dataset.st);
-      else if (b.dataset.salvar !== undefined) { await save(); toast("Salvo ✓"); }
+      else if (b.dataset.salvar !== undefined) { await save(); toast("Salvo"); }
       else if (b.dataset.dup !== undefined) { if (dirty) await save(); location.hash = "#/proposta/" + META.id + "/duplicar"; }
       else if (b.dataset.del !== undefined) {
         if (await U.confirmDialog("Excluir a proposta " + (META.numero || "") + "? Isso não pode ser desfeito.", { ok: "Excluir", danger: true })) {
@@ -859,10 +860,10 @@ export async function mount(root, ctx) {
   async function loadPagtos() {
     if (!alive) return; const box = $("#pagtosBox"); if (!META.id || META.status !== "aceita") { box.innerHTML = ""; return; }
     const ps = await db.pagamentosDaProposta(META.id).catch(() => []);
-    box.innerHTML = `<div class="card"><h3>💰 Pagamentos</h3><div class="list">${ps.map(g => `<div class="item" style="background:#fff"><div class="main"><div class="t">${esc(g.descricao)} · ${brl2(g.valor)}</div><div class="s">${g.pago_em ? "Pago em " + U.fmtY(g.pago_em) + (g.forma ? " (" + g.forma + ")" : "") : "Vence " + U.fmtY(g.vencimento)}</div></div>
+    box.innerHTML = `<div class="card"><h3>Pagamentos</h3><div class="list">${ps.map(g => `<div class="item" style="background:#fff"><div class="main"><div class="t">${esc(g.descricao)} · ${brl2(g.valor)}</div><div class="s">${g.pago_em ? "Pago em " + U.fmtY(g.pago_em) + (g.forma ? " (" + g.forma + ")" : "") : "Vence " + U.fmtY(g.vencimento)}</div></div>
       <button class="btn ${g.pago_em ? "soft" : "primary"} small" data-pg="${g.id}" data-pago="${g.pago_em ? 1 : 0}">${g.pago_em ? "Desfazer" : "Recebi"}</button></div>`).join("")}</div></div>`;
     box.querySelectorAll("[data-pg]").forEach(b => b.addEventListener("click", async () => {
-      b.disabled = true; try { if (b.dataset.pago === "1") await db.desmarcarPago(b.dataset.pg); else await db.marcarPago(b.dataset.pg); toast("Atualizado ✓"); } catch { toast("Não consegui atualizar."); } loadPagtos();
+      b.disabled = true; try { if (b.dataset.pago === "1") await db.desmarcarPago(b.dataset.pg); else await db.marcarPago(b.dataset.pg); toast("Atualizado"); } catch { toast("Não consegui atualizar."); } loadPagtos();
     }));
   }
 
@@ -889,12 +890,12 @@ export async function mount(root, ctx) {
     const fotos = S.pets.filter(p => p.foto).slice(0, 3);
     return `<div class="wcard">
       <div class="wc-top"><img src="${LOGO}" class="wc-logo" alt=""><div class="wc-num">${esc(META.numero || "Proposta")}</div></div>
-      <div class="wc-hi">Olá${S.tutor ? ", " + esc(S.tutor) : ""}! 🐾</div>
+      <div class="wc-hi">Olá${S.tutor ? ", " + esc(S.tutor) : ""}!</div>
       <div class="wc-pet">${fotos.length ? fotos.map(p => `<img src="${p.foto}" alt="">`).join("") : `<div class="wc-paw">${PAW}</div>`}<div><div class="wc-nome">${esc(nomes.charAt(0).toUpperCase() + nomes.slice(1))}</div><div class="wc-svc">${S.alt ? "Duas opções para você" : esc(R.title)}</div><div class="wc-when">${!S.alt && per.data_inicio ? U.periodo(per.data_inicio, per.data_fim) : ""}</div></div></div>
       ${S.alt ? (() => { const pr = principal(); const ops = [1, 2].map(n => withOpt(n, () => ({ n, R: calc(), per: periodoDe() })));
         return `<div class="wc-opts">${ops.map(o => `<div class="wc-opt ${o.n === pr ? "rec" : ""}"><div class="wc-ok">Opção ${o.n}${o.n === pr ? (S.escolhida ? " · escolhida" : " · recomendada") : ""}</div><div class="wc-ot">${esc(o.R.title)}</div><div class="wc-ow">${o.per.data_inicio ? U.periodo(o.per.data_inicio, o.per.data_fim) : ""}</div>${o.R.save >= 1 ? `<div class="wc-de">de ${brl(o.R.full)}</div>` : ""}<div class="wc-ov">${brl(o.R.final)}</div></div>`).join("")}</div>
         <div class="wc-pg" style="text-align:center;margin:10px 22px 0">50% para confirmar · 50% no fim do serviço</div>`; })() : `
-      <ul class="wc-inc">${(R.inc || []).slice(0, 4).map(([, t]) => `<li>✓ ${t}</li>`).join("")}</ul>
+      <ul class="wc-inc">${(R.inc || []).slice(0, 4).map(([, t]) => `<li>${ic("check")} ${t}</li>`).join("")}</ul>
       <div class="wc-price">${R.save >= 1 ? `<div class="wc-de">de ${brl(R.full)}</div>` : ""}<div class="wc-val">${brl(R.final)}</div><div class="wc-pg">50% para confirmar · 50% ${S.servico === "hosp" ? "no check-out" : "no fim do serviço"}</div></div>`}
       <div class="wc-foot">${esc(CFG.whats)} · ${esc(CFG.insta)}</div></div>`;
   }
@@ -927,8 +928,8 @@ export async function mount(root, ctx) {
   }
   async function marcarEnviada() { if (META.status === "rascunho") await setStatus("enviada"); }
   async function comBotao(btn, fn) { const t = btn.textContent; btn.disabled = true; btn.textContent = "Gerando…"; try { await fn(); } catch (e) { console.error(e); toast("Algo deu errado: " + (e.message || e)); } finally { btn.disabled = false; btn.textContent = t; } }
-  async function enviarPdf(btn) { await comBotao(btn, async () => { const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; } if (dirty || !META.id) await save(); const b = await pdfBlob(); const r = await U.shareOrDownload(b, nomeArquivo("pdf"), "application/pdf"); if (r !== "cancelled") { toast(r === "downloaded" ? "PDF baixado ✓" : "PDF pronto ✓"); await marcarEnviada(); } }); }
-  async function enviarCard(btn) { await comBotao(btn, async () => { const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; } if (dirty || !META.id) await save(); const b = await cardBlob(); const r = await U.shareOrDownload(b, nomeArquivo("png"), "image/png"); if (r !== "cancelled") { toast("Imagem pronta ✓"); await marcarEnviada(); } }); }
+  async function enviarPdf(btn) { await comBotao(btn, async () => { const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; } if (dirty || !META.id) await save(); const b = await pdfBlob(); const r = await U.shareOrDownload(b, nomeArquivo("pdf"), "application/pdf"); if (r !== "cancelled") { toast(r === "downloaded" ? "PDF baixado" : "PDF pronto"); await marcarEnviada(); } }); }
+  async function enviarCard(btn) { await comBotao(btn, async () => { const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; } if (dirty || !META.id) await save(); const b = await cardBlob(); const r = await U.shareOrDownload(b, nomeArquivo("png"), "image/png"); if (r !== "cancelled") { toast("Imagem pronta"); await marcarEnviada(); } }); }
   function abrirEnviar() {
     if (S.alt) for (const n of [1, 2]) { const r = withOpt(n, calc); if (!r.ok) { toast(`Opção ${n}: ${r.msg}`); return; } }
     const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; }
@@ -936,10 +937,10 @@ export async function mount(root, ctx) {
     const m = U.modal(`<h3>Enviar proposta</h3>
       <p class="muted" style="margin:-4px 0 12px">Mande o PDF (ou a imagem) e depois a mensagem. A proposta passa para “Enviada”.</p>
       <div class="acts" style="margin-top:0">
-        <button class="btn primary" data-a="pdf">📄 Compartilhar PDF</button>
-        <button class="btn soft" data-a="card">🖼 Compartilhar imagem (card)</button>
-        <a class="btn wa" data-a="wa" href="${U.waLink(S.tutorWhats, msg)}" target="_blank" rel="noopener">💬 Abrir conversa com a mensagem</a>
-        <button class="btn soft" data-a="copy">📋 Copiar mensagem</button>
+        <button class="btn primary" data-a="pdf">${ic("pdf")} Compartilhar PDF</button>
+        <button class="btn soft" data-a="card">${ic("foto")} Compartilhar imagem (card)</button>
+        <a class="btn wa" data-a="wa" href="${U.waLink(S.tutorWhats, msg)}" target="_blank" rel="noopener">${ic("conversa")} Abrir conversa com a mensagem</a>
+        <button class="btn soft" data-a="copy">${ic("copiar")} Copiar mensagem</button>
       </div>
       <h3 style="font-size:15px;margin:14px 0 6px">Mensagem</h3><pre>${esc(msg)}</pre>
       <div class="acts"><button class="btn soft" data-close>Fechar</button></div>`);
@@ -948,7 +949,7 @@ export async function mount(root, ctx) {
       const a = b.dataset.a;
       if (a === "pdf") enviarPdf(b);
       else if (a === "card") enviarCard(b);
-      else if (a === "copy") { await U.copyText(msg); toast("Mensagem copiada ✓"); await marcarEnviada(); }
+      else if (a === "copy") { await U.copyText(msg); toast("Mensagem copiada"); await marcarEnviada(); }
       else if (a === "wa") { marcarEnviada(); }
     });
   }
@@ -985,7 +986,7 @@ export async function mount(root, ctx) {
   // para os testes automáticos
   window.G = { get S() { return S; }, set S(v) { S = v; }, blank, newPet, calc, withOpt, principal, bindValues, update, renderAdds, renderPets, save, META, setStatus };
 
-  if (S.importada && META.id) $("#impBanner").innerHTML = `<div class="warn" style="margin-bottom:12px">📥 <b>Orçamento importado do histórico</b> (feito antes do sistema${S.importada.quando ? ", " + U.esc(S.importada.quando) : ""}). O valor que foi passado ao cliente está em “Valor final combinado”. Complete o que faltar: datas, WhatsApp, fotos e a ficha dos pets.${S.importada.nota ? "<br>" + U.esc(S.importada.nota) : ""}</div>`;
+  if (S.importada && META.id) $("#impBanner").innerHTML = `<div class="warn" style="margin-bottom:12px">${ic("importado")} <b>Orçamento importado do histórico</b> (feito antes do sistema${S.importada.quando ? ", " + U.esc(S.importada.quando) : ""}). O valor que foi passado ao cliente está em “Valor final combinado”. Complete o que faltar: datas, WhatsApp, fotos e a ficha dos pets.${S.importada.nota ? "<br>" + U.esc(S.importada.nota) : ""}</div>`;
   bindValues(); renderLinked(); renderHead(); renderPets(); renderAdds(); syncChips(); renderOptTabs(); renderPage(); loadPagtos();
   document.fonts && document.fonts.ready.then(fitPreview);
   clearTimeout(autoT); dirty = false; window.__dirty = false; setState(META.id ? "Salvo ✓" : "");
