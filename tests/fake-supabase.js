@@ -7,7 +7,7 @@
   const T = window.__FAKE_DB = window.__FAKE_DB || {
     settings: [{ id: 1, pix_chave: null, pix_nome: "Larissa", pix_cidade: "BALNEARIO CAMBORIU", whatsapp: "(47) 99917-9091", instagram: "@petlar.bc", capacidade_hospedagem: 3, follow_up_dias: 2, expira_dias: 15 }],
     admins: [{ email: "teste@petlar.app", nome: "Teste", papel: window.__FAKE_PAPEL || "admin", created_at: nowISO() }],
-    tutores: [], pets: [], propostas: [], proposta_pets: [], pagamentos: [],
+    tutores: [], pets: [], propostas: [], proposta_pets: [], pagamentos: [], diario: [],
   };
   const STORE = window.__FAKE_STORE = window.__FAKE_STORE || {};
   window.__FAKE_LOG = window.__FAKE_LOG || [];

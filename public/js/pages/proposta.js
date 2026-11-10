@@ -815,6 +815,7 @@ export async function mount(root, ctx) {
       ${META.id && st !== "recusada" && st !== "aceita" ? `<button class="btn soft" data-st="recusada">✖ Cliente recusou</button>` : ""}
       ${META.id && st !== "enviada" && st !== "rascunho" ? `<button class="btn soft" data-st="enviada">↩ Voltar para “Enviada”</button>` : ""}
       ${META.id && st === "aceita" ? `<button class="btn soft" data-st="cancelada">Cancelar serviço</button>` : ""}
+      ${META.id && st === "aceita" ? `<a class="btn soft" href="#/diario/${META.id}" data-close>📓 Diário do serviço</a>` : ""}
       <button class="btn soft" data-salvar>💾 Salvar agora</button>
       ${META.id ? `<button class="btn soft" data-dup>⧉ Duplicar proposta</button>` : ""}
       ${META.id ? `<button class="btn danger" data-del>Excluir proposta</button>` : ""}

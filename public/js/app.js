@@ -27,6 +27,7 @@ const ROUTES = [
   { re: /^#\/config$/, mod: "config", nav: "mais", title: "Configurações" },
   { re: /^#\/ajuda$/, mod: "ajuda", nav: "mais", title: "Como usar" },
   { re: /^#\/cobrar$/, mod: "cobrar", nav: "cobrar", title: "Cobrar resposta" },
+  { re: /^#\/diario\/([\w-]+)$/, mod: "diario", nav: "hoje", title: "Diário" },
 ];
 // telas só da gestão (admin e gestora); o banco também bloqueia
 const SO_GESTAO = new Set(["propostas", "financeiro", "cobrar"]);

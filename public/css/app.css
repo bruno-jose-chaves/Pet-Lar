@@ -207,3 +207,23 @@ input[type=email],input[type=password]{width:100%;min-height:46px;-webkit-appear
 .fcampo b{display:block;margin-bottom:4px}
 .fcampo small{display:block;margin:-2px 0 6px}
 .fcampo .chips{margin-bottom:6px}
+
+/* v1.5: diário do pet */
+.dhead{display:flex;align-items:center;gap:10px;margin-top:6px}
+.dhead .av{width:52px;height:52px;border-radius:50%;overflow:hidden;background:#EBDDCB;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dhead .av img{width:100%;height:100%;object-fit:cover}
+.dhead .av + .av{margin-left:-22px;box-shadow:0 0 0 3px #F3EDE6}
+.dbtns{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 4px}
+@media (max-width:520px){.dbtns{grid-template-columns:repeat(4,1fr)}}
+.dbtn{font:inherit;font-size:11.5px;font-weight:700;color:#5A3B2A;background:#fff;border:1px solid #E7DACB;border-radius:16px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-height:76px;line-height:1.15;text-align:center}
+.dbtn span{font-size:26px;line-height:1}
+.dbtn:active,.dbtn.pulse{transform:scale(.94);background:#FBEDE5}
+.tl{display:flex;flex-direction:column;gap:6px}
+.tl-i{font:inherit;text-align:left;width:100%;display:flex;gap:10px;align-items:flex-start;background:#fff;border:0;border-radius:14px;padding:10px 12px;color:inherit;cursor:pointer}
+.tl-h{font-weight:800;font-size:13px;color:#7D7068;min-width:42px;padding-top:2px}
+.tl-ic{font-size:20px;line-height:1.2}
+.tl-t{flex:1;font-size:14px;line-height:1.4}
+.tl-t img{display:block;margin-top:8px;max-width:100%;max-height:240px;border-radius:12px;object-fit:cover}
+.tl-dia{margin-bottom:12px}
+.tl-dia > b{display:inline-block;margin:4px 0 6px}
+.qa-b.diario{background:#FFF4E8;border-color:#F2D9BC}

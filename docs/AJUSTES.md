@@ -92,7 +92,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - O link abre direto a área do tutor e pode ser salvo na tela de início do celular.
   - Cada link vale só para aquele tutor, pode ser cancelado e trocado a qualquer momento, e pode ter validade (ex.: até o fim da estadia).
   - Plano B, se um dia precisar: tela que pede só o telefone. Sem código de confirmação, porém, qualquer pessoa que souber o número entraria, então o link continua mais seguro e mais simples.
-- **Depende de F-02.** Sem o registro do dia a dia, a área do tutor fica vazia.
+- **Depende de F-02** (✅ pronto na v1.5). O diário já guarda o que o tutor vai ver.
 - **O que mais pode entrar:**
   - O tutor completa a ficha do pet: alimentação, remédios, veterinário, acesso à casa. Isso substitui a anamnese longa.
   - Ver e aceitar o orçamento, com o Pix do sinal.
@@ -105,10 +105,19 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Pedir o consentimento do tutor (LGPD), porque são fotos da casa dele.
   - Espaço para fotos: o plano grátis do Supabase tem 1 GB, o que dá cerca de 5 mil fotos comprimidas.
 
-### F-02 · Diário do pet (lado da Lari) 🟡
+### F-02 · Diário do pet (lado da Lari) ✅ (v1.5)
 - **Origem:** Claude, como base do F-01.
 - **O que é:** durante uma estadia ou visita, a Lari registra com botões rápidos: comeu, bebeu água, passeou, fez xixi/cocô, tomou remédio, dormiu, brincou. Cada registro aceita foto e observação, e tudo fica com o horário.
 - **Já útil sem o F-01:** gera o relatório do dia pronto para mandar no WhatsApp, e fica salvo no histórico do pet.
+- **Entregue (v1.5):**
+  - Tela Diário (`#/diario/<serviço>`): 10 botões, com escolha de pets quando há mais de um.
+  - Foto com legenda, guardada em `pets/diario/…`, privada.
+  - Recado, Desfazer, e editar a hora ou apagar um registro.
+  - Navegação pelos dias do serviço.
+  - Resumo do dia para o WhatsApp e compartilhamento das fotos.
+  - Diário na ficha do pet.
+  - Acesso pela tela Hoje, pelo menu da proposta aceita e pela tela Serviço (assistente).
+  - Tabela `diario` com regras de acesso no banco.
 
 ## Histórico
 | Data | O quê |

@@ -43,7 +43,7 @@ export async function mount(root) {
   const fotos = await db.fotoUrls(paths).catch(() => ({}));
   const svcHoje = p => p.servico === "hosp" ? (p.data_inicio === hoje ? "chega hoje" : p.data_fim === hoje ? "vai embora hoje" : "hospedado") : p.servico === "visitas" ? "visita hoje" : p.servico === "banho" ? "banho" : "rotina";
   U.$("#cHoje", root).textContent = ativos.length;
-  U.$("#hoje", root).innerHTML = ativos.length ? `<div class="list">${ativos.map(p => itemProposta(p, fotos, `<span class="pill aceita">${svcHoje(p)}</span>`)).join("")}</div>` : `<div class="empty">Nenhum serviço hoje. Dia de descanso? 😌</div>`;
+  U.$("#hoje", root).innerHTML = ativos.length ? `<div class="list">${ativos.map(p => `<div class="pwrap">${itemProposta(p, fotos, `<span class="pill aceita">${svcHoje(p)}</span>`)}<div class="qa"><a class="qa-b diario" href="#/diario/${p.id}">📓 Diário de hoje</a></div></div>`).join("")}</div>` : `<div class="empty">Nenhum serviço hoje. Dia de descanso? 😌</div>`;
   U.$("#cProx", root).textContent = prox.length;
   U.$("#prox", root).innerHTML = prox.length ? `<div class="list">${prox.map(p => itemProposta(p, fotos, `<b style="font-size:13px">${U.fmt(p.data_inicio)}</b>`)).join("")}</div>` : `<div class="empty">Nada confirmado para a próxima semana.</div>`;
   if (!g) return;

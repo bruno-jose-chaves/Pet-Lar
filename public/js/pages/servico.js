@@ -14,6 +14,7 @@ export async function mount(root, { params }) {
   root.innerHTML = `<a class="backlink" href="#/agenda">‹ Agenda</a>
     <h1 class="pg">${U.esc(pets.map(x => x.nome).filter(Boolean).join(" e ") || p.tutor_nome || "Serviço")}</h1>
     <p class="muted" style="margin-top:-6px">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")} · ${U.esc(p.numero || "")}</p>
+    <div class="row-actions" style="margin-bottom:12px"><a class="btn primary" href="#/diario/${p.id}">📓 Abrir diário</a></div>
     <div class="grid2">
       <div>
         <h2 class="sec" style="margin-top:0">Pets</h2>

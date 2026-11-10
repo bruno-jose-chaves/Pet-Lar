@@ -363,6 +363,43 @@ with sync_playwright() as p:
     no_hscroll("Financeiro com filtros")
     pg.evaluate("""() => { const T=window.__FAKE_DB; const ids=['f1','f2']; T.propostas=T.propostas.filter(p=>!ids.includes(p.id)); T.proposta_pets=T.proposta_pets.filter(x=>!ids.includes(x.proposta_id)); T.pagamentos=T.pagamentos.filter(g=>!ids.includes(g.proposta_id)); T.pets=T.pets.filter(p=>!['pf1','pf2'].includes(p.id)); T.tutores=T.tutores.filter(t=>!['tf1','tf2'].includes(t.id)); }""")
 
+    # ---------- v1.5: diário do pet ----------
+    pg.evaluate("""() => { const T=window.__FAKE_DB; const h=new Date().toISOString().slice(0,10); const f=new Date(Date.now()+2*86400000).toISOString().slice(0,10);
+      T.tutores.push({id:'tD',nome:'Paula Mendes',whatsapp:'(47) 96666-2222'});
+      T.pets.push({id:'pD1',tutor_id:'tD',nome:'Pipoca',especie:'cao',porte:'P',passeia:true,ativo:true,reativo:false},{id:'pD2',tutor_id:'tD',nome:'Paçoca',especie:'cao',porte:'P',passeia:true,ativo:true,reativo:false});
+      T.propostas.push({id:'d1',numero:'PL-D-1',status:'aceita',servico:'hosp',tutor_id:'tD',tutor_nome:'Paula Mendes',valor_total:300,valor_cheio:300,payload:{},data_inicio:h,data_fim:f,created_at:new Date().toISOString()});
+      T.proposta_pets.push({proposta_id:'d1',pet_id:'pD1'},{proposta_id:'d1',pet_id:'pD2'}); }""")
+    go("#/hoje"); pg.wait_for_timeout(900)
+    check("Diário: botão 'Diário de hoje' no serviço em andamento", pg.locator("a[href='#/diario/d1']").count() == 1)
+    pg.click("a[href='#/diario/d1']"); pg.wait_for_timeout(1000)
+    check("Diário: abre com os dois pets e o dia de hoje", "Pipoca" in pg.inner_text("#view") and "Paçoca" in pg.inner_text("#view") and pg.inner_text("#dNome").startswith("Hoje"))
+    check("Diário: primeiro dia do serviço não volta para o dia anterior", pg.is_disabled("#dPrev"))
+    pg.click("[data-t=comeu]"); pg.wait_for_timeout(700)
+    check("Diário: 1 toque registra para os 2 pets", DB("T.diario.filter(r=>r.tipo==='comeu').length") == 2)
+    check("Diário: linha do tempo junta os dois pets numa linha", pg.locator(".tl-i").count() == 1 and "Pipoca e Paçoca" in pg.inner_text("#dLista"))
+    pg.click("#dPets [data-pet=pD2]"); pg.click("[data-t=passeio]"); pg.wait_for_timeout(700)
+    check("Diário: registrar só para um pet", DB("T.diario.filter(r=>r.tipo==='passeio').map(r=>r.pet_id).join()") == "pD1")
+    pg.click(".toast.acao button"); pg.wait_for_timeout(700)
+    check("Diário: desfazer apaga o registro", DB("T.diario.filter(r=>r.tipo==='passeio').length") == 0)
+    pg.click("#dPets [data-pet=pD2]")
+    pg.click("[data-t=nota]"); pg.wait_for_timeout(300); pg.fill("#dTxt", "Dormiram juntinhos no sofá"); pg.click(".modal [data-ok]"); pg.wait_for_timeout(700)
+    check("Diário: recado registrado", "juntinhos" in pg.inner_text("#dLista"))
+    with pg.expect_file_chooser() as fc: pg.click("[data-t=foto]")
+    fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1200)
+    pg.fill("#dTxt", "Passeio na praia"); pg.click(".modal [data-ok]"); pg.wait_for_timeout(1000)
+    check("Diário: foto enviada (armazenamento privado) e aparece na linha do tempo", DB("(()=>{const r=T.diario.find(x=>x.tipo==='foto'); return !!r && !!window.__FAKE_STORE[r.foto_path] && r.foto_path.startsWith('diario/')})()") and pg.locator("#dLista img").count() == 1)
+    pg.locator(".tl-i").first.click(); pg.wait_for_timeout(300); pg.fill("#eHora", "07:30"); pg.click(".modal [data-salvar]"); pg.wait_for_timeout(700)
+    check("Diário: ajustar a hora de um registro", "07:30" in pg.inner_text("#dLista") and DB("T.diario.filter(r=>r.tipo==='comeu').every(r=>new Date(r.criado_em).getHours()===7)"))
+    pg.click("#dRel"); pg.wait_for_timeout(400); rel = pg.inner_text(".modal pre")
+    check("Diário: resumo do dia pronto para o WhatsApp", "Resumo de hoje" in rel and "07:30" in rel and "Comeu" in rel and "Oi, Paula" in rel and "wa.me/5547966662222" in pg.get_attribute(".modal a.wa", "href"), rel[:60])
+    check("Diário: botão para compartilhar as fotos do dia", pg.locator(".modal [data-fotos]").count() == 1)
+    pg.click(".modal [data-close]"); pg.wait_for_timeout(200)
+    no_hscroll("Diário")
+    pg.screenshot(path=str(OUT / "app_diario.png"))
+    go("#/pet/pD1"); pg.wait_for_timeout(1000)
+    check("Ficha do pet: mostra o diário", "Diário" in pg.inner_text("#view") and "juntinhos" in pg.inner_text("#diarioPet"))
+    pg.evaluate("""() => { const T=window.__FAKE_DB; T.diario=[]; T.propostas=T.propostas.filter(p=>p.id!=='d1'); T.proposta_pets=T.proposta_pets.filter(x=>x.proposta_id!=='d1'); T.pagamentos=T.pagamentos.filter(g=>g.proposta_id!=='d1'); T.pets=T.pets.filter(p=>!['pD1','pD2'].includes(p.id)); T.tutores=T.tutores.filter(t=>t.id!=='tD'); }""")
+
     # ---------- Falha de rede ao salvar ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(800)
     pg.evaluate("() => { window.__FAKE_FAIL = q => q.t==='propostas' && q.op==='update'; }")
@@ -401,6 +438,9 @@ with sync_playwright() as p:
     q.evaluate("location.hash='#/proposta/sA'"); q.wait_for_timeout(900)
     t = q.inner_text("#view")
     check("Assistente: serviço abre sem valores, com cuidados e recado", "Duque" in t and "Vermífugo" in t and "caminha" in t and "R$" not in t)
+    check("Assistente: serviço tem o botão do diário", q.locator("a[href='#/diario/sA']").count() == 1)
+    q.click("a[href='#/diario/sA']"); q.wait_for_timeout(900); q.click("[data-t=comeu]"); q.wait_for_timeout(700)
+    check("Assistente: consegue registrar no diário", q.evaluate("window.__FAKE_DB.diario.length") == 1 and "R$" not in q.inner_text("#view"))
     q.evaluate("location.hash='#/config'"); q.wait_for_timeout(700)
     check("Assistente: Configurações só mostra o próprio acesso", q.locator("#fS").count() == 0 and q.locator("#fA").count() == 0 and "Assistente" in q.inner_text("#view"))
     q.screenshot(path=str(OUT / "app_assistente.png")); c2.close()

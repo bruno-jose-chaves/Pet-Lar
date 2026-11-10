@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 1.4 · atualizado em 10/11/2026
+Versão 1.5 · atualizado em 10/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -19,6 +19,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Depois que o cliente responde](#depois-que-o-cliente-responde)
 - [Cobrar resposta](#cobrar-resposta)
 - [Filtros](#filtros)
+- [Diário do pet](#diario-do-pet)
 - [Regras de preço](#regras-de-preco)
 - [Dicas e dúvidas](#dicas-e-duvidas)
 
@@ -187,6 +188,27 @@ As abas Propostas, Pets, Tutores, Agenda e Financeiro têm o botão **⚙️ Fil
 
 Na visão **Por cliente** (em Propostas) os filtros não se aplicam.
 
+## Diário do pet
+
+Durante uma estadia ou visita, registre com um toque o que aconteceu. No fim do dia, mande o resumo para o tutor.
+
+**Onde abrir:**
+- Na tela **Hoje**, botão **📓 Diário de hoje** em cada serviço em andamento.
+- No orçamento aceito: menu ••• → **Diário do serviço**.
+
+**Como usar:**
+
+1. Toque no que aconteceu: 🍽️ Comeu · 💧 Bebeu água · 🦮 Passeou · 💛 Xixi · 💩 Cocô · 💊 Remédio · 😴 Dormiu · 🎾 Brincou. O registro entra na hora, com o horário.
+2. **📸 Foto:** tira ou escolhe uma foto e escreve uma legenda, se quiser. A foto fica guardada de forma privada.
+3. **📝 Recado:** escreve qualquer coisa ("comeu tudo e dormiu no sofá").
+4. Com mais de um pet, os botões **Registrar para** escolhem de quem é o registro. Já vêm todos marcados.
+5. Errou? Toque em **Desfazer** no aviso. Para mudar a hora ou o texto, ou apagar, toque no registro na linha do tempo.
+6. Use as setas para ver os outros dias do serviço. Registro feito em outro dia entra ao meio-dia, e dá para ajustar a hora.
+
+**📤 Mandar resumo do dia:** monta o texto com tudo o que foi registrado ("08:10 🍽️ Comeu…"). Toque em **Mandar no WhatsApp** e depois em **Compartilhar as fotos** para mandar as fotos do dia na mesma conversa.
+
+A ficha de cada pet mostra o diário de todos os serviços, dia por dia. Mais para frente, este diário é o que o tutor vai ver na área dele.
+
 ## Regras de preço
 
 O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - Servicos e Precos").
@@ -223,6 +245,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 1.5 | 10/11/2026 | Diário do pet: registros com um toque, fotos, recados, linha do tempo e resumo do dia para o WhatsApp |
 | 1.4 | 10/11/2026 | Filtros em Propostas, Pets, Tutores, Agenda e Financeiro |
 | 1.3 | 10/11/2026 | Aba Cobrar resposta, botões Aceitou/Recusou/Cobrar/Adiar direto da lista, mudança em lote e link de nova senha |
 | 1.2 | 10/11/2026 | Proposta com duas opções (recomendada, escolhida e aceite por opção) |

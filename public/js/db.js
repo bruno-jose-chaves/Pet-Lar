@@ -203,3 +203,26 @@ export async function linkNovaSenha(email) {
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
   if (error) throw error; return true;
 }
+
+// ---------- diário do pet ----------
+const DIA_COLS = "id,pet_id,proposta_id,tipo,nota,foto_path,criado_em,autor";
+const limitesDia = dia => { const a = new Date(dia + "T00:00:00"), b = new Date(dia + "T23:59:59.999"); return [a.toISOString(), b.toISOString()]; };
+export async function diarioDoServico(propostaId, dia) {
+  const [a, b] = limitesDia(dia);
+  return chk(await sb.from("diario").select(DIA_COLS).eq("proposta_id", propostaId).gte("criado_em", a).lte("criado_em", b).order("criado_em"));
+}
+export async function diarioDoPet(petId, limit = 60) {
+  return chk(await sb.from("diario").select(DIA_COLS).eq("pet_id", petId).order("criado_em", { ascending: false }).limit(limit));
+}
+export async function addDiario(rows) { return chk(await sb.from("diario").insert(rows).select(DIA_COLS)); }
+export async function updateDiario(id, row) { return chk(await sb.from("diario").update(row).eq("id", id).select(DIA_COLS).single()); }
+export async function deleteDiario(ids) { return chk(await sb.from("diario").delete().in("id", ids)); }
+export async function uploadFotoDiario(petId, blob) {
+  const path = `diario/${petId}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`;
+  const { error } = await sb.storage.from("pets").upload(path, blob, { contentType: "image/jpeg", upsert: false });
+  if (error) throw error; return path;
+}
+export async function getServicoBasico(id) {
+  return chk(await sb.from("propostas").select("id,numero,servico,status,data_inicio,data_fim,tutor_id,tutor_nome,tutores(whatsapp),proposta_pets(pets(id,nome,especie,foto_path))").eq("id", id).single());
+}
+export async function fotoBlob(path) { const { data, error } = await sb.storage.from("pets").download(path); if (error) throw error; return data; }
