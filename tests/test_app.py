@@ -72,7 +72,7 @@ with sync_playwright() as p:
     dois = pg.evaluate("(()=>{const d=new Date();d.setDate(d.getDate()+2);return d.toISOString().slice(0,10)})()")
     pg.fill("[data-k=h_in]", hoje); pg.fill("[data-k=h_out]", dois)
     check("Proposta: 3 dias de hospedagem = R$ 300", pg.inner_text("#calcTot") == "R$ 300", pg.inner_text("#calcTot"))
-    pg.wait_for_timeout(2600)
+    pg.wait_for_timeout(3400)
     check("Proposta: salvou sozinha e ganhou número", pg.inner_text("#pNum").startswith("PL-"), pg.inner_text("#pNum"))
     check("Proposta: endereço mudou para a proposta salva", "/proposta/" in pg.evaluate("location.hash") and "nova" not in pg.evaluate("location.hash"))
     check("Banco: tutor criado com WhatsApp", DB("T.tutores.length===1 && T.tutores[0].whatsapp==='(47) 98888-7777'"))
@@ -180,13 +180,26 @@ with sync_playwright() as p:
 
     # ---------- v1.1: valor combinado ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
-    pg.fill("[data-k=valorFechado]", "250"); pg.wait_for_timeout(2400)
+    pg.fill("[data-k=valorFechado]", "250"); pg.wait_for_timeout(3200)
     check("Valor combinado: total vira R$ 250", pg.inner_text("#calcTot") == "R$ 250", pg.inner_text("#calcTot"))
     check("Valor combinado: mostra a conta da tabela (R$ 300)", "R$ 300" in pg.inner_text("#valorTabela"))
     check("Valor combinado: PDF mostra a condição especial", "Condição especial combinada" in pg.inner_text("#page"))
     check("Valor combinado: salvo no banco", DB("T.propostas[0].valor_total") == 250)
-    pg.fill("[data-k=valorFechado]", ""); pg.wait_for_timeout(2400)
+    pg.fill("[data-k=valorFechado]", ""); pg.wait_for_timeout(3200)
     check("Valor combinado vazio: volta para a tabela", DB("T.propostas[0].valor_total") == 300)
+
+    # ---------- v1.6: nome do tutor não salva pela metade ----------
+    n_tut = DB("T.tutores.length")
+    go("#/proposta/nova"); pg.wait_for_timeout(600)
+    pg.click("[data-k=tutor]"); pg.keyboard.type("Car", delay=60); pg.wait_for_timeout(3500)
+    check("Tutor: pausa no meio do nome não cria cliente pela metade", DB("T.tutores.length") == n_tut and DB("!T.tutores.some(t=>t.nome==='Car')"))
+    pg.keyboard.type("olina Duarte", delay=40); pg.click("#petList [data-pk=nome]"); pg.keyboard.type("Mel", delay=40); pg.wait_for_timeout(3800)
+    check("Tutor: ao sair do campo, cria um cliente só, com o nome inteiro", DB("T.tutores.length") == n_tut + 1 and DB("T.tutores.some(t=>t.nome==='Carolina Duarte')"))
+    pg.click("[data-k=tutor]"); pg.keyboard.press("End"); pg.keyboard.type(" Silva", delay=40); pg.click("[data-k=obs]"); pg.wait_for_timeout(3800)
+    check("Tutor: corrigir o nome atualiza o mesmo cliente (sem duplicar)", DB("T.tutores.length") == n_tut + 1 and DB("T.tutores.some(t=>t.nome==='Carolina Duarte Silva')"))
+    nid = pg.evaluate("G.META.id")
+    pg.evaluate(f"() => {{ const T=window.__FAKE_DB; const p=T.propostas.find(x=>x.id==='{nid}'); const tid=p.tutor_id; T.propostas=T.propostas.filter(x=>x.id!=='{nid}'); T.proposta_pets=T.proposta_pets.filter(x=>x.proposta_id!=='{nid}'); T.pets=T.pets.filter(x=>x.tutor_id!==tid); T.tutores=T.tutores.filter(t=>t.id!==tid); }}")
+    go("#/propostas"); pg.wait_for_timeout(500)
 
     # ---------- v1.2: duas opções na mesma proposta ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
@@ -197,10 +210,10 @@ with sync_playwright() as p:
     check("2 opções: opção 2 = 3 visitas R$ 210", pg.inner_text("#calcTot") == "R$ 210", pg.inner_text("#calcTot"))
     check("2 opções: PDF mostra as duas, a 1 recomendada", pg.locator("#page .opt").count() == 2 and "recomendada" in pg.locator("#page .opt.rec").inner_text().lower() and "hospedagem" in pg.locator("#page .opt.rec").inner_text().lower())
     check("2 opções: PDF sem QR do Pix até o cliente escolher", pg.locator("#page .cond img").count() == 0 and "escolher a opção" in pg.inner_text("#page .cond"))
-    pg.wait_for_timeout(2400)
+    pg.wait_for_timeout(3200)
     check("2 opções: banco guarda a recomendada (R$ 300, hospedagem) e a outra no payload", DB("T.propostas[0].valor_total===300 && T.propostas[0].servico==='hosp' && T.propostas[0].payload.alt.servico==='hosp' && T.propostas[0].payload.servico==='visitas'"))
     check("2 opções: resumo da lista cita a opção 2", "ou opção 2" in DB("T.propostas[0].resumo"))
-    tap("#optTabs [data-opt=rec]"); pg.wait_for_timeout(2600)
+    tap("#optTabs [data-opt=rec]"); pg.wait_for_timeout(3400)
     check("2 opções: recomendar a 2 muda o destaque e o valor salvo", "Visitas" in pg.locator("#page .opt.rec").inner_text() and DB("T.propostas[0].valor_total") == 210 and DB("T.propostas[0].servico") == "visitas")
     tap("#optTabs .chip[data-opt='1']"); pg.wait_for_timeout(400)
     check("2 opções: voltar para a opção 1 mantém a hospedagem", pg.evaluate("G.S.servico") == "hosp" and pg.inner_text("#calcTot") == "R$ 300")
@@ -218,7 +231,7 @@ with sync_playwright() as p:
     tap("#pMenu"); pg.wait_for_timeout(300); pg.click(".modal [data-del]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(800)
     pg.evaluate(f"() => {{ const T=window.__FAKE_DB; T.pagamentos=T.pagamentos.filter(g=>g.proposta_id!=='{dup}'); }}")
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
-    tap("#optTabs .chip[data-opt='2']"); pg.wait_for_timeout(300); tap("#optTabs [data-opt=rm]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(2600)
+    tap("#optTabs .chip[data-opt='2']"); pg.wait_for_timeout(300); tap("#optTabs [data-opt=rm]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(3400)
     check("2 opções: remover a opção 2 volta a ser proposta simples de hospedagem R$ 300", DB("!T.propostas[0].payload.alt && T.propostas[0].valor_total===300 && T.propostas[0].servico==='hosp'") and pg.locator("#page .opts").count() == 0)
     no_hscroll("Editor com 2 opções")
 
@@ -232,7 +245,7 @@ with sync_playwright() as p:
     go("#/proposta/imp1"); pg.wait_for_timeout(900)
     check("Importado: aviso de orçamento do histórico", "importado do histórico" in pg.inner_text("#impBanner"))
     check("Importado: valor combinado carregado", pg.input_value("[data-k=valorFechado]") == "680")
-    pg.fill("[data-k=obs]", "completando depois"); pg.wait_for_timeout(2400)
+    pg.fill("[data-k=obs]", "completando depois"); pg.wait_for_timeout(3200)
     check("Importado: editar sem datas não zera o valor", DB("T.propostas.find(p=>p.id==='imp1').valor_total") == 680)
     go("#/tutor/tImp"); pg.wait_for_timeout(700)
     check("Tutor: seção Histórico de orçamentos", "Histórico de orçamentos" in pg.inner_text("#view") and pg.locator(".item.hist").count() == 1)
@@ -403,9 +416,9 @@ with sync_playwright() as p:
     # ---------- Falha de rede ao salvar ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(800)
     pg.evaluate("() => { window.__FAKE_FAIL = q => q.t==='propostas' && q.op==='update'; }")
-    pg.fill("[data-k=obs]", "vai falhar"); pg.wait_for_timeout(2200)
+    pg.fill("[data-k=obs]", "vai falhar"); pg.wait_for_timeout(3200)
     check("Erro ao salvar aparece para o usuário", "Erro" in pg.inner_text("#saveState"))
-    pg.evaluate("() => { window.__FAKE_FAIL = null; }"); pg.fill("[data-k=obs]", "voltou a internet"); pg.wait_for_timeout(2200)
+    pg.evaluate("() => { window.__FAKE_FAIL = null; }"); pg.fill("[data-k=obs]", "voltou a internet"); pg.wait_for_timeout(3200)
     check("Depois da falha, salva normalmente", DB("T.propostas[0].payload.obs") == "voltou a internet")
 
     # ---------- Sair e login ----------

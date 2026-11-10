@@ -711,7 +711,15 @@ export async function mount(root, ctx) {
       + `<button type="button" data-novo>+ Cliente novo: <b>${esc(q)}</b></button>`;
     acList.classList.remove("hide"); acList._data = r;
   }, 250);
-  on(tutorInput, "input", () => buscaTutor(tutorInput.value));
+  on(tutorInput, "input", () => {
+    if (S.tutor_id && S._tutorNovo === S.tutor_id) S._tutorNomeDirty = true; // cliente criado nesta proposta: só corrige o nome
+    else if (S.tutor_id) { S.tutor_id = null; tutorPetsCache = []; renderLinked(); renderTutorPets(); } // mudou o nome de um cliente existente: procura de novo
+    buscaTutor(tutorInput.value);
+  });
+  on(tutorInput, "blur", () => setTimeout(() => {
+    if (!alive || document.activeElement === tutorInput) return;
+    if ((!S.tutor_id && S.tutor.trim().length >= 2) || S._tutorNomeDirty || dirty) markDirty(); // terminou de digitar: agora cadastra/corrige o cliente
+  }, 500));
   on(acList, "click", e => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.novo !== undefined) { acList.classList.add("hide"); return; }
@@ -736,7 +744,7 @@ export async function mount(root, ctx) {
   function payloadDe() {
     const c = JSON.parse(JSON.stringify(S));
     c.pets = c.pets.map(p => { const { foto, _fotoNova, _fotoRemover, ...r } = p; return r; });
-    delete c._tutorWhatsDirty;
+    delete c._tutorWhatsDirty; delete c._tutorNomeDirty;
     // resumo de cada opção, para aceitar direto da lista sem abrir o editor
     c.opcoes = S.alt ? [1, 2].map(n => withOpt(n, () => { const r = calc(); const pe = periodoDe(); const vf = Number(S.valorFechado) || 0;
       return { n, servico: S.servico, titulo: r.title, valor_total: r.ok ? r.final : vf, valor_cheio: r.ok ? r.full : vf, data_inicio: pe.data_inicio, data_fim: pe.data_fim }; })) : null;
@@ -747,15 +755,26 @@ export async function mount(root, ctx) {
   markDirty = () => {
     dirty = true; window.__dirty = true;
     if (!podeSalvar()) { setState("Preencha o tutor para salvar"); return; }
-    setState("Alterações…"); clearTimeout(autoT); autoT = setTimeout(() => save().catch(() => {}), 1200);
+    setState("Alterações…"); clearTimeout(autoT); autoT = setTimeout(() => save({ auto: true }).catch(() => {}), 2500);
   };
-  async function doSave() {
+  // o tutor só vira cadastro quando a pessoa termina de digitar o nome (sai do campo) ou salva/envia de propósito
+  function nomeTutorPronto(auto) {
+    const nome = S.tutor.trim(); if (nome.length < 2) return false;
+    if (!auto) return true;
+    return document.activeElement !== tutorInput && acList.classList.contains("hide");
+  }
+  async function doSave({ auto = false } = {}) {
     setState("Salvando…");
     const pr = principal(); const R = withOpt(pr, calc);
-    if (!S.tutor_id && S.tutor.trim()) {
+    if (!S.tutor_id && nomeTutorPronto(auto)) {
       const t = await db.saveTutor({ nome: S.tutor.trim(), whatsapp: S.tutorWhats || null, cidade: cidadeNome() || null });
-      S.tutor_id = t.id; S._tutorWhatsDirty = false; if (alive) renderLinked();
-    } else if (S.tutor_id && S._tutorWhatsDirty) { S._tutorWhatsDirty = false; await db.saveTutor({ id: S.tutor_id, whatsapp: S.tutorWhats || null }); }
+      S.tutor_id = t.id; S._tutorNovo = t.id; S._tutorWhatsDirty = false; S._tutorNomeDirty = false; if (alive) renderLinked();
+    } else if (S.tutor_id) {
+      const up = {};
+      if (S._tutorWhatsDirty) up.whatsapp = S.tutorWhats || null;
+      if (S._tutorNomeDirty && S._tutorNovo === S.tutor_id && nomeTutorPronto(auto)) up.nome = S.tutor.trim(); // corrigiu o nome do cliente criado aqui
+      if (Object.keys(up).length) { await db.saveTutor({ id: S.tutor_id, ...up }); S._tutorWhatsDirty = false; if (up.nome) S._tutorNomeDirty = false; }
+    }
     await Promise.all(S.pets.map(async p => {
       const vazio = !p.pet_id && !p.nome.trim() && !p.raca.trim() && !p.foto;
       if (vazio) return;
@@ -781,14 +800,14 @@ export async function mount(root, ctx) {
     await db.setPropostaPets(META.id, [...new Set(S.pets.map(p => p.pet_id).filter(Boolean))]);
     db.invalidate("lista");
   }
-  async function save() {
+  async function save(opts = {}) {
     if (!podeSalvar()) { toast("Preencha o nome do tutor ou do pet."); return false; }
     clearTimeout(autoT);
     if (saving) { saveAgain = true; return saving; }
     dirty = false; window.__dirty = false;
-    saving = doSave().then(() => { if (!alive) return true; if (!dirty) setState("Salvo ✓"); renderHead(); renderPage(); return true; })
+    saving = doSave(opts).then(() => { if (!alive) return true; if (!dirty) setState("Salvo ✓"); renderHead(); renderPage(); return true; })
       .catch(e => { dirty = true; if (alive) { window.__dirty = true; setState("Erro ao salvar"); toast("Não consegui salvar. Confira a internet; tento de novo na próxima alteração."); } throw e; })
-      .finally(() => { saving = null; if (saveAgain && alive) { saveAgain = false; if (dirty) save().catch(() => {}); } });
+      .finally(() => { saving = null; if (saveAgain && alive) { saveAgain = false; if (dirty) save({ auto: true }).catch(() => {}); } });
     return saving;
   }
   function resumoDe(R) {
