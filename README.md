@@ -1,88 +1,80 @@
-# Pet Lar · Gerador de Propostas
+# Pet Lar · Painel (v1)
 
-Site de uma página onde a Larissa monta a proposta do cliente pelo celular e baixa o **PDF pronto** (A4, 1 página) para mandar no WhatsApp, já na identidade visual oficial da Pet Lar.
+Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, WhatsApp e Pix), **tutores**, **pets**, **agenda** e **financeiro**.
 
-- Sem servidor e sem banco de dados: é um HTML estático. O cálculo, o rascunho (salvo no próprio celular) e o PDF acontecem no navegador.
-- Pensado para iPhone: pode ser adicionado à Tela de Início e abre como um app.
+- **Site:** https://propostas.petlar.workers.dev (Cloudflare Worker `propostas`). Até a troca de nome, o endereço é https://pet-lar.brunojosechavescarvalho.workers.dev
+- **Banco:** Supabase, projeto `pet-lar` (São Paulo), com login e fotos privadas.
+- **Publicação:** todo `git push` na `main` publica sozinho (Workers Builds).
+
+---
+
+## Telas
+
+| Tela | O que faz |
+|---|---|
+| **Hoje** | Serviços do dia, próximos 7 dias, propostas sem resposta (botão "Lembrar" no WhatsApp) e indicadores (a receber, recebido no mês, aguardando) |
+| **Propostas** | Funil por status (rascunho → enviada → aceita/recusada), busca, taxa de aceite e paginação |
+| **Proposta** | Gerador com a tabela v2.3. **Salva sozinho**, numera (PL-2026-001), vincula tutor e pets do cadastro, guarda foto e ficha do pet. **Enviar**: PDF, imagem (card), mensagem pronta e conversa no WhatsApp. Quando a proposta é aceita, lança **sinal e saldo (50/50)** no financeiro. Menu com aceitar, recusar, duplicar e excluir |
+| **Pets** | Com a Lari agora · Próximos (60 dias) · Todos. A ficha tem foto, alimentação, remédios, comportamento, limitações, veterinário e histórico |
+| **Tutores** | Lista e ficha: contato, endereço (link para o mapa), pets, propostas e quanto já contratou. Botão de nova proposta já preenchida |
+| **Agenda** | Mês com hospedagens, visitas e banhos. **Alerta de lotação** acima da capacidade de hóspedes |
+| **Financeiro** | A receber, vencido (com lembrete no WhatsApp), recebido no mês e receita por serviço. "Recebi" com Pix, dinheiro ou cartão |
+| **Configurações** | Chave Pix (QR do sinal no PDF + copia e cola na mensagem), contato, capacidade, dias para follow-up, **quem tem acesso**, trocar senha |
+
+## Acesso
+1. O e-mail precisa estar liberado em **Configurações → Quem tem acesso**. Os dois e-mails do Bruno já vêm liberados.
+2. No site, a pessoa digita o e-mail, cria uma senha e toca em **Primeiro acesso**.
+3. Ela confirma pelo link que chega no e-mail e depois entra com e-mail e senha.
 
 ---
 
 ## Estrutura
 
 ```
-wrangler.jsonc           ← configuração do Worker (publica a pasta public/)
-public/                  ← pasta publicada pela Cloudflare
-  index.html             ← o app inteiro (HTML + CSS + JS; logo embutido)
-  manifest.webmanifest   ← nome e ícones para "Adicionar à Tela de Início"
-  _headers               ← cabeçalhos da Cloudflare (noindex, cache, segurança)
-  robots.txt             ← bloqueia buscadores (ferramenta interna)
-  assets/                ← ícones do iPhone, favicon e logo oficial em PNG
+public/
+  index.html            casca do app (esqueleto de carregamento)
+  css/gerador.css       estilos do gerador, do A4 e do card (fontes próprias)
+  css/app.css           estilos do painel
+  js/app.js             roteador (#/hoje, #/propostas…), login e menu
+  js/db.js              todas as consultas ao Supabase (tempo-limite de 20 s, cache curto)
+  js/ui.js              utilitários (formatação, modal, toast, compartilhar)
+  js/pix.js             Pix copia e cola (BR Code do Banco Central) + QR
+  js/pages/*.js         uma tela por arquivo, carregada só quando abre
+  vendor/               supabase-js, html2canvas, jsPDF, qrcode (sem CDN de terceiros)
+  fonts/                Lato e Playfair (só os pesos usados)
 tests/
-  test_petlar.py         ← confere os valores da tabela de preços
-  test_iphone.py         ← testa todos os botões simulando o iPhone 16 Pro Max
-  foto_teste.jpg
+  test_app.py           fluxo completo (66 verificações) com banco simulado · webkit e chromium
+  test_precos.py        tabela de preços (21 casos)
+  test_perf.py          3G lento + CPU 4x mais lenta
+  fake-supabase.js      Supabase em memória para os testes
+supabase/
+  schema.sql            banco (tabelas, segurança, gatilhos, índices)
+wrangler.jsonc          Worker de arquivos estáticos (pasta public/)
 ```
 
----
+## Banco (Supabase)
+`tutores` → `pets` · `propostas` (+ `proposta_pets`) → `pagamentos` · `settings` · `admins`
+- **Segurança (RLS):** só e-mails da tabela `admins` leem e gravam. Fotos ficam em armazenamento **privado**, com links temporários.
+- **Gatilhos:** numeração anual sem buracos, data de envio e de resposta, sinal e saldo automáticos ao aceitar.
+- **Índices** para status, período, tutor, pagamentos em aberto e busca por nome.
+- `painel_resumo()` monta todos os números da tela Hoje numa chamada só.
 
-## Publicação (Cloudflare Workers)
-
-**Endereço:** https://pet-lar.brunojosechavescarvalho.workers.dev
-
-O site roda como um **Cloudflare Worker só com arquivos estáticos**, o projeto `pet-lar`, ligado a este repositório pelo Workers Builds.
-- `wrangler.jsonc` diz à Cloudflare para publicar a pasta `public/`.
-- Todo `git push` na `main` publica sozinho em cerca de 1 minuto. O status aparece no commit do GitHub ("Workers Builds: pet-lar").
-- Painel: Cloudflare → Workers & Pages → `pet-lar` (Deployments, Domains, Settings).
-
-Configuração de build no painel (já feita):
-
-| Campo | Valor |
-|---|---|
-| Build command | *(vazio)* |
-| Deploy command | `npx wrangler deploy` |
-| Root directory | `/` |
-
-### Domínio próprio (opcional)
-`pet-lar` → **Domains** → *Add custom domain*, por exemplo `propostas.petlar.com.br`. O domínio precisa estar na Cloudflare.
-
-### Proteger o acesso (opcional, recomendado)
-A tabela de preços está dentro do código. Para só a Larissa (e você) abrir:
-no painel do Worker `pet-lar` → **Settings → Domains & Routes → workers.dev → Cloudflare Access** (ativar), ou em **Zero Trust → Access → Applications → Self-hosted**, com a política "Emails: e-mail da Larissa, e-mail do Bruno". O login é por código enviado ao e-mail. É grátis até 50 usuários.
-
----
-
-## Instalar no iPhone da Larissa
-1. Abrir o link no **Safari**.
-2. Tocar em **Compartilhar** → **Adicionar à Tela de Início**.
-3. Pronto: o ícone da Pet Lar abre o gerador em tela cheia.
-
-**Enviar a proposta:** "Baixar PDF" abre a tela de compartilhar do iPhone com o PDF → **WhatsApp** → contato.
-
----
-
-## Onde mudar as coisas (em `public/index.html`)
-
-| O que | Onde |
-|---|---|
-| Preços e descontos | bloco `CONFIG — Tabela v2.2` (constante `T`) no início do `<script>` |
-| WhatsApp e Instagram do rodapé | constante `CONTATO` |
-| Logo | constante `LOGO` (imagem em base64). O PNG original está em `public/assets/logo-petlar.png` |
-| Textos do que está incluso | funções `incVisita`, `incHosp`, `incBanho` |
-| Cores e fontes | variáveis `:root` no `<style>` |
-
-Regras de preço oficiais: nota **Pet Lar - Servicos e Precos** (Obsidian › 30-Projetos/pet-sitter). Os pontos principais:
-- Visita R$ 70. A 2ª visita no mesmo dia tem −40%. Pacote mensal: 1x, 3x, 5x ou **outro** número de visitas por semana. O mês conta como **4,3 semanas** (1x = 4, 2x = 9, 3x = 13, 5x = 21 visitas). Desconto do pacote: −5% para 1 a 2x por semana, −10% para 3 a 4x e −15% para 5x ou mais. Acima de 7x por semana, as visitas a mais são 2ª visita do dia e têm −40%. Pacote viagem: −5% / −10% / −15% para 5 / 10 / 25 dias ou mais.
-- Hospedagem: R$ 100 (P/M e gato) ou R$ 120 (G). **Conta do dia de entrada ao de saída.** Estadia de 7 a 20 diárias tem −10%; de 21 ou mais, −15%.
-- Banho: P 90 · M 120 · G 160 · GG 200 · gato 100. Plano quinzenal −10%, semanal −15%.
-- Pet adicional: 60% (se passeia) ou R$ 15 (se não passeia). Deslocamento para Itajaí ou Camboriú: R$ 30 por deslocamento.
-- Feriado +20%: é interno e não aparece no PDF. O total é arredondado para múltiplo de R$ 5.
-
----
+## Desempenho (aplicado das 31 dicas)
+Telas com esqueleto de carregamento · cada tela carrega só o código dela · bibliotecas de PDF só ao gerar · imagens WebP e `loading="lazy"` · fontes próprias com só os pesos usados · CDN e compressão da Cloudflare · cache longo para fontes e bibliotecas · busca com debounce · listas paginadas · consultas só com as colunas usadas · requisições em paralelo · tempo-limite nas chamadas · índices no banco · atualização otimista (status, "recebi") · teste em rede lenta.
+Medido no 3G lento com CPU 4x mais lenta: esqueleto em 0,6 s, painel pronto em cerca de 4 s.
 
 ## Rodar os testes
 ```bash
 pip install playwright && python -m playwright install chromium webkit
-python tests/test_petlar.py          # valores da tabela
-python tests/test_iphone.py webkit   # app inteiro no iPhone 16 Pro Max
-PETLAR_URL=https://pet-lar.brunojosechavescarvalho.workers.dev python tests/test_iphone.py webkit   # testar o site publicado
+python tests/test_app.py webkit && python tests/test_app.py chromium
+python tests/test_precos.py
+python tests/test_perf.py
 ```
+
+## Onde mudar
+| O quê | Onde |
+|---|---|
+| Preços e regras | `js/pages/proposta.js`, constante `T` (tabela v2.3) |
+| Textos do que está incluso | `incVisita`, `incHosp`, `incBanho` em `proposta.js` |
+| Pix, contato, capacidade | tela **Configurações** (sem código) |
+| Cores e fontes | `:root` em `css/gerador.css` |
