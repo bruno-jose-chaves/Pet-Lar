@@ -48,22 +48,58 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 
 ## Observados durante o desenvolvimento (precisam do seu ok)
 
-### C-01 · Proposta com duas opções 🟡
-- **Origem:** Claude. Três dos orçamentos antigos (Karina, Hulk e Máximus, Lupi) tinham 2 opções no mesmo card, por exemplo hospedagem ou visitas. Hoje a opção 2 ficou só no recado.
-- **Ideia:** "Adicionar opção 2" no editor, com o PDF e o card mostrando as duas e uma marcada como recomendada.
+### C-01 · Proposta com duas opções ✅ (v1.2, 10/11/2026)
+- **Origem:** Claude, aprovado pelo Bruno. Três dos orçamentos antigos (Karina, Hulk e Máximus, Lupi) tinham 2 opções no mesmo card.
+- **Entregue:** "+ Adicionar opção 2" no passo 3 do editor. Cada opção tem serviço, datas, desconto, adicionais e valor combinado próprios; cliente, pets e recado são comuns. Uma fica ⭐ recomendada (destaque no PDF e no card; é a que conta na lista, agenda e totais). PDF, card e mensagem mostram as duas; o Pix do sinal só aparece depois da escolha. Menu ••• → "Aceitou a opção 1/2" lança sinal e saldo da opção escolhida.
+- Hulk e Máximus (PL-2026-011) e Lupi (PL-2026-013) foram convertidos para 2 opções. Karina (PL-2026-009) ficou com a opção 2 no recado, porque a opção 2 era só para 1 dos 2 gatos.
+- **Limite conhecido:** as duas opções usam os mesmos pets. Ver C-05.
 
 ### C-02 · Completar os orçamentos importados 🟡
 - **Origem:** Claude. 12 entraram como Enviada. Faltam fotos, datas, WhatsApp, alguns nomes de pets e 4 tutores.
 - **Ideia:** depois do A-01, marcar a situação em lote. As fotos podem ser enviadas para o Claude colocar.
 
-### C-03 · Proteção de senha vazada no login 🟡
-- **Origem:** Claude, aviso do Supabase. Ligar "Leaked password protection" em Auth → Passwords. Um clique, sem custo.
+### C-03 · Proteção de senha vazada no login ⏸️
+- **Origem:** Claude, aviso do Supabase.
+- **Onde fica:** Supabase → projeto pet-lar → Authentication → Sign In / Providers → Email → "Prevent use of leaked passwords".
+- **Bloqueio:** só existe no plano Pro do Supabase (US$ 25/mês). No plano grátis não dá para ligar.
+- **Alternativa grátis (mesma tela):** "Minimum password length" = 8 e "Password requirements" = letras e números. Fazer quando o Bruno quiser.
 
 ### C-04 · Assistente e valores pela API ⏸️
 - **Origem:** Claude. A assistente não vê valores nas telas, mas, tecnicamente, consegue ler o valor das propostas aceitas pela API. Isso só importa se um dia entrar alguém de fora da família.
 - **Ideia:** uma view sem colunas de valor para a assistente.
 
+### C-05 · Pets diferentes em cada opção 🟡
+- **Origem:** Claude. Caso da Karina: opção 1 com os 2 gatos (visitas), opção 2 só com 1 gato (hospedagem).
+- **Ideia:** na opção 2, marcar quais pets participam.
+
+## Novas funcionalidades (futuro)
+
+### F-01 · Área do tutor 🟡
+- **Origem:** Bruno, 10/11/2026
+- **O que é:** telas para o tutor entrar pelo celular e acompanhar o pet: se já comeu, se dormiu, passeios, fotos e vídeos das atividades, recados da Lari.
+- **Login:** pelo celular cadastrado do tutor.
+  - Código por SMS (Supabase + Twilio ou similar). Custa por SMS enviado e pede conta no provedor.
+  - Alternativa sem custo para começar: **link pessoal** que a Lari manda pelo WhatsApp, sem senha, com prazo de validade e que pode ser cancelado. O login por celular entra depois.
+- **Depende de F-02.** Sem o registro do dia a dia, a área do tutor fica vazia.
+- **O que mais pode entrar:**
+  - O tutor completa a ficha do pet: alimentação, remédios, veterinário, acesso à casa. Isso substitui a anamnese longa.
+  - Ver e aceitar o orçamento, com o Pix do sinal.
+  - Histórico de serviços e fotos de estadias anteriores.
+  - Avaliação no fim do serviço.
+  - Aviso no celular quando entra foto nova (app instalado na tela de início).
+- **Cuidados:**
+  - Cada tutor vê só os próprios pets (regra no banco).
+  - As fotos ficam privadas, com links temporários.
+  - Pedir o consentimento do tutor (LGPD), porque são fotos da casa dele.
+  - Espaço para fotos: o plano grátis do Supabase tem 1 GB, o que dá cerca de 5 mil fotos comprimidas.
+
+### F-02 · Diário do pet (lado da Lari) 🟡
+- **Origem:** Claude, como base do F-01.
+- **O que é:** durante uma estadia ou visita, a Lari registra com botões rápidos: comeu, bebeu água, passeou, fez xixi/cocô, tomou remédio, dormiu, brincou. Cada registro aceita foto e observação, e tudo fica com o horário.
+- **Já útil sem o F-01:** gera o relatório do dia pronto para mandar no WhatsApp, e fica salvo no histórico do pet.
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 10/11/2026 | C-01 entregue (v1.2). C-03 pausado (só no plano Pro). Entraram C-05, F-01 (área do tutor) e F-02 (diário do pet) |
 | 10/11/2026 | Criado com A-01, A-02, A-03 (Bruno) e C-01 a C-04 (observados) |

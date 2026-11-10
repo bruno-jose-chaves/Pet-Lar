@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 1.1 · atualizado em 10/11/2026
+Versão 1.2 · atualizado em 10/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -12,6 +12,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Níveis de acesso](#niveis-de-acesso)
 - [As abas](#as-abas)
 - [Como fazer uma proposta](#como-fazer-uma-proposta)
+- [Proposta com duas opções](#proposta-com-duas-opcoes)
 - [Clientes com mais de um pet](#clientes-com-mais-de-um-pet)
 - [Histórico por cliente](#historico-por-cliente)
 - [Orçamentos importados](#orcamentos-importados)
@@ -86,6 +87,18 @@ Ao enviar, a proposta passa de Rascunho para **Enviada**.
 
 Marcar como aceita ou recusada, voltar para enviada, cancelar o serviço, duplicar (bom para cliente que repete) e excluir.
 
+## Proposta com duas opções
+
+Serve para mandar, no mesmo PDF, duas alternativas para o cliente escolher. Por exemplo: hospedagem aqui em casa **ou** visitas na casa dele.
+
+1. No passo 3 (Serviço), toque em **+ Adicionar opção 2**. A opção 2 começa igual à 1.
+2. Mude o que for diferente: serviço, datas, desconto, adicionais ou valor combinado. Use as abas **Opção 1** e **Opção 2** para alternar entre elas. Cliente, pets e recado valem para as duas.
+3. A opção com ⭐ é a **recomendada**: fica em destaque no PDF e no card. Para trocar, abra a outra opção e toque em **Recomendar a opção**.
+4. No PDF, no card e na mensagem aparecem as duas, cada uma com o seu valor. O Pix do sinal só vai depois que o cliente escolher.
+5. Quando o cliente responder: menu ••• → **Aceitou a opção 1** ou **Aceitou a opção 2**. O sinal e o saldo saem com o valor da opção escolhida, e ela passa a aparecer como "Escolhida". Se precisar mandar de novo, o PDF já sai com o QR do Pix.
+
+Na lista de propostas, na agenda e nos totais conta a opção recomendada (ou a escolhida, depois da resposta). Para voltar a ter uma opção só, abra a que quer tirar e toque em **remover opção**.
+
 ## Clientes com mais de um pet
 
 - Cada pet tem a sua ficha, ligada ao tutor. Um tutor pode ter quantos pets precisar.
@@ -154,5 +167,6 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 1.2 | 10/11/2026 | Proposta com duas opções (recomendada, escolhida e aceite por opção) |
 | 1.1 | 10/11/2026 | Níveis de acesso (administrador, gestora, assistente), valor final combinado, histórico por cliente, orçamentos antigos importados, endereço novo e este manual dentro do painel |
 | 1.0 | 10/11/2026 | Painel com Hoje, Propostas, Pets, Tutores, Agenda, Financeiro e Configurações, ligado ao banco de dados |

@@ -1,4 +1,4 @@
-# Pet Lar · Painel (v1.1)
+# Pet Lar · Painel (v1.2)
 
 Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, WhatsApp e Pix), **tutores**, **pets**, **agenda** e **financeiro**.
 
@@ -54,7 +54,7 @@ public/
   vendor/               supabase-js, html2canvas, jsPDF, qrcode (sem CDN de terceiros)
   fonts/                Lato e Playfair (só os pesos usados)
 tests/
-  test_app.py           fluxo completo (90 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
+  test_app.py           fluxo completo (104 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
   test_precos.py        tabela de preços (21 casos)
   test_perf.py          3G lento + CPU 4x mais lenta
   fake-supabase.js      Supabase em memória para os testes
@@ -93,6 +93,7 @@ python tests/test_perf.py
 | Manual de uso | `public/manual.md` (e a nota do Obsidian) |
 | Mudança no banco | nova migração em `supabase/migrations/AAAAMMDDHHMMSS_nome.sql` e `git push` |
 
-## Valor combinado e orçamentos importados
+## Duas opções, valor combinado e orçamentos importados
+- **Duas opções:** `S.alt` guarda os campos de serviço da outra opção (`SVC_KEYS`); `withOpt(n, fn)` calcula qualquer opção. A recomendada/escolhida (`principal()`) é a que vai para `valor_total`, `servico` e período.
 - Passo 4 do editor tem **Valor final combinado**: substitui o total da tabela e mostra a diferença como "Condição especial combinada".
 - Os 13 orçamentos feitos antes do painel (jul–nov/2026) foram importados com `payload.importada`; o editor mostra um aviso e mantém o valor passado ao cliente.

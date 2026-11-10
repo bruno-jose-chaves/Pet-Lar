@@ -214,3 +214,31 @@ input[type=date]::-webkit-date-and-time-value{text-align:left}
 .wc-val{font-family:"Playfair Display",serif;font-weight:800;font-size:40px;line-height:1.1}
 .wc-pg{font-size:12px;opacity:.75;margin-top:4px}
 .wc-foot{text-align:center;font-size:12px;color:#5A3B2A;padding:14px 22px 18px}
+
+/* ===== duas opções (v1.2) ===== */
+.opt-tabs .chips{margin-bottom:4px}
+.solo-wide .pcard.solo{width:100%}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.opt{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:6px}
+.opt.rec{border:2px solid var(--terra,#C7694A);box-shadow:0 6px 18px rgba(199,105,74,.14)}
+.opt-k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--terra,#C7694A);font-weight:700}
+.opt h3{font-family:"Playfair Display",serif;font-size:19px;margin:0;line-height:1.2}
+.opt .when{font-size:12.5px;color:var(--muted);line-height:1.5}
+.opt-inc{list-style:none;margin:2px 0 0;padding:0;font-size:12.5px}
+.opt-inc li{padding:2px 0 2px 16px;position:relative}
+.opt-inc li:before{content:"✓";position:absolute;left:0;color:var(--terra,#C7694A);font-weight:700}
+.opt-det div{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0;border-bottom:1px dashed var(--line)}
+.opt-det div:last-child{border-bottom:0}
+.opt-det .neg{color:#B65A3C}
+.opt-price{margin-top:auto;background:var(--char);color:var(--cream);border-radius:12px;padding:10px 12px;text-align:center}
+.opt-price .from{font-size:12px;text-decoration:line-through;opacity:.55}
+.opt-price .val{font-family:"Playfair Display",serif;font-size:30px;font-weight:800;line-height:1.1}
+.opt-price .per{font-size:11px;opacity:.7}
+.wc-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 22px 0}
+.wc-opt{background:#30251F;color:#F9F3EC;border-radius:16px;padding:12px 10px;text-align:center;opacity:.85}
+.wc-opt.rec{opacity:1;box-shadow:0 0 0 3px #C7694A}
+.wc-ok{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#E9A27F;font-weight:700}
+.wc-ot{font-family:"Playfair Display",serif;font-size:15px;margin-top:4px;line-height:1.2}
+.wc-ow{font-size:11px;opacity:.75;margin-top:2px}
+.wc-opt .wc-de{font-size:11px}
+.wc-ov{font-family:"Playfair Display",serif;font-weight:800;font-size:26px;line-height:1.1;margin-top:4px}

@@ -188,6 +188,40 @@ with sync_playwright() as p:
     pg.fill("[data-k=valorFechado]", ""); pg.wait_for_timeout(2400)
     check("Valor combinado vazio: volta para a tabela", DB("T.propostas[0].valor_total") == 300)
 
+    # ---------- v1.2: duas opções na mesma proposta ----------
+    go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
+    tap("#optTabs [data-opt=add]"); pg.wait_for_timeout(400)
+    check("2 opções: cria a opção 2 e passa a editá-la", DB("true") and pg.evaluate("G.S.editando") == 2 and pg.locator("#optTabs .chip").count() == 2)
+    tap("[data-chips=servico] .chip[data-v=visitas]")
+    pg.fill("[data-k=v_ini]", hoje); pg.fill("[data-k=v_fim]", dois); pg.select_option("[data-k=v_dia]", "1"); pg.wait_for_timeout(300)
+    check("2 opções: opção 2 = 3 visitas R$ 210", pg.inner_text("#calcTot") == "R$ 210", pg.inner_text("#calcTot"))
+    check("2 opções: PDF mostra as duas, a 1 recomendada", pg.locator("#page .opt").count() == 2 and "recomendada" in pg.locator("#page .opt.rec").inner_text().lower() and "hospedagem" in pg.locator("#page .opt.rec").inner_text().lower())
+    check("2 opções: PDF sem QR do Pix até o cliente escolher", pg.locator("#page .cond img").count() == 0 and "escolher a opção" in pg.inner_text("#page .cond"))
+    pg.wait_for_timeout(2400)
+    check("2 opções: banco guarda a recomendada (R$ 300, hospedagem) e a outra no payload", DB("T.propostas[0].valor_total===300 && T.propostas[0].servico==='hosp' && T.propostas[0].payload.alt.servico==='hosp' && T.propostas[0].payload.servico==='visitas'"))
+    check("2 opções: resumo da lista cita a opção 2", "ou opção 2" in DB("T.propostas[0].resumo"))
+    tap("#optTabs [data-opt=rec]"); pg.wait_for_timeout(2600)
+    check("2 opções: recomendar a 2 muda o destaque e o valor salvo", "Visitas" in pg.locator("#page .opt.rec").inner_text() and DB("T.propostas[0].valor_total") == 210 and DB("T.propostas[0].servico") == "visitas")
+    tap("#optTabs .chip[data-opt='1']"); pg.wait_for_timeout(400)
+    check("2 opções: voltar para a opção 1 mantém a hospedagem", pg.evaluate("G.S.servico") == "hosp" and pg.inner_text("#calcTot") == "R$ 300")
+    tap("#pEnviar"); pg.wait_for_timeout(500); msg2 = pg.inner_text(".modal pre")
+    check("2 opções: mensagem lista as duas e pede a escolha", "duas opções" in msg2 and "Opção 2 (recomendada)" in msg2 and "R$ 300" in msg2 and "qual opção" in msg2 and "br.gov.bcb.pix" not in msg2, msg2[:80])
+    pg.click(".modal [data-close]"); pg.wait_for_timeout(300)
+    # duplicar para testar o aceite de uma opção
+    tap("#pMenu"); pg.wait_for_timeout(300); pg.click(".modal [data-dup]"); pg.wait_for_timeout(3200)
+    dup = pg.evaluate("G.META.id")
+    tap("#pMenu"); pg.wait_for_timeout(300)
+    check("2 opções: menu oferece aceitar a opção 1 ou a 2", pg.locator(".modal [data-esc]").count() == 2)
+    pg.click(".modal [data-esc='1']"); pg.wait_for_timeout(1500)
+    check("2 opções: aceitou a opção 1 → aceita com R$ 300 e sinal de R$ 150", DB(f"(()=>{{const p=T.propostas.find(x=>x.id==='{dup}'); return p.status==='aceita' && p.valor_total===300 && p.payload.escolhida===1 && T.pagamentos.filter(g=>g.proposta_id===p.id).map(g=>g.valor).join()==='150,150'}})()"))
+    check("2 opções: PDF marca a opção escolhida e volta o QR do Pix", "escolhida" in pg.locator("#page .opt.rec").inner_text().lower() and pg.locator("#page .cond img").count() == 1)
+    tap("#pMenu"); pg.wait_for_timeout(300); pg.click(".modal [data-del]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(800)
+    pg.evaluate(f"() => {{ const T=window.__FAKE_DB; T.pagamentos=T.pagamentos.filter(g=>g.proposta_id!=='{dup}'); }}")
+    go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
+    tap("#optTabs .chip[data-opt='2']"); pg.wait_for_timeout(300); tap("#optTabs [data-opt=rm]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(2600)
+    check("2 opções: remover a opção 2 volta a ser proposta simples de hospedagem R$ 300", DB("!T.propostas[0].payload.alt && T.propostas[0].valor_total===300 && T.propostas[0].servico==='hosp'") and pg.locator("#page .opts").count() == 0)
+    no_hscroll("Editor com 2 opções")
+
     # ---------- v1.1: orçamento importado (sem datas) ----------
     pg.evaluate("""() => { const T=window.__FAKE_DB; T.tutores.push({id:'tImp',nome:'Louise',whatsapp:null,created_at:new Date().toISOString()});
       T.pets.push({id:'pImp',tutor_id:'tImp',nome:'Benedita',especie:'cao',raca:'Dachshund',idade:'3 anos',porte:'P',passeia:true,ativo:true,reativo:false,foto_path:null});
