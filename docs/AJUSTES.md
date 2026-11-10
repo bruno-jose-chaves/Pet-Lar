@@ -1,7 +1,7 @@
 # Pet Lar · Backlog de ajustes
 
-Lista viva do que melhorar no painel depois do MVP. Nada aqui está feito ainda.
-Cópia no Obsidian: "Pet Lar - Backlog de Ajustes". **Ao pedir, mudar ou entregar um ajuste, atualizar os dois.**
+Lista viva do que melhorar no painel depois do MVP. Cada item tem a situação ao lado do título.
+Cópia no Obsidian: "Pet Lar - Backlog de Ajustes" (a versão mais recente é a de número mais alto). **Ao pedir, mudar ou entregar um ajuste, atualizar os dois.**
 
 Status: 🟡 a fazer · 🔵 em andamento · ✅ feito · ⏸️ pausado
 Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, precisa do seu ok)
