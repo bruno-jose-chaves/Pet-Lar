@@ -75,6 +75,10 @@ input[type=date]::-webkit-date-and-time-value{text-align:left}
 .ph{width:72px;height:72px;border-radius:14px;background:var(--cream2);display:grid;place-items:center;overflow:hidden;cursor:pointer;flex:none;position:relative;border:1px solid var(--line)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .ph svg{width:30px;height:30px;opacity:.55}
+.ph .chg{position:absolute;left:0;right:0;bottom:0;background:rgba(48,37,31,.62);color:#fff;font-size:10px;font-weight:700;text-align:center;padding:3px 0}
+.photo-actions{display:flex;gap:8px;margin:-2px 0 12px;flex-wrap:wrap}
+.btn.mini{padding:7px 12px;font-size:13px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--brown)}
+.btn.mini.danger{color:#A4402A;border-color:#EBC9BD}
 .ph small{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:10px;font-weight:700;color:var(--brown);opacity:.8}
 .pet-head .grow{flex:1}
 .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;text-decoration:underline}
@@ -270,7 +274,9 @@ input[type=date]::-webkit-date-and-time-value{text-align:left}
           <button class="chip" data-v="1">1x/semana</button>
           <button class="chip" data-v="3">3x/semana</button>
           <button class="chip" data-v="5">5x/semana</button>
+          <button class="chip" data-v="outro">Outro</button>
         </div>
+        <label class="f" data-pacote-outro>Quantas visitas por semana <span class="hint">Ex.: 2, 4, 7 ou 10 (10 = alguns dias com 2 visitas)</span><input type="number" min="1" max="14" step="1" inputmode="numeric" data-k="p_outro" placeholder="Ex.: 2"></label>
         <label class="f">Começa em<input type="date" data-k="p_ini"></label>
       </div>
 
@@ -341,7 +347,7 @@ const T = {
   hosp:{P:100,M:100,G:120,GG:120,gato:100}, hospExtra:0.60,
   banho:{P:90,M:120,G:160,GG:200,gato:100},
   combo:{P:70,M:90,G:120,GG:150,gato:80}, banho2pet:0.10,
-  pacotes:{1:{v:4,d:.05},3:{v:13,d:.10},5:{v:21,d:.15}}, segundaVisita:0.40,
+  pacotes:{1:{v:4,d:.05},3:{v:13,d:.10},5:{v:21,d:.15}}, segundaVisita:0.40, semanasMes:4.3,
   banhoPlano:{avulso:{n:1,d:0},quinzenal:{n:2,d:.10},semanal:{n:4,d:.15}},
 };
 const AVATAR = "data:image/webp;base64,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";
@@ -356,7 +362,7 @@ function blank(){ return {
   tutor:"", cidade:"BC", data:today(), validade:7, servico:"visitas",
   pets:[newPet()],
   v_ini:"", v_fim:"", v_dia:"1", v_combo:false,
-  p_plano:"3", p_ini:"", e_qtd:1, e_data:"", h_in:"", h_out:"", h_leva:false,
+  p_plano:"3", p_outro:"", p_ini:"", e_qtd:1, e_data:"", h_in:"", h_out:"", h_leva:false,
   b_plano:"avulso", b_data:"", descManual:"", obs:"", adds:[], cidadeNome:"", deslocValor:30 }; }
 function newPet(){ return {id:Math.random().toString(36).slice(2,8), nome:"", especie:"cao", raca:"", idade:"", porte:"P", passeia:true, foto:""}; }
 
@@ -413,6 +419,9 @@ function pushExtras(R, extras, mult, suffix){
   const tot=extras.reduce((a,e)=>a+e.val,0);
   R.lines.push({l:`${extras.length} pets adicionais (${extras.map(petName).join(", ")})${suffix?" · + "+brl2(tot)+suffix:""}`, v:tot*mult});
 }
+// mês = 4,3 semanas (há meses com 4 e meses com 5 semanas). 1x=4 · 3x=13 · 5x=21 (tabela oficial)
+function visitasMes(nSem){ return Math.round(nSem*T.semanasMes - 0.01); }
+function pacoteDesc(nSem){ return nSem>=5? .15 : nSem>=3? .10 : .05; }
 function travelDisc(days){ return days>=25?.15: days>=10?.10: days>=5?.05:0; }
 function hospDisc(n){ return n>=21?.15: n>=7?.10:0; }
 
@@ -445,13 +454,18 @@ function calc(){
     R.inc = incVisita().concat(S.v_combo?[["banho","Banho no último dia","Com tosa higiênica, sem sair de casa"]]:[]);
   }
   else if(S.servico==="pacote"){
-    const P=T.pacotes[S.p_plano]||T.pacotes[3]; const {unit,extras,firstPet}=visitUnit(T.visita);
-    R.title=`Pet Sitter · Pacote ${S.p_plano}x/semana`;
+    const nSem = S.p_plano==="outro" ? Math.min(14,Math.max(0,Math.round(Number(S.p_outro)||0))) : Number(S.p_plano)||3;
+    R.title=`Pet Sitter · Pacote ${nSem||"?"}x/semana`;
+    if(!nSem){ R.ok=false; R.msg="Digite quantas visitas por semana."; return R; }
+    const P={v:visitasMes(nSem), d:pacoteDesc(nSem)}; const {unit,extras,firstPet}=visitUnit(T.visita);
     R.lines.push({l:`${P.v} visitas no mês × ${brl(T.visita)} · ${petName(firstPet)}`, v:T.visita*P.v});
     pushExtras(R, extras, P.v, " × "+P.v);
-    R.discountable=unit*P.v; R.discAuto=P.d; R.count=P.v; R.unitLabel="visita";
+    R.discountable=unit*P.v;
+    const seg = P.v - visitasMes(Math.min(nSem,7)); // visitas além de 1 por dia = 2ª visita do dia
+    if(seg>0){ const dv=unit*seg*T.segundaVisita; R.extraOff=dv; R.lines.push({l:`Desconto na 2ª visita do dia (${Math.round(T.segundaVisita*100)}%) · ${seg} visitas`, v:-dv, neg:true}); R.discountable-=dv; }
+    R.discAuto=P.d; R.count=P.v; R.unitLabel="visita";
     const a=pd(S.p_ini);
-    R.when=[`<b>${S.p_plano} visitas por semana</b> · cerca de ${P.v} visitas no mês`, a?`Começa em <b>${fmtY(a)}</b> · valor mensal`:"Valor mensal", "Visitas dentro do mês, sem acumular para o seguinte"];
+    R.when=[`<b>${nSem} visitas por semana</b>${nSem>7?" (alguns dias com 2 visitas)":""} · cerca de ${P.v} visitas no mês`, a?`Começa em <b>${fmtY(a)}</b> · valor mensal`:"Valor mensal", "Visitas dentro do mês, sem acumular para o seguinte"];
     if(fora) R.deslocN=P.v;
     R.inc=incVisita();
   }
@@ -575,17 +589,19 @@ function syncChips(){
   $$("[data-show]").forEach(el=>el.classList.toggle("hide", el.dataset.show!==S.servico));
   $("#levaTrazWrap").classList.toggle("hide", S.cidade==="BC");
   $("[data-city-outra]").classList.toggle("hide", S.cidade!=="outra");
+  $("[data-pacote-outro]").classList.toggle("hide", S.p_plano!=="outro");
 }
 function renderPets(){
   const box=$("#petList");
   box.innerHTML = S.pets.map((p,i)=>`
     <div class="pet" data-id="${p.id}">
       <div class="pet-head">
-        <div class="ph" data-photo="${p.id}" title="Trocar foto">${p.foto?`<img src="${p.foto}" alt="">`:PAW+'<small>foto</small>'}</div>
+        <div class="ph" data-photo="${p.id}" title="Trocar foto">${p.foto?`<img src="${p.foto}" alt=""><span class="chg">trocar</span>`:PAW+'<small>foto</small>'}</div>
         <div class="grow">
           <label class="f" style="margin:0">Nome do pet ${i? "#"+(i+1):""}<input type="text" data-pk="nome" value="${esc(p.nome)}" placeholder="Ex.: Bento"></label>
         </div>
       </div>
+      ${p.foto?`<div class="photo-actions"><button class="btn mini" data-photo="${p.id}">📷 Trocar foto</button><button class="btn mini danger" data-rmfoto="${p.id}">🗑 Remover foto</button></div>`:""}
       <div class="chips" style="margin-bottom:10px">
         <button class="chip ${p.especie==="cao"?"on":""}" data-pc="especie" data-v="cao">🐶 Cão</button>
         <button class="chip ${p.especie==="gato"?"on":""}" data-pc="especie" data-v="gato">🐱 Gato</button>
@@ -599,7 +615,7 @@ function renderPets(){
         <select data-pk="porte">${Object.entries(PORTES).map(([k,v])=>`<option value="${k}" ${p.porte===k?"selected":""}>${v}</option>`).join("")}</select>
       </label>
       <label class="check"><input type="checkbox" data-pk="passeia" ${p.passeia?"checked":""}> Vai passear nas visitas</label>`:""}
-      ${S.pets.length>1?`<div style="display:flex;gap:14px">${p.foto?`<button class="x" data-rmfoto="${p.id}">tirar foto</button>`:""}<button class="x" data-rm="${p.id}">remover pet</button></div>`:(p.foto?`<button class="x" data-rmfoto="${p.id}">tirar foto</button>`:"")}
+      ${S.pets.length>1?`<div style="display:flex;gap:14px"><button class="x" data-rm="${p.id}">remover pet</button></div>`:""}
     </div>`).join("");
 }
 $("#petList").addEventListener("input",e=>{
@@ -611,9 +627,9 @@ let photoTarget=null;
 $("#petList").addEventListener("click",e=>{
   const card=e.target.closest(".pet"); if(!card) return; const p=S.pets.find(x=>x.id===card.dataset.id);
   const chip=e.target.closest("[data-pc]"); if(chip){ e.preventDefault(); p[chip.dataset.pc]=chip.dataset.v; update(true); return; }
-  if(e.target.closest("[data-photo]")){ photoTarget=p.id; $("#petFile").value=""; $("#petFile").click(); return; }
+  if(e.target.closest("[data-photo]")){ e.preventDefault(); photoTarget=p.id; $("#petFile").value=""; $("#petFile").click(); return; }
   if(e.target.dataset.rm){ S.pets=S.pets.filter(x=>x.id!==p.id); update(true); return; }
-  if(e.target.dataset.rmfoto){ p.foto=""; update(true); return; }
+  if(e.target.closest("[data-rmfoto]")){ p.foto=""; update(true); return; }
 });
 $("#addPet").addEventListener("click",()=>{ if(S.pets.length>=4){ toast("Até 4 pets por proposta."); return; } S.pets.push(newPet()); update(true); });
 $("#petFile").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f||!photoTarget) return;

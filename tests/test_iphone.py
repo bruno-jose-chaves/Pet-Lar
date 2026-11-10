@@ -64,7 +64,8 @@ with sync_playwright() as p:
     pg.locator("#petList [data-pk=nome]").nth(1).fill("Mia")
     pg.locator("#petList .pet").nth(1).locator(".chip[data-v=gato]").tap()
     pg.locator("#petList [data-rm]").nth(1).tap(); check("remover pet", pg.locator("#petList .pet").count() == 1)
-    pg.locator("#petList [data-rmfoto]").first.tap(); check("tirar foto", pg.locator("#petList .ph img").count() == 0)
+    check("botão Remover foto visível", pg.locator("#petList [data-rmfoto]").first.is_visible())
+    pg.locator("#petList [data-rmfoto]").first.tap(); check("remover foto", pg.locator("#petList .ph img").count() == 0 and pg.locator("#page .pimg img").count() == 0)
     pg.tap("[data-chips=cidade] .chip[data-v='BC']")
 
     # 3 serviços
@@ -78,6 +79,10 @@ with sync_playwright() as p:
     pg.tap("[data-chips=servico] .chip[data-v=pacote]")
     for k, v in {"1": "R$ 265", "3": "R$ 820", "5": "R$ 1.250"}.items():
         pg.tap(f"[data-chips=p_plano] .chip[data-v='{k}']"); check(f"pacote {k}x = {v}", tot() == v, tot())
+    pg.tap("[data-chips=p_plano] .chip[data-v='outro']"); check("campo Outro aparece", pg.is_visible("[data-k=p_outro]"))
+    pg.fill("[data-k=p_outro]", "2"); check("pacote 2x = R$ 600", tot() == "R$ 600", tot())
+    pg.fill("[data-k=p_outro]", "10"); check("pacote 10x = R$ 2.250", tot() == "R$ 2.250", tot())
+    pg.tap("[data-chips=p_plano] .chip[data-v='3']"); check("campo Outro some", not pg.is_visible("[data-k=p_outro]"))
     pg.tap("[data-chips=servico] .chip[data-v=estendida]"); pg.fill("[data-k=e_qtd]", "2")
     check("estendida 2x = R$ 300", tot() == "R$ 300", tot())
     pg.tap("[data-chips=servico] .chip[data-v=hosp]")

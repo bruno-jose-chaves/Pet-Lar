@@ -71,7 +71,7 @@ no painel do Worker `pet-lar` → **Settings → Domains & Routes → workers.de
 | Cores e fontes | variáveis `:root` no `<style>` |
 
 Regras de preço oficiais: nota **Pet Lar - Servicos e Precos** (Obsidian › 30-Projetos/pet-sitter). Os pontos principais:
-- Visita R$ 70. A 2ª visita no mesmo dia tem −40%. Pacote viagem: −5% / −10% / −15% para 5 / 10 / 25 dias ou mais.
+- Visita R$ 70. A 2ª visita no mesmo dia tem −40%. Pacote mensal: 1x, 3x, 5x ou **outro** número de visitas por semana. O mês conta como **4,3 semanas** (1x = 4, 2x = 9, 3x = 13, 5x = 21 visitas). Desconto do pacote: −5% para 1 a 2x por semana, −10% para 3 a 4x e −15% para 5x ou mais. Acima de 7x por semana, as visitas a mais são 2ª visita do dia e têm −40%. Pacote viagem: −5% / −10% / −15% para 5 / 10 / 25 dias ou mais.
 - Hospedagem: R$ 100 (P/M e gato) ou R$ 120 (G). **Conta do dia de entrada ao de saída.** Estadia de 7 a 20 diárias tem −10%; de 21 ou mais, −15%.
 - Banho: P 90 · M 120 · G 160 · GG 200 · gato 100. Plano quinzenal −10%, semanal −15%.
 - Pet adicional: 60% (se passeia) ou R$ 15 (se não passeia). Deslocamento para Itajaí ou Camboriú: R$ 30 por deslocamento.

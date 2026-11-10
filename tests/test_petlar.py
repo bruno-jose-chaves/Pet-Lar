@@ -53,3 +53,12 @@ with sync_playwright() as p:
         r=pg.evaluate("""([i,o])=>{S=Object.assign(blank(),{servico:"hosp",h_in:i,h_out:o}); S.pets=[Object.assign(newPet(),{nome:"X",porte:"M"})]; const r=calc(); return [r.count,r.final]}""",[i,o])
         print("OK " if r[1]==exp else "ERR", f"hosp {i}→{o}: {r[0]} diárias = R$ {r[1]} (esperado {exp})")
     b.close()
+
+# pacote com outro valor (mês = 4,3 semanas; acima de 7x/semana, 2ª visita do dia -40%)
+with sync_playwright() as p:
+    b=p.chromium.launch(); pg=b.new_page(); pg.goto(URL); pg.wait_for_timeout(1200)
+    for plano,outro,exp_vis,exp in [("1","",4,265),("3","",13,820),("5","",21,1250),("outro","2",9,600),("outro","4",17,1070),("outro","7",30,1785),("outro","10",43,2250)]:
+        r=pg.evaluate("""([pl,o])=>{S=Object.assign(blank(),{servico:"pacote",p_plano:pl,p_outro:o}); S.pets=[Object.assign(newPet(),{nome:"X",porte:"M"})]; const r=calc(); return [r.count,r.final]}""",[plano,outro])
+        ok = r==[exp_vis,exp]
+        print("OK " if ok else "ERR", f"pacote {outro or plano}x/semana: {r[0]} visitas = R$ {r[1]} (esperado {exp_vis} / {exp})")
+    b.close()
