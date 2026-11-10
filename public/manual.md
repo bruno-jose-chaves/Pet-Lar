@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 1.5 · atualizado em 10/11/2026
+Versão 2.0 · atualizado em 10/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -20,6 +20,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Cobrar resposta](#cobrar-resposta)
 - [Filtros](#filtros)
 - [Diário do pet](#diario-do-pet)
+- [Área do tutor](#area-do-tutor)
 - [Regras de preço](#regras-de-preco)
 - [Dicas e dúvidas](#dicas-e-duvidas)
 
@@ -210,6 +211,53 @@ Durante uma estadia ou visita, registre com um toque o que aconteceu. No fim do 
 
 A ficha de cada pet mostra o diário de todos os serviços, dia por dia. Mais para frente, este diário é o que o tutor vai ver na área dele.
 
+## Área do tutor
+
+Cada cliente pode ter um **link só dele**, sem senha e sem código, para acompanhar os pets pelo celular. Foi pensado para quem não tem intimidade com tecnologia: é só tocar no link que chega pelo WhatsApp.
+
+### Como mandar o link
+
+1. Abra **Tutores** e toque no cliente.
+2. Em **Área do tutor**, toque em **Criar link da área do tutor**.
+3. Toque em **Mandar no WhatsApp**. A mensagem já vai pronta, com o link.
+
+Na mesma caixa você vê quando o link foi criado, se o cliente já aceitou o aviso de privacidade, o último acesso e quantas vezes ele entrou.
+
+| Botão | Para que serve |
+|---|---|
+| Mandar no WhatsApp | Abre a conversa com o cliente e a mensagem com o link |
+| Copiar link | Para colar em outro lugar |
+| Ver como o tutor vê | Abre a área do tutor exatamente como o cliente vê |
+| Trocar link | O link antigo para de funcionar e nasce um novo (use se o cliente encaminhou para alguém) |
+| Desativar | O link para de funcionar na hora |
+
+### O que o cliente vê
+
+| Parte | O que tem |
+|---|---|
+| Primeira vez | Boas-vindas e o aviso sobre os dados (LGPD). Ele toca em **Entendi, quero entrar** |
+| Para você responder | Orçamentos enviados. Com duas opções, ele escolhe a que prefere. Ao confirmar, a proposta vira **Aceita** no painel e abre o Pix do sinal (QR Code e copia e cola) |
+| Agora com a Lari | O serviço de hoje, com o aviso se o sinal ainda não foi pago |
+| Diário de hoje | Tudo o que você registrou no Diário, com hora, recados e fotos. Os dias anteriores ficam logo abaixo |
+| Próximos serviços | Datas confirmadas e o Pix do sinal, se faltar |
+| Fotos | Todas as fotos dos últimos 60 dias. Toque para ver grande |
+| Meus pets | Ficha de cada pet para ele completar (alimentação, remédios, jeitinho, saúde, veterinário, outras informações) e trocar a foto |
+| Serviços anteriores | Ele dá de 1 a 5 estrelas e deixa um recado |
+| Precisa de algo? | Botão para falar com você no WhatsApp e o passo a passo para salvar a página na tela do celular |
+
+### O que muda no painel
+
+- Quando o cliente aceita pelo link, a proposta fica **Aceita**, com sinal e saldo lançados no Financeiro, igual a quando você marca **Aceitou**.
+- Quando ele atualiza a ficha ou a foto, a ficha do pet mostra o aviso **O tutor atualizou a ficha pela área do tutor**.
+- As estrelas aparecem no **Histórico de orçamentos** do cliente.
+- Ele só vê os próprios pets. Valores de outros clientes, a agenda e o financeiro nunca aparecem.
+
+### Dicas
+
+- Mande o link logo depois que o cliente aceitar o primeiro orçamento, ou junto com o orçamento.
+- O link não vence sozinho. Se o cliente perder, mande de novo (o mesmo). Se ele encaminhar para alguém, use **Trocar link**.
+- Para o cliente: no iPhone, Compartilhar → **Adicionar à Tela de Início**. No Android, três pontinhos → **Adicionar à tela inicial**.
+
 ## Regras de preço
 
 O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - Servicos e Precos").
@@ -246,6 +294,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.0 | 10/11/2026 | Área do tutor (link pessoal no WhatsApp: diário, fotos, orçamento com Pix, ficha, avaliação). Painel com a identidade visual da Pet Lar (ícones de traço, paleta oficial, logo em imagem). O nome do cliente só é cadastrado quando você sai do campo |
 | 1.5 | 10/11/2026 | Diário do pet: registros com um toque, fotos, recados, linha do tempo e resumo do dia para o WhatsApp |
 | 1.4 | 10/11/2026 | Filtros em Propostas, Pets, Tutores, Agenda e Financeiro |
 | 1.3 | 10/11/2026 | Aba Cobrar resposta, botões Aceitou/Recusou/Cobrar/Adiar direto da lista, mudança em lote e link de nova senha |

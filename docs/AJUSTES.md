@@ -84,7 +84,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 
 ## Novas funcionalidades (futuro)
 
-### F-01 · Área do tutor 🟡
+### F-01 · Área do tutor ✅ (v2.0)
 - **Origem:** Bruno, 10/11/2026
 - **O que é:** telas para o tutor entrar pelo celular e acompanhar o pet: se já comeu, se dormiu, passeios, fotos e vídeos das atividades, recados da Lari.
 - **Acesso (decidido pelo Bruno, 10/11/2026): link pessoal.** Muitos clientes têm pouca familiaridade com tecnologia, então nada de senha nem código por SMS.
@@ -92,7 +92,15 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - O link abre direto a área do tutor e pode ser salvo na tela de início do celular.
   - Cada link vale só para aquele tutor, pode ser cancelado e trocado a qualquer momento, e pode ter validade (ex.: até o fim da estadia).
   - Plano B, se um dia precisar: tela que pede só o telefone. Sem código de confirmação, porém, qualquer pessoa que souber o número entraria, então o link continua mais seguro e mais simples.
-- **Depende de F-02** (✅ pronto na v1.5). O diário já guarda o que o tutor vai ver.
+- **Entregue (v2.0, 10/11/2026):**
+  - Página `/t/#<código>`; o código fica depois do `#` (não vai para logs) e é guardado no aparelho.
+  - Edge Function `portal` (sem login, valida o código e só devolve dados daquele tutor).
+  - Tabelas `tutor_acessos` (links) e `avaliacoes`; coluna `pets.atualizado_tutor_em`. Só a gestão vê e cria links.
+  - Aviso de privacidade (LGPD) na primeira entrada.
+  - Orçamentos com aceite por opção e Pix do sinal; diário de hoje e dos últimos 60 dias; galeria; ficha e foto do pet; avaliação de 1 a 5.
+  - No painel: caixa Área do tutor na ficha do cliente (criar, mandar no WhatsApp, copiar, ver como o tutor vê, trocar, desativar).
+  - Testes: `tests/test_portal.py` (62 verificações, iPhone e computador).
+- **Fica para depois:** aviso no celular quando entra foto nova (notificação), validade automática do link, vídeos.
 - **O que mais pode entrar:**
   - O tutor completa a ficha do pet: alimentação, remédios, veterinário, acesso à casa. Isso substitui a anamnese longa.
   - Ver e aceitar o orçamento, com o Pix do sinal.
@@ -122,6 +130,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ## Histórico
 | Data | O quê |
 |---|---|
+| 10/11/2026 | F-01 entregue (v2.0). Identidade visual aplicada no painel. Corrigido: nome do tutor salvo pela metade |
 | 10/11/2026 | Entrou A-04 (trocar senha de usuários). F-01 com acesso por link pessoal (sem SMS). C-03 e C-04 decididos: não fazer agora |
 | 10/11/2026 | C-01 entregue (v1.2). C-03 pausado (só no plano Pro). Entraram C-05, F-01 (área do tutor) e F-02 (diário do pet) |
 | 10/11/2026 | Criado com A-01, A-02, A-03 (Bruno) e C-01 a C-04 (observados) |

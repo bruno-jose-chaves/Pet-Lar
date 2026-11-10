@@ -114,7 +114,7 @@ export async function saveTutor(t) {
 export async function deleteTutor(id) { return chk(await sb.from("tutores").delete().eq("id", id)); }
 
 // ---------- pets ----------
-const PET_COLS = "id,tutor_id,nome,especie,raca,idade,porte,passeia,foto_path,alimentacao,medicacao,comportamento,limitacoes,veterinario,reativo,observacoes,ativo";
+const PET_COLS = "id,tutor_id,nome,especie,raca,idade,porte,passeia,foto_path,alimentacao,medicacao,comportamento,limitacoes,veterinario,reativo,observacoes,ativo,atualizado_tutor_em";
 export async function petsDoTutor(tutorId) { return chk(await sb.from("pets").select(PET_COLS).eq("tutor_id", tutorId).order("nome")); }
 export async function getPets(ids) { if (!ids.length) return []; return chk(await sb.from("pets").select(PET_COLS).in("id", ids)); }
 export async function listPets({ q, page = 0, size = 30 } = {}) {
@@ -226,3 +226,17 @@ export async function getServicoBasico(id) {
   return chk(await sb.from("propostas").select("id,numero,servico,status,data_inicio,data_fim,tutor_id,tutor_nome,tutores(whatsapp),proposta_pets(pets(id,nome,especie,foto_path))").eq("id", id).single());
 }
 export async function fotoBlob(path) { const { data, error } = await sb.storage.from("pets").download(path); if (error) throw error; return data; }
+
+// ---------- área do tutor (link pessoal) ----------
+const ACESSO_COLS = "id,tutor_id,token,criado_em,expira_em,revogado_em,aceite_em,ultimo_acesso,acessos";
+export function linkPortal(token) { return `${location.origin}/t/#${token}`; }
+function novoToken() { const b = crypto.getRandomValues(new Uint8Array(24)); return btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+export async function acessoTutor(tutorId) {
+  const r = chk(await sb.from("tutor_acessos").select(ACESSO_COLS).eq("tutor_id", tutorId).is("revogado_em", null).order("criado_em", { ascending: false }).limit(1));
+  return r[0] || null;
+}
+export async function criarAcessoTutor(tutorId) {
+  return chk(await sb.from("tutor_acessos").insert({ tutor_id: tutorId, token: novoToken() }).select(ACESSO_COLS).single());
+}
+export async function revogarAcessoTutor(id) { return chk(await sb.from("tutor_acessos").update({ revogado_em: new Date().toISOString() }).eq("id", id)); }
+export async function avaliacoesDoTutor(tutorId) { return chk(await sb.from("avaliacoes").select("proposta_id,nota,comentario,criado_em").eq("tutor_id", tutorId)); }

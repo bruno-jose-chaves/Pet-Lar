@@ -7,7 +7,7 @@
   const T = window.__FAKE_DB = window.__FAKE_DB || {
     settings: [{ id: 1, pix_chave: null, pix_nome: "Larissa", pix_cidade: "BALNEARIO CAMBORIU", whatsapp: "(47) 99917-9091", instagram: "@petlar.bc", capacidade_hospedagem: 3, follow_up_dias: 2, expira_dias: 15 }],
     admins: [{ email: "teste@petlar.app", nome: "Teste", papel: window.__FAKE_PAPEL || "admin", created_at: nowISO() }],
-    tutores: [], pets: [], propostas: [], proposta_pets: [], pagamentos: [], diario: [],
+    tutores: [], pets: [], propostas: [], proposta_pets: [], pagamentos: [], diario: [], tutor_acessos: [], avaliacoes: [],
   };
   const STORE = window.__FAKE_STORE = window.__FAKE_STORE || {};
   window.__FAKE_LOG = window.__FAKE_LOG || [];
@@ -92,7 +92,7 @@
       const match = rows.filter(r => this.f.every(fn => fn(r)));
       let out;
       if (this.op === "insert") {
-        out = this.val.map(v => { const r = { id: uid(), created_at: nowISO(), updated_at: nowISO(), ...JSON.parse(JSON.stringify(v)) }; if (this.t === "admins") { delete r.id; if (rows.some(a => a.email === r.email)) throw { message: "duplicate key" }; } if (this.t === "proposta_pets") delete r.id; trigInsert(this.t, r); rows.push(r); return r; });
+        out = this.val.map(v => { const r = { id: uid(), created_at: nowISO(), updated_at: nowISO(), ...JSON.parse(JSON.stringify(v)) }; if (this.t === "tutor_acessos") { r.criado_em = r.criado_em || nowISO(); r.acessos = r.acessos ?? 0; r.revogado_em = r.revogado_em ?? null; } if (this.t === "admins") { delete r.id; if (rows.some(a => a.email === r.email)) throw { message: "duplicate key" }; } if (this.t === "proposta_pets") delete r.id; trigInsert(this.t, r); rows.push(r); return r; });
       } else if (this.op === "update") {
         out = match.map(r => { const old = { ...r }; Object.assign(r, JSON.parse(JSON.stringify(this.val)), { updated_at: nowISO() }); trigUpdate(this.t, old, r); return r; });
       } else if (this.op === "delete") {

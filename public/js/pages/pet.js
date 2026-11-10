@@ -26,6 +26,7 @@ export async function mount(root, { params }) {
   const f = (k, label, type = "text", ph = "") => `<label class="f">${label}${type === "area" ? `<textarea name="${k}" rows="2" placeholder="${ph}">${U.esc(pet[k] || "")}</textarea>` : `<input type="${type}" name="${k}" value="${U.esc(pet[k] || "")}" placeholder="${ph}">`}</label>`;
   root.innerHTML = `<a class="backlink" href="#/pets">‹ Pets</a>
     <h1 class="pg">${U.esc(pet.nome || (id ? "Pet sem nome" : "Novo pet"))}</h1>
+    ${pet.atualizado_tutor_em ? `<div class="tutor-atualizou">${ic("check")} O tutor atualizou a ficha pela área do tutor em ${U.fmtY(pet.atualizado_tutor_em.slice(0, 10))}.</div>` : ""}
     <div class="grid2">
       <form class="panel" id="fPet">
         <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px">
