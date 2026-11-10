@@ -310,6 +310,59 @@ with sync_playwright() as p:
     pg.click("#adm [data-senha='larissa@exemplo.com']"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(600)
     check("Config: manda link de nova senha para outra pessoa", "Link enviado" in pg.inner_text("body"))
 
+    # ---------- v1.4: filtros ----------
+    pg.evaluate("""() => { const T=window.__FAKE_DB; const d=n=>new Date(Date.now()-n*86400000).toISOString();
+      T.tutores.push({id:'tf1',nome:'Fábio Lima',whatsapp:'(47) 95555-0000',cidade:'Itajaí',bairro:'Fazenda'},{id:'tf2',nome:'Gabi Rocha',whatsapp:null,cidade:'Balneário Camboriú',bairro:'Centro'});
+      T.pets.push({id:'pf1',tutor_id:'tf1',nome:'Thor',especie:'cao',porte:'G',passeia:true,ativo:true,reativo:true,foto_path:null},{id:'pf2',tutor_id:'tf2',nome:'Mia',especie:'gato',porte:'P',passeia:false,ativo:true,reativo:false,medicacao:'Remédio de tireoide',foto_path:null});
+      T.propostas.push({id:'f1',numero:'PL-F-1',status:'enviada',servico:'banho',tutor_id:'tf1',tutor_nome:'Fábio Lima',cidade:'Itajaí',valor_total:160,valor_cheio:160,payload:{},created_at:d(40),enviada_em:d(40),data_inicio:null,data_fim:null},
+                       {id:'f2',numero:'PL-F-2',status:'aceita',servico:'visitas',tutor_id:'tf2',tutor_nome:'Gabi Rocha',cidade:'Balneário Camboriú',valor_total:1200,valor_cheio:1200,payload:{},created_at:d(1),data_inicio:new Date().toISOString().slice(0,10),data_fim:new Date().toISOString().slice(0,10)});
+      T.proposta_pets.push({proposta_id:'f1',pet_id:'pf1'},{proposta_id:'f2',pet_id:'pf2'});
+      const h=new Date().toISOString().slice(0,10); T.pagamentos.push({id:'gf1',proposta_id:'f2',descricao:'Sinal (50%)',valor:600,vencimento:h,pago_em:null},{id:'gf2',proposta_id:'f2',descricao:'Saldo (50%)',valor:600,vencimento:h,pago_em:null}); }""")
+    go("#/propostas"); tap("#fil .chip[data-v='']"); pg.wait_for_timeout(800)
+    n_todas = pg.locator("#lista .pwrap").count()
+    def filtrar(fn):
+        pg.click("#fbar [data-fabrir]"); pg.wait_for_timeout(300); fn(); pg.click(".modal [data-aplicar]"); pg.wait_for_timeout(900)
+    filtrar(lambda: pg.click(".fmodal [data-c=servicos] [data-op=banho]"))
+    check("Filtro Propostas: por serviço (banho)", pg.locator("#lista .pwrap").count() == 1 and "PL-F-1" in pg.inner_text("#lista"))
+    check("Filtro Propostas: etiqueta removível e contador no botão", pg.locator("#fbar .ftag").count() == 1 and "· 1" in pg.inner_text("#fbar [data-fabrir]"))
+    pg.click("#fbar [data-ftira=servicos]"); pg.wait_for_timeout(800)
+    check("Filtro Propostas: tirar a etiqueta volta tudo", pg.locator("#lista .pwrap").count() == n_todas)
+    filtrar(lambda: pg.click(".fmodal [data-c=criado] [data-per=ult7]"))
+    check("Filtro Propostas: feita nos últimos 7 dias (some a de 40 dias)", "PL-F-1" not in pg.inner_text("#lista") and "PL-F-2" in pg.inner_text("#lista"))
+    filtrar(lambda: (pg.click(".fmodal [data-c=criado] [data-per=ult7]"), pg.fill(".fmodal [data-c=valor] [data-min]", "1000")))
+    check("Filtro Propostas: valor mínimo R$ 1.000", pg.locator("#lista .pwrap").count() == 1 and "PL-F-2" in pg.inner_text("#lista") and "Com os filtros" in pg.inner_text("#funil"))
+    go("#/hoje"); go("#/propostas"); pg.wait_for_timeout(700)
+    check("Filtro Propostas: lembra o filtro ao voltar para a tela", pg.locator("#fbar .ftag").count() == 1 and pg.locator("#lista .pwrap").count() == 1)
+    pg.click("#fbar [data-fabrir]"); pg.wait_for_timeout(300); pg.click(".modal [data-zerar]"); pg.wait_for_timeout(800)
+    check("Filtro Propostas: limpar filtros", pg.locator("#fbar .ftag").count() == 0 and pg.locator("#lista .pwrap").count() == n_todas)
+    no_hscroll("Propostas com filtros")
+    go("#/pets"); tap("#abas .chip[data-v=todos]"); pg.wait_for_timeout(700)
+    filtrar(lambda: (pg.click(".fmodal [data-c=especie] [data-op=gato]")))
+    check("Filtro Pets: só gatos", "Mia" in pg.inner_text("#lista") and "Thor" not in pg.inner_text("#lista"))
+    pg.click("#fbar [data-ftira=especie]"); pg.wait_for_timeout(600)
+    filtrar(lambda: pg.click(".fmodal [data-c=cuidados] [data-op=reativo]"))
+    check("Filtro Pets: reativos", pg.locator("#lista .item").count() == 1 and "Thor" in pg.inner_text("#lista"))
+    pg.click("#fbar [data-ftira=cuidados]"); pg.wait_for_timeout(500)
+    go("#/tutores"); pg.wait_for_timeout(700)
+    filtrar(lambda: pg.click(".fmodal [data-c=cidades] [data-op='Itajaí']"))
+    check("Filtro Tutores: por cidade", pg.locator("#lista .item").count() == 1 and "Fábio" in pg.inner_text("#lista"))
+    pg.click("#fbar [data-ftira=cidades]"); pg.wait_for_timeout(500)
+    filtrar(lambda: pg.click(".fmodal [data-c=situacao] [data-op=enviada]"))
+    check("Filtro Tutores: com orçamento sem resposta", "Fábio" in pg.inner_text("#lista") and "Gabi" not in pg.inner_text("#lista"))
+    pg.click("#fbar [data-ftira=situacao]"); pg.wait_for_timeout(500)
+    go("#/agenda"); pg.wait_for_timeout(900)
+    filtrar(lambda: pg.click(".fmodal [data-c=servicos] [data-op=hosp]"))
+    check("Filtro Agenda: só hospedagem esconde a visita de hoje", "Mia" not in pg.inner_text("#selL"))
+    pg.click("#fbar [data-ftira=servicos]"); pg.wait_for_timeout(500)
+    check("Filtro Agenda: sem filtro mostra a visita", "Mia" in pg.inner_text("#selL"))
+    go("#/financeiro"); pg.wait_for_timeout(900)
+    tot_ab = pg.locator("#abertos .item").count()
+    filtrar(lambda: pg.click(".fmodal [data-c=servicos] [data-op=visitas]"))
+    check("Filtro Financeiro: a receber só de visitas", pg.locator("#abertos .item").count() == 2 and tot_ab > 2, f"{tot_ab}->{pg.locator('#abertos .item').count()}")
+    pg.click("#fbar [data-ftira=servicos]"); pg.wait_for_timeout(500)
+    no_hscroll("Financeiro com filtros")
+    pg.evaluate("""() => { const T=window.__FAKE_DB; const ids=['f1','f2']; T.propostas=T.propostas.filter(p=>!ids.includes(p.id)); T.proposta_pets=T.proposta_pets.filter(x=>!ids.includes(x.proposta_id)); T.pagamentos=T.pagamentos.filter(g=>!ids.includes(g.proposta_id)); T.pets=T.pets.filter(p=>!['pf1','pf2'].includes(p.id)); T.tutores=T.tutores.filter(t=>!['tf1','tf2'].includes(t.id)); }""")
+
     # ---------- Falha de rede ao salvar ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(800)
     pg.evaluate("() => { window.__FAKE_FAIL = q => q.t==='propostas' && q.op==='update'; }")

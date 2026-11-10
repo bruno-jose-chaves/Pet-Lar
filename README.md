@@ -1,4 +1,4 @@
-# Pet Lar · Painel (v1.3)
+# Pet Lar · Painel (v1.4)
 
 Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, WhatsApp e Pix), **tutores**, **pets**, **agenda** e **financeiro**.
 
@@ -49,13 +49,15 @@ public/
   css/app.css           estilos do painel
   js/app.js             roteador (#/hoje, #/propostas…), login e menu
   js/db.js              todas as consultas ao Supabase (tempo-limite de 20 s, cache curto)
+  js/filtros.js         barra de filtros padrão (salva no aparelho)
+  js/acoes.js           ações rápidas (aceitar, recusar, cobrar, adiar) e grupos de cobrança
   js/ui.js              utilitários (formatação, modal, toast, compartilhar)
   js/pix.js             Pix copia e cola (BR Code do Banco Central) + QR
   js/pages/*.js         uma tela por arquivo, carregada só quando abre
   vendor/               supabase-js, html2canvas, jsPDF, qrcode (sem CDN de terceiros)
   fonts/                Lato e Playfair (só os pesos usados)
 tests/
-  test_app.py           fluxo completo (125 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
+  test_app.py           fluxo completo (141 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
   test_precos.py        tabela de preços (21 casos)
   test_perf.py          3G lento + CPU 4x mais lenta
   fake-supabase.js      Supabase em memória para os testes

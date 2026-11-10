@@ -17,7 +17,7 @@
     propostas: { proposta_pets: { t: "proposta_pets", many: true, fk: "proposta_id" }, tutores: { t: "tutores", one: "tutor_id" } },
     proposta_pets: { pets: { t: "pets", one: "pet_id" }, propostas: { t: "propostas", one: "proposta_id" } },
     pets: { tutores: { t: "tutores", one: "tutor_id" } },
-    tutores: { pets: { t: "pets", many: true, fk: "tutor_id" } },
+    tutores: { pets: { t: "pets", many: true, fk: "tutor_id" }, propostas: { t: "propostas", many: true, fk: "tutor_id" } },
     pagamentos: { propostas: { t: "propostas", one: "proposta_id" } },
   };
   function parseSel(s) { // "a,b,rel(x,y,rel2(z))" -> [{col}|{rel, sub}]

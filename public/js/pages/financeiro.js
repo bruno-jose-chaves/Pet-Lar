@@ -1,16 +1,33 @@
 // Financeiro: a receber, recebido no mês e receita por serviço
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import * as F from "../filtros.js";
 
 export async function mount(root) {
   const now = new Date(); let ano = now.getFullYear(), mes = now.getMonth();
   root.innerHTML = `<h1 class="pg">Financeiro</h1>
+    <div id="fbar"></div>
     <div class="kpis" id="kpis">${'<div class="sk sk-kpi"></div>'.repeat(4)}</div>
     <h2 class="sec">A receber <span class="count" id="cAb"></span></h2><div id="abertos">${U.skeleton(3)}</div>
     <div class="cal-head" style="margin-top:22px"><button class="btn soft small" id="prev">‹</button><b id="mesNome"></b><button class="btn soft small" id="next">›</button></div>
     <div class="grid2"><div class="panel"><h3>Recebido no mês</h3><div id="recebidos">${U.skeleton(2)}</div></div><div class="panel"><h3>Serviços fechados no mês</h3><div id="porServ"></div></div></div>`;
 
-  let abertos = [];
+  let abertosTodos = [], abertos = [], recTodos = [], servTodos = [];
+  const filtros = F.criar(U.$("#fbar", root), { chave: "financeiro", aoMudar: () => { aplicar(); }, campos: [
+    { k: "servicos", rotulo: "Serviço", tipo: "opcoes", opcoes: Object.entries(U.SERVICOS) },
+    { k: "situacao", rotulo: "A receber", tipo: "opcoes", opcoes: [["vencido", "Vencidas"], ["avencer", "A vencer"]] },
+    { k: "formas", rotulo: "Recebido via", tipo: "opcoes", opcoes: [["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", "Cartão"]] },
+    { k: "venc", rotulo: "Vencimento", tipo: "periodo", presets: ["hoje", "prox7", "mes", "proxMes", "mesPassado"], dica: "Parcelas a receber com vencimento no período" },
+    { k: "cliente", rotulo: "Cliente", tipo: "texto", dica: "Parte do nome" },
+  ] });
+  const okSvc = sv => { const v = filtros.valores.servicos; return !v?.length || v.includes(sv); };
+  const okCli = n => { const c = filtros.valores.cliente; return !c || (n || "").toLowerCase().includes(c.toLowerCase()); };
+  function aplicar() {
+    const v = filtros.valores; const hoje = U.today(); const iv = filtros.periodo("venc");
+    abertos = abertosTodos.filter(g => okSvc(g.propostas?.servico) && okCli(g.propostas?.tutor_nome) && F.dentro(g.vencimento, iv)
+      && (!(v.situacao?.length === 1) || (v.situacao[0] === "vencido") === (!!g.vencimento && g.vencimento < hoje)));
+    renderAbertos(); renderMes();
+  }
   function kpis(rec, servs) {
     const hoje = U.today();
     const vencido = abertos.filter(g => g.vencimento && g.vencimento < hoje).reduce((a, g) => a + Number(g.valor), 0);
@@ -36,22 +53,28 @@ export async function mount(root) {
   async function loadMes() {
     const ini = U.iso(new Date(ano, mes, 1)), fim = U.iso(new Date(ano, mes + 1, 0));
     U.$("#mesNome", root).textContent = new Date(ano, mes, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).replace(/^./, c => c.toUpperCase());
-    const [rec, servs] = await Promise.all([db.pagamentosMes(ini, fim).catch(() => []), db.receitaPorServico(ini, fim).catch(() => [])]);
+    [recTodos, servTodos] = await Promise.all([db.pagamentosMes(ini, fim).catch(() => []), db.receitaPorServico(ini, fim).catch(() => [])]);
+    renderMes();
+  }
+  function renderMes() {
+    const fm = filtros.valores.formas;
+    const rec = recTodos.filter(g => okSvc(g.propostas?.servico) && okCli(g.propostas?.tutor_nome) && (!fm?.length || fm.includes(g.forma)));
+    const servs = servTodos.filter(p => okSvc(p.servico) && okCli(p.tutor_nome));
     kpis(rec, servs);
     U.$("#recebidos", root).innerHTML = rec.length ? `<div class="list">${rec.map(g => `<div class="item" style="background:#fff"><div class="main"><div class="t">${U.brl2(g.valor)} · ${U.esc(g.propostas?.tutor_nome || "")}</div><div class="s">${U.esc(g.descricao)} · ${U.fmt(g.pago_em)}${g.forma ? " · " + g.forma : ""}</div></div><button class="x" data-desfazer="${g.id}">desfazer</button></div>`).join("")}</div>` : `<div class="empty">Nenhum pagamento neste mês.</div>`;
     const by = {}; servs.forEach(p => { by[p.servico] = (by[p.servico] || 0) + Number(p.valor_total); });
     const max = Math.max(1, ...Object.values(by));
     U.$("#porServ", root).innerHTML = Object.keys(by).length ? Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px"><span>${U.SERVICOS[k]}</span><b>${U.brl(v)}</b></div><div class="bar"><i style="width:${Math.round(v / max * 100)}%"></i></div></div>`).join("") : `<div class="empty">Nenhum serviço fechado neste mês.</div>`;
   }
-  async function load() { abertos = await db.pagamentosAbertos().catch(() => []); renderAbertos(); await loadMes(); }
+  async function load() { abertosTodos = await db.pagamentosAbertos().catch(() => []); aplicar(); await loadMes(); }
   const onClick = async e => {
     const pg = e.target.closest("[data-pagar]");
     if (pg) {
       const m = U.modal(`<h3>Como recebeu?</h3><div class="acts"><button class="btn primary" data-f="pix">Pix</button><button class="btn soft" data-f="dinheiro">Dinheiro</button><button class="btn soft" data-f="cartao">Cartão</button><button class="btn soft" data-close>Cancelar</button></div>`);
       m.el.addEventListener("click", async ev => {
         const b = ev.target.closest("[data-f]"); if (!b) return; m.close();
-        const id = pg.dataset.pagar; const antes = abertos; abertos = abertos.filter(g => g.id !== id); renderAbertos(); // otimista
-        try { await db.marcarPago(id, b.dataset.f); U.toast("Recebido ✓"); loadMes(); } catch { abertos = antes; renderAbertos(); U.toast("Não consegui salvar."); }
+        const id = pg.dataset.pagar; const antes = abertosTodos; abertosTodos = abertosTodos.filter(g => g.id !== id); aplicar(); // otimista
+        try { await db.marcarPago(id, b.dataset.f); U.toast("Recebido ✓"); loadMes(); } catch { abertosTodos = antes; aplicar(); U.toast("Não consegui salvar."); }
       });
       return;
     }

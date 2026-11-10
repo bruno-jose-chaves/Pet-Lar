@@ -1,6 +1,7 @@
 // Agenda do mês: serviços confirmados, capacidade de hospedagem e conflitos
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import * as F from "../filtros.js";
 
 const DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -10,14 +11,25 @@ export async function mount(root) {
   const cap = set.capacidade_hospedagem || 3;
   root.innerHTML = `<h1 class="pg">Agenda</h1>
     <div class="cal-head"><button class="btn soft small" id="prev" aria-label="Mês anterior">‹</button><b id="mesNome"></b><button class="btn soft small" id="hojeB">Hoje</button><button class="btn soft small" id="next" aria-label="Próximo mês">›</button></div>
-    <div id="alerta"></div><div id="cal" class="cal"></div>
+    <div id="fbar"></div><div id="alerta"></div><div id="cal" class="cal"></div>
     <div class="legend"><span><span class="pill hosp">Hospedagem</span></span><span><span class="pill visitas">Visitas / pacote</span></span><span><span class="pill banho">Banho</span></span><span>Fundo rosado = mais hóspedes que a capacidade (${cap})</span></div>
     <h2 class="sec" id="selT"></h2><div id="selL"></div>`;
   let props = [], fotos = {};
+  const filtros = F.criar(U.$("#fbar", root), { chave: "agenda", aoMudar: () => render(), campos: [
+    { k: "servicos", rotulo: "Serviço", tipo: "opcoes", opcoes: Object.entries(U.SERVICOS) },
+    { k: "especie", rotulo: "Espécie", tipo: "opcoes", opcoes: [["cao", "Cão"], ["gato", "Gato"]] },
+    { k: "tutor", rotulo: "Tutor ou pet", tipo: "texto", dica: "Parte do nome" },
+  ] });
+  const passa = p => { const v = filtros.valores; const pets = (p.proposta_pets || []).map(x => x.pets).filter(Boolean);
+    if (v.servicos?.length && !v.servicos.includes(p.servico)) return false;
+    if (v.especie?.length && !pets.some(x => v.especie.includes(x.especie))) return false;
+    if (v.tutor) { const t = v.tutor.toLowerCase(); if (!((p.tutor_nome || "").toLowerCase().includes(t) || pets.some(x => (x.nome || "").toLowerCase().includes(t)))) return false; }
+    return true; };
   const nPets = p => Math.max(1, (p.proposta_pets || []).length);
   const nomes = p => (p.proposta_pets || []).map(x => x.pets?.nome).filter(Boolean).join(", ") || p.tutor_nome || "Pet";
-  const doDia = d => props.filter(p => p.data_inicio <= d && (p.data_fim || p.data_inicio) >= d);
-  const hospDia = d => doDia(d).filter(p => p.servico === "hosp").reduce((a, p) => a + nPets(p), 0);
+  const doDiaTodos = d => props.filter(p => p.data_inicio <= d && (p.data_fim || p.data_inicio) >= d);
+  const doDia = d => doDiaTodos(d).filter(passa); // o que aparece (com filtros)
+  const hospDia = d => doDiaTodos(d).filter(p => p.servico === "hosp").reduce((a, p) => a + nPets(p), 0); // capacidade conta todos
 
   async function load() {
     const ini = U.iso(new Date(ano, mes, 1)), fim = U.iso(new Date(ano, mes + 1, 0));

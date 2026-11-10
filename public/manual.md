@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 1.3 · atualizado em 10/11/2026
+Versão 1.4 · atualizado em 10/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -18,6 +18,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Orçamentos importados](#orcamentos-importados)
 - [Depois que o cliente responde](#depois-que-o-cliente-responde)
 - [Cobrar resposta](#cobrar-resposta)
+- [Filtros](#filtros)
 - [Regras de preço](#regras-de-preco)
 - [Dicas e dúvidas](#dicas-e-duvidas)
 
@@ -168,6 +169,24 @@ Revise a mensagem no WhatsApp e mande. A cobrança fica registrada (quantas veze
 
 Se o tutor não tem WhatsApp cadastrado, o WhatsApp abre para você escolher o contato.
 
+## Filtros
+
+As abas Propostas, Pets, Tutores, Agenda e Financeiro têm o botão **⚙️ Filtros**.
+
+1. Toque em **Filtros**, marque o que quer ver e toque em **Aplicar**.
+2. Cada filtro ativo vira uma etiqueta embaixo do botão. Toque na etiqueta para tirar só aquele filtro, ou em **Limpar tudo**.
+3. O filtro fica guardado no aparelho: ao voltar para a aba, ele continua lá. Períodos como "Este mês" se atualizam sozinhos.
+
+| Aba | Dá para filtrar por |
+|---|---|
+| Propostas | Data em que foi feita · data do serviço · tipo de serviço · cidade · valor (mínimo e máximo). Junta com a situação (Enviadas, Aceitas…) e a busca. Os números do topo seguem o filtro. |
+| Pets | Espécie · porte · ativos ou inativos · com ou sem foto · cuidados (remédio, limitação, reativo) · nome do tutor |
+| Tutores | Cidade · bairro · situação (já fechou, tem orçamento sem resposta, nunca fechou) · data do último orçamento · com ou sem WhatsApp |
+| Agenda | Tipo de serviço · espécie · nome do tutor ou do pet. O aviso de capacidade continua contando todos os hóspedes. |
+| Financeiro | Tipo de serviço · parcelas vencidas ou a vencer · forma de recebimento · vencimento · cliente |
+
+Na visão **Por cliente** (em Propostas) os filtros não se aplicam.
+
 ## Regras de preço
 
 O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - Servicos e Precos").
@@ -204,6 +223,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 1.4 | 10/11/2026 | Filtros em Propostas, Pets, Tutores, Agenda e Financeiro |
 | 1.3 | 10/11/2026 | Aba Cobrar resposta, botões Aceitou/Recusou/Cobrar/Adiar direto da lista, mudança em lote e link de nova senha |
 | 1.2 | 10/11/2026 | Proposta com duas opções (recomendada, escolhida e aceite por opção) |
 | 1.1 | 10/11/2026 | Níveis de acesso (administrador, gestora, assistente), valor final combinado, histórico por cliente, orçamentos antigos importados, endereço novo e este manual dentro do painel |

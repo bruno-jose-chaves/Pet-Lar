@@ -18,7 +18,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Mudança otimista, com "Desfazer" no aviso.
 - **Atenção:** "Aceitou" lança sinal e saldo no Financeiro. A ação rápida precisa avisar isso.
 
-### A-02 · Filtros em todas as abas 🟡
+### A-02 · Filtros em todas as abas ✅ (v1.4)
 - **Origem:** Bruno, 10/11/2026
 - **Problema:** nenhuma aba filtra por data, tipo de serviço etc.
 - **Ideia de solução:** uma barra de filtros padrão, reaproveitada em todas as abas, que lembra a última escolha.
