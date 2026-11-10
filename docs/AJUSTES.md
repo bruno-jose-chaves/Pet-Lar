@@ -46,6 +46,13 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Regra para expirar sozinho: depois de N dias sem resposta, vira "Expirada" (N em Configurações).
 - **Depende de:** A-01 (mesmas ações rápidas).
 
+### A-04 · Administrador trocar a senha de outra pessoa 🟡
+- **Origem:** Bruno, 10/11/2026
+- **Problema:** em Configurações, o administrador não consegue mudar a senha de quem tem acesso. Se a Larissa esquecer, ela precisa usar "Esqueci a senha" sozinha.
+- **Ideia de solução:**
+  1. **Rápido:** botão "Mandar link de nova senha" ao lado de cada pessoa em Quem tem acesso. Usa o mesmo e-mail do "Esqueci a senha".
+  2. **Completo:** "Definir senha provisória". O administrador digita uma senha e a pessoa troca no primeiro acesso. Precisa de uma função no servidor (Edge Function do Supabase com chave de serviço), porque o navegador não pode mudar a senha de outra pessoa.
+
 ## Observados durante o desenvolvimento (precisam do seu ok)
 
 ### C-01 · Proposta com duas opções ✅ (v1.2, 10/11/2026)
@@ -58,15 +65,17 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Origem:** Claude. 12 entraram como Enviada. Faltam fotos, datas, WhatsApp, alguns nomes de pets e 4 tutores.
 - **Ideia:** depois do A-01, marcar a situação em lote. As fotos podem ser enviadas para o Claude colocar.
 
-### C-03 · Proteção de senha vazada no login ⏸️
+### C-03 · Proteção de senha vazada no login ⏸️ (decidido: não ligar agora)
 - **Origem:** Claude, aviso do Supabase.
 - **Onde fica:** Supabase → projeto pet-lar → Authentication → Sign In / Providers → Email → "Prevent use of leaked passwords".
 - **Bloqueio:** só existe no plano Pro do Supabase (US$ 25/mês). No plano grátis não dá para ligar.
-- **Alternativa grátis (mesma tela):** "Minimum password length" = 8 e "Password requirements" = letras e números. Fazer quando o Bruno quiser.
+- **Alternativa grátis (mesma tela):** "Minimum password length" = 8 e "Password requirements" = letras e números.
+- **Decisão (Bruno, 10/11/2026):** não precisa agora.
 
-### C-04 · Assistente e valores pela API ⏸️
+### C-04 · Assistente e valores pela API ⏸️ (sem uso hoje)
 - **Origem:** Claude. A assistente não vê valores nas telas, mas, tecnicamente, consegue ler o valor das propostas aceitas pela API. Isso só importa se um dia entrar alguém de fora da família.
 - **Ideia:** uma view sem colunas de valor para a assistente.
+- **Decisão (Bruno, 10/11/2026):** hoje só Bruno e Larissa usam o painel, então não há login de assistente. O nível continua pronto no sistema para quando precisar.
 
 ### C-05 · Pets diferentes em cada opção 🟡
 - **Origem:** Claude. Caso da Karina: opção 1 com os 2 gatos (visitas), opção 2 só com 1 gato (hospedagem).
@@ -77,9 +86,11 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ### F-01 · Área do tutor 🟡
 - **Origem:** Bruno, 10/11/2026
 - **O que é:** telas para o tutor entrar pelo celular e acompanhar o pet: se já comeu, se dormiu, passeios, fotos e vídeos das atividades, recados da Lari.
-- **Login:** pelo celular cadastrado do tutor.
-  - Código por SMS (Supabase + Twilio ou similar). Custa por SMS enviado e pede conta no provedor.
-  - Alternativa sem custo para começar: **link pessoal** que a Lari manda pelo WhatsApp, sem senha, com prazo de validade e que pode ser cancelado. O login por celular entra depois.
+- **Acesso (decidido pelo Bruno, 10/11/2026): link pessoal.** Muitos clientes têm pouca familiaridade com tecnologia, então nada de senha nem código por SMS.
+  - Na ficha do tutor, a Lari toca em "Mandar acesso" e sai uma mensagem de WhatsApp com o link dele.
+  - O link abre direto a área do tutor e pode ser salvo na tela de início do celular.
+  - Cada link vale só para aquele tutor, pode ser cancelado e trocado a qualquer momento, e pode ter validade (ex.: até o fim da estadia).
+  - Plano B, se um dia precisar: tela que pede só o telefone. Sem código de confirmação, porém, qualquer pessoa que souber o número entraria, então o link continua mais seguro e mais simples.
 - **Depende de F-02.** Sem o registro do dia a dia, a área do tutor fica vazia.
 - **O que mais pode entrar:**
   - O tutor completa a ficha do pet: alimentação, remédios, veterinário, acesso à casa. Isso substitui a anamnese longa.
@@ -101,5 +112,6 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ## Histórico
 | Data | O quê |
 |---|---|
+| 10/11/2026 | Entrou A-04 (trocar senha de usuários). F-01 com acesso por link pessoal (sem SMS). C-03 e C-04 decididos: não fazer agora |
 | 10/11/2026 | C-01 entregue (v1.2). C-03 pausado (só no plano Pro). Entraram C-05, F-01 (área do tutor) e F-02 (diário do pet) |
 | 10/11/2026 | Criado com A-01, A-02, A-03 (Bruno) e C-01 a C-04 (observados) |
