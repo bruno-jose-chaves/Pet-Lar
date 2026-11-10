@@ -254,6 +254,62 @@ with sync_playwright() as p:
     check("Manual: link do sumário rola até a seção (sem trocar de tela)", pg.evaluate("scrollY") > y0 and pg.evaluate("location.hash") == "#/ajuda")
     no_hscroll("Manual")
 
+    # ---------- v1.3: Cobrar resposta e ações rápidas ----------
+    pg.evaluate("""() => { const T=window.__FAKE_DB; const d=n=>new Date(Date.now()-n*86400000).toISOString(); const amanha=new Date(Date.now()+3*86400000).toISOString().slice(0,10);
+      T.tutores.push({id:'tc',nome:'Carla Souza',whatsapp:'(47) 97777-1111'});
+      T.pets.push({id:'pc',tutor_id:'tc',nome:'Nina',especie:'cao',porte:'P',passeia:true,ativo:true,reativo:false});
+      const base={servico:'hosp',tutor_id:'tc',tutor_nome:'Carla Souza',valor_total:500,valor_cheio:500,payload:{},cobrancas:0,data_inicio:'2026-12-20',data_fim:'2026-12-24'};
+      [['c1',5,null],['c2',0,null],['c3',20,null],['c4',6,null],['c5',4,amanha]].forEach(([id,dd,lem],i)=>{ T.propostas.push(Object.assign({},base,{id,numero:'PL-T-0'+i,status:'enviada',enviada_em:d(dd),created_at:d(dd),lembrar_em:lem})); T.proposta_pets.push({proposta_id:id,pet_id:'pc'}); });
+      const c4=T.propostas.find(p=>p.id==='c4'); c4.payload={alt:{servico:'visitas'},escolhida:null,opcoes:[{n:1,servico:'hosp',titulo:'Hospedagem no Pet Lar',valor_total:500,valor_cheio:500,data_inicio:'2026-12-20',data_fim:'2026-12-24'},{n:2,servico:'visitas',titulo:'Pet Sitter · Visitas em casa',valor_total:350,valor_cheio:380,data_inicio:'2026-12-20',data_fim:'2026-12-24'}]}; }""")
+    go("#/cobrar"); pg.wait_for_timeout(1000)
+    txt = pg.inner_text("#cb")
+    check("Cobrar: separa cobrar agora (2), recentes, adiadas e antigas", pg.locator(".kpi").first.inner_text().split("\n")[1] == "2" and "Adiadas" in txt and "mais de 15 dias" in txt, pg.locator(".kpi").first.inner_text().replace("\n"," "))
+    link = pg.locator(".pwrap[data-pid=c1] [data-qa=cobrar]")
+    href = link.get_attribute("href")
+    check("Cobrar: WhatsApp do tutor com mensagem pronta (1ª cobrança)", "wa.me/5547977771111" in href and "Nina" in __import__("urllib.parse").parse.unquote(href))
+    with ctx.expect_page() as popup: link.click()
+    popup.value.close(); pg.wait_for_timeout(800)
+    check("Cobrar: cobrança registrada (1×) e lembrete marcado", DB("(()=>{const p=T.propostas.find(x=>x.id==='c1'); return p.cobrancas===1 && !!p.cobrada_em && !!p.lembrar_em})()"))
+    check("Cobrar: depois de cobrar sai de 'Cobrar agora'", pg.locator(".kpi").first.inner_text().split("\n")[1] == "1")
+    check("Cobrar: segunda cobrança muda o tom da mensagem", "procuradas" in pg.evaluate("""() => decodeURIComponent(document.querySelector('.pwrap[data-pid=c1] [data-qa=cobrar]').href)"""))
+    pg.click(".pwrap[data-pid=c4] [data-qa=adiar]"); pg.wait_for_timeout(300); pg.click(".modal [data-d='7']"); pg.wait_for_timeout(700)
+    check("Cobrar: adiar 1 semana grava o lembrete", DB("T.propostas.find(x=>x.id==='c4').lembrar_em") == pg.evaluate("(()=>{const d=new Date();d.setDate(d.getDate()+7);return d.toISOString().slice(0,10)})()"))
+    pg.click("#bExpirar"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(700)
+    check("Cobrar: antigas marcadas como sem resposta", DB("T.propostas.find(x=>x.id==='c3').status") == "expirada")
+    pg.wait_for_timeout(300)
+    no_hscroll("Cobrar")
+    pg.screenshot(path=str(OUT / "app_cobrar.png"))
+    # Propostas: ações direto da lista
+    go("#/propostas"); tap("#fil .chip[data-v=enviada]"); pg.wait_for_timeout(800)
+    check("Lista: linhas enviadas têm Aceitou/Recusou/Cobrar", pg.locator(".pwrap[data-pid=c2] [data-qa=aceita]").count() == 1 and pg.locator(".pwrap[data-pid=c2] [data-qa=cobrar]").count() == 1)
+    pg.click(".pwrap[data-pid=c2] [data-qa=recusada]"); pg.wait_for_timeout(700)
+    check("Lista: recusou direto da lista", DB("T.propostas.find(x=>x.id==='c2').status") == "recusada")
+    pg.click(".toast.acao button"); pg.wait_for_timeout(700)
+    check("Lista: desfazer volta para enviada", DB("T.propostas.find(x=>x.id==='c2').status") == "enviada")
+    pg.click(".pwrap[data-pid=c2] [data-qa=aceita]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(900)
+    check("Lista: aceitou com confirmação → sinal e saldo lançados", DB("T.propostas.find(x=>x.id==='c2').status==='aceita' && T.pagamentos.filter(g=>g.proposta_id==='c2').length===2"))
+    pg.click(".pwrap[data-pid=c4] [data-qa=aceita]"); pg.wait_for_timeout(500)
+    check("Lista: proposta de 2 opções pergunta qual foi aceita", pg.locator(".modal [data-n]").count() == 2)
+    pg.click(".modal [data-n='2']"); pg.wait_for_timeout(900)
+    check("Lista: aceitou a opção 2 → valor, serviço e sinal da opção 2", DB("(()=>{const p=T.propostas.find(x=>x.id==='c4'); return p.status==='aceita' && p.valor_total===350 && p.servico==='visitas' && p.payload.escolhida===2 && T.pagamentos.filter(g=>g.proposta_id==='c4').map(g=>g.valor).join()==='175,175'})()"))
+    # seleção em lote
+    tap("#fil .chip[data-v='']"); pg.wait_for_timeout(700)
+    pg.click("#bSel"); pg.wait_for_timeout(300)
+    pg.click(".pwrap[data-pid=c1]"); pg.click(".pwrap[data-pid=c5]"); pg.wait_for_timeout(200)
+    check("Lote: conta as selecionadas", "2 selecionadas" in pg.inner_text("#loteN"))
+    pg.click("#lote [data-lote=recusada]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(800)
+    check("Lote: 2 marcadas como recusadas de uma vez", DB("['c1','c5'].every(id=>T.propostas.find(x=>x.id===id).status==='recusada')") and pg.locator("#lote.hide").count() == 1)
+    no_hscroll("Propostas com ações")
+    pg.screenshot(path=str(OUT / "app_propostas_acoes.png"))
+    go("#/hoje"); pg.wait_for_timeout(900)
+    check("Hoje: seção Cobrar resposta com link para a aba", "Cobrar resposta" in pg.inner_text("#view") and pg.locator("a[href='#/cobrar']").count() >= 1)
+    check("Menu: Cobrar no menu de baixo", pg.locator(".bottomnav [data-nav=cobrar]").count() == 1)
+    pg.evaluate("""() => { const T=window.__FAKE_DB; const ids=['c1','c2','c3','c4','c5']; T.propostas=T.propostas.filter(p=>!ids.includes(p.id)); T.proposta_pets=T.proposta_pets.filter(x=>!ids.includes(x.proposta_id)); T.pagamentos=T.pagamentos.filter(g=>!ids.includes(g.proposta_id)); T.pets=T.pets.filter(p=>p.id!=='pc'); T.tutores=T.tutores.filter(t=>t.id!=='tc'); }""")
+    # A-04: link de nova senha
+    go("#/config"); pg.wait_for_timeout(800)
+    pg.click("#adm [data-senha='larissa@exemplo.com']"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(600)
+    check("Config: manda link de nova senha para outra pessoa", "Link enviado" in pg.inner_text("body"))
+
     # ---------- Falha de rede ao salvar ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(800)
     pg.evaluate("() => { window.__FAKE_FAIL = q => q.t==='propostas' && q.op==='update'; }")
@@ -286,6 +342,7 @@ with sync_playwright() as p:
     check("Assistente: menu sem Propostas e sem Financeiro", q.locator(".bottomnav [data-nav=propostas]").count() == 0 and q.locator(".topnav [data-nav=financeiro]").count() == 0)
     check("Assistente: Hoje sem valores em R$", q.locator(".kpi").count() == 2 and "R$" not in q.inner_text("#view"))
     check("Assistente: sem botão de nova proposta", q.locator(".fab").count() == 0)
+    check("Assistente: sem Cobrar no menu", q.locator("[data-nav=cobrar]").count() == 0)
     q.evaluate("location.hash='#/financeiro'"); q.wait_for_timeout(700)
     check("Assistente: Financeiro bloqueado (volta para Hoje)", q.evaluate("location.hash") == "#/hoje")
     q.evaluate("location.hash='#/proposta/sA'"); q.wait_for_timeout(900)

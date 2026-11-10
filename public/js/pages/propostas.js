@@ -1,24 +1,33 @@
 // Lista de propostas com funil por status, busca e paginação
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import * as A from "../acoes.js";
 
 const FILTROS = [["", "Todas"], ["rascunho", "Rascunho"], ["enviada", "Enviadas"], ["aceita", "Aceitas"], ["recusada", "Recusadas"], ["cliente", "👤 Por cliente"]];
 
 export async function mount(root) {
   let st = sessionStorage.getItem("petlar_filtro_prop") || "", q = "", page = 0, total = 0, items = [];
   root.innerHTML = `<h1 class="pg">Propostas</h1>
-    <div class="toolbar"><div class="grow search"><input type="text" id="q" placeholder="Buscar por tutor ou número" autocomplete="off"></div></div>
+    <div class="toolbar"><div class="grow search"><input type="text" id="q" placeholder="Buscar por tutor ou número" autocomplete="off"></div><button class="btn soft small" id="bSel">Selecionar</button></div>
     <div class="chips" id="fil">${FILTROS.map(([k, t]) => `<button class="chip" data-v="${k}">${t}</button>`).join("")}</div>
     <div id="funil" class="muted" style="margin:-4px 0 10px"></div>
     <div id="lista">${U.skeleton(5)}</div><div class="more" id="more"></div>
-    <a class="btn primary fab" href="#/proposta/nova">+ Nova proposta</a>`;
+    <a class="btn primary fab" id="fabNova" href="#/proposta/nova">+ Nova proposta</a>
+    <div class="lote hide" id="lote"><span id="loteN">0 selecionadas</span>
+      <button class="btn small primary" data-lote="aceita">✅ Aceitaram</button><button class="btn small soft" data-lote="recusada">✖ Recusaram</button>
+      <button class="btn small soft" data-lote="expirada">⌛ Sem resposta</button><button class="btn small soft" data-lote="sair">Cancelar</button></div>`;
+  let modoSel = false; const sel = new Set();
   const syncChips = () => U.$$("#fil .chip", root).forEach(c => c.classList.toggle("on", c.dataset.v === st));
   syncChips();
 
-  const row = p => `<a class="item" href="#/proposta/${p.id}">
+  const row = p => { const pets = A.nomesPets(p).join(", ");
+    return `<div class="pwrap ${sel.has(p.id) ? "sel" : ""}" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
+    ${modoSel ? `<span class="ck" aria-hidden="true">${sel.has(p.id) ? "☑" : "☐"}</span>` : ""}
     <div class="main"><div class="t">${U.esc(p.tutor_nome || "Sem tutor")} <span class="muted" style="font-weight:400">· ${U.esc(p.numero || "")}</span></div>
-    <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}</div></div>
-    <div class="r"><div class="v">${U.brl(p.valor_total)}</div>${U.pill(p.status)}</div></a>`;
+    <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}${pets ? " · " + U.esc(pets) : ""}${Array.isArray(p.opcoes) ? " · 2 opções" : ""}${p.status === "enviada" && p.cobrancas ? ` · cobrada ${p.cobrancas}×` : ""}</div></div>
+    <div class="r"><div class="v">${U.brl(p.valor_total)}</div>${U.pill(p.status)}</div></a>${modoSel ? "" : A.botoes(p)}</div>`; };
+  const pintar = () => { if (st === "cliente") return; U.$("#lista", root).innerHTML = items.length ? `<div class="list">${items.map(row).join("")}</div>`
+        : `<div class="empty">${q ? "Nada encontrado para “" + U.esc(q) + "”." : "Nenhuma proposta aqui ainda."}<br><a class="btn primary" href="#/proposta/nova">Criar proposta</a></div>`; };
 
   async function porCliente() {
     U.$("#lista", root).innerHTML = U.skeleton(5); U.$("#more", root).innerHTML = "";
@@ -41,8 +50,7 @@ export async function mount(root) {
       const r = await db.listPropostas({ status: st || null, q: q || null, page });
       if (myQ !== q || mySt !== st) return; // resposta antiga
       items = items.concat(r.data); total = r.count;
-      U.$("#lista", root).innerHTML = items.length ? `<div class="list">${items.map(row).join("")}</div>`
-        : `<div class="empty">${q ? "Nada encontrado para “" + U.esc(q) + "”." : "Nenhuma proposta aqui ainda."}<br><a class="btn primary" href="#/proposta/nova">Criar proposta</a></div>`;
+      pintar();
       U.$("#more", root).innerHTML = items.length < total ? `<button class="btn soft" id="bMore">Carregar mais (${total - items.length})</button>` : "";
       const b = U.$("#bMore", root); if (b) b.addEventListener("click", () => { page++; b.disabled = true; load(false); });
     } catch (e) { U.$("#lista", root).innerHTML = `<div class="empty">Não consegui carregar. <button class="btn soft" id="retry">Tentar de novo</button></div>`; U.$("#retry", root).onclick = () => load(); }
@@ -54,6 +62,27 @@ export async function mount(root) {
   }
   U.$("#fil", root).addEventListener("click", e => { const c = e.target.closest(".chip"); if (!c) return; st = c.dataset.v; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); load(); });
   U.$("#lista", root).addEventListener("click", e => { const a = e.target.closest("[data-busca]"); if (!a) return; e.preventDefault(); st = ""; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); q = a.dataset.busca; U.$("#q", root).value = q; load(); });
+  // ações rápidas em cada linha
+  A.ligar(U.$("#lista", root), id => items.find(x => x.id === id), () => { pintar(); funil(); });
+  // seleção para mudar várias de uma vez
+  const syncLote = () => { U.$("#lote", root).classList.toggle("hide", !modoSel); U.$("#fabNova", root).classList.toggle("hide", modoSel); U.$("#loteN", root).textContent = `${sel.size} selecionada${sel.size === 1 ? "" : "s"}`; U.$("#bSel", root).textContent = modoSel ? "Cancelar seleção" : "Selecionar"; };
+  const sairSel = () => { modoSel = false; sel.clear(); syncLote(); pintar(); };
+  U.$("#bSel", root).addEventListener("click", () => { if (modoSel) return sairSel(); if (st === "cliente") { st = ""; syncChips(); load(); } modoSel = true; syncLote(); pintar(); });
+  U.$("#lista", root).addEventListener("click", e => {
+    if (!modoSel) return; const w = e.target.closest(".pwrap"); if (!w) return; e.preventDefault();
+    const id = w.dataset.pid; sel.has(id) ? sel.delete(id) : sel.add(id); syncLote(); pintar();
+  }, true);
+  U.$("#lote", root).addEventListener("click", async e => {
+    const b = e.target.closest("[data-lote]"); if (!b) return; const st2 = b.dataset.lote;
+    if (st2 === "sair") return sairSel();
+    if (!sel.size) { U.toast("Toque nas propostas para selecionar."); return; }
+    const escolhidas = items.filter(p => sel.has(p.id));
+    const soma = escolhidas.reduce((a, p) => a + Number(p.valor_total || 0), 0);
+    const txt = { aceita: `Marcar ${sel.size} como aceitas (${U.brl(soma)})? Cada uma lança sinal e saldo no Financeiro.${escolhidas.some(p => Array.isArray(p.opcoes)) ? " As de duas opções ficam com a recomendada." : ""}`, recusada: `Marcar ${sel.size} como recusadas?`, expirada: `Marcar ${sel.size} como sem resposta (expiradas)?` }[st2];
+    if (!(await U.confirmDialog(txt, { ok: "Confirmar" }))) return;
+    try { await db.statusEmLote([...sel], st2); escolhidas.forEach(p => p.status = st2); db.invalidate("lista"); U.toast(`${sel.size} proposta${sel.size > 1 ? "s" : ""} atualizada${sel.size > 1 ? "s" : ""} ✓`); sairSel(); funil(); window.dispatchEvent(new Event("petlar:propostas")); }
+    catch { U.toast("Não consegui atualizar. Confira a internet."); }
+  });
   U.$("#q", root).addEventListener("input", U.debounce(e => { q = e.target.value.trim(); load(); }, 300));
   load(); funil();
 }

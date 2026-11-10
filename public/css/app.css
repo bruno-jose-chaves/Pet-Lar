@@ -173,3 +173,26 @@ input[type=email],input[type=password]{width:100%;min-height:46px;-webkit-appear
 .manual ul,.manual ol{padding-left:20px}
 .manual .toc{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
 .manual .toc a{font-size:13px;padding:5px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);text-decoration:none;color:inherit}
+
+/* v1.3: ações rápidas, seleção em lote, cobrar resposta */
+.pwrap{background:#fff;border-radius:16px;overflow:hidden}
+.list .pwrap .item{background:transparent;border-radius:0}
+.pwrap.sel{box-shadow:0 0 0 2px var(--terra,#C7694A)}
+.pwrap .ck{font-size:20px;color:var(--terra,#C7694A);margin-right:2px}
+.qa{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 10px;justify-content:flex-end}
+.qa-b{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--line,#E7DACB);background:#FBF7F2;color:#5A3B2A;border-radius:999px;padding:5px 11px;min-height:30px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.qa-b.ok{background:#EAF3E6;border-color:#CFE3C6;color:#2F5B2A}
+.qa-b.no{background:#FBEDEA;border-color:#F0D3CB;color:#8E3B26}
+.qa-b.zap{background:#E7F7EE;border-color:#BFE7CF;color:#146B3A}
+.qa-b:disabled{opacity:.5}
+.lote{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;background:#30251F;color:#F9F3EC;border-radius:16px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:min(94vw,640px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.lote span{font-weight:700;margin-right:auto}
+@media (min-width:900px){.lote{bottom:22px}}
+.toast.acao{display:flex;align-items:center;gap:12px}
+.toast.acao button{font:inherit;font-weight:700;background:transparent;border:1px solid rgba(255,255,255,.5);color:inherit;border-radius:999px;padding:4px 12px;cursor:pointer}
+.badge-n{font-style:normal;background:#C7694A;color:#fff;border-radius:999px;font-size:10.5px;font-weight:800;min-width:17px;height:17px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;vertical-align:1px}
+.bottomnav a{position:relative}
+.bottomnav .badge-n{position:absolute;top:2px;left:calc(50% + 6px);margin:0}
+.badge-n.hide{display:none}
+.bottomnav{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr}
+.bottomnav a span{white-space:nowrap}

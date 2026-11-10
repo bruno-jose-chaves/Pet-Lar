@@ -53,8 +53,10 @@ export async function followUps(dias) {
   return chk(await sb.from("propostas").select("id,numero,tutor_nome,tutor_id,servico,valor_total,enviada_em,tutores(whatsapp)").eq("status", "enviada").lt("enviada_em", lim).order("enviada_em").limit(10));
 }
 
+// colunas das listas com ações rápidas (Propostas, Cobrar, Hoje)
+export const PROP_LISTA = "id,numero,status,servico,tutor_id,tutor_nome,data_inicio,data_fim,valor_total,valor_cheio,resumo,created_at,enviada_em,cobrancas,cobrada_em,lembrar_em,opcoes:payload->opcoes,escolhida:payload->escolhida,tutores(whatsapp),proposta_pets(pets(nome))";
 export async function listPropostas({ status, q, page = 0, size = 20 } = {}) {
-  let r = sb.from("propostas").select("id,numero,status,servico,tutor_nome,data_inicio,data_fim,valor_total,resumo,created_at,enviada_em", { count: "exact" })
+  let r = sb.from("propostas").select(PROP_LISTA, { count: "exact" })
     .order("created_at", { ascending: false }).range(page * size, page * size + size - 1);
   if (status) r = r.eq("status", status);
   if (q) { const t = q.replace(/[%,()]/g, " ").trim(); r = r.or(`tutor_nome.ilike.%${t}%,numero.ilike.%${t}%`); }
@@ -168,4 +170,20 @@ export async function propostasPorCliente() {
 // serviço confirmado (visão da assistente: sem valores)
 export async function getServico(id) {
   return chk(await sb.from("propostas").select("id,numero,servico,status,data_inicio,data_fim,cidade,tutor_id,tutor_nome,resumo,obs:payload->>obs,tutores(id,nome,whatsapp,endereco,bairro,cidade,observacoes),proposta_pets(pets(id,nome,especie,raca,porte,foto_path,alimentacao,medicacao,comportamento,limitacoes,reativo))").eq("id", id).single());
+}
+
+// ---------- ações rápidas e cobranças ----------
+export async function propostasEnviadas() {
+  return chk(await sb.from("propostas").select(PROP_LISTA).eq("status", "enviada").order("enviada_em", { ascending: true }).limit(500));
+}
+export async function getPayload(id) { return chk(await sb.from("propostas").select("payload").eq("id", id).single()).payload || {}; }
+export async function atualizarProposta(id, row) { return chk(await sb.from("propostas").update(row).eq("id", id).select("id,status").single()); }
+export async function statusEmLote(ids, status) { return chk(await sb.from("propostas").update({ status }).in("id", ids).select("id")); }
+export async function registrarCobranca(id, n, lembrarEm) {
+  return chk(await sb.from("propostas").update({ cobrancas: n, cobrada_em: new Date().toISOString(), lembrar_em: lembrarEm }).eq("id", id).select("id").single());
+}
+export async function apagarPagamentosAbertos(propostaId) { return chk(await sb.from("pagamentos").delete().eq("proposta_id", propostaId).is("pago_em", null)); }
+export async function linkNovaSenha(email) {
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
+  if (error) throw error; return true;
 }

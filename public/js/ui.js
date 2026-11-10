@@ -30,9 +30,20 @@ export const USER = `<svg viewBox="0 0 24 24" fill="none" stroke="#5A3B2A" strok
 export function debounce(fn, ms = 300) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
 export function toast(msg, ms = 3000) {
+  document.querySelectorAll(".toast").forEach(x => x.remove());
   const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), ms);
 }
+
+// Aviso com botão (ex.: "Desfazer"). O botão some quando o aviso some.
+export function toastAcao(msg, label, fn, ms = 6000) {
+  document.querySelectorAll(".toast").forEach(x => x.remove());
+  const t = document.createElement("div"); t.className = "toast acao"; t.setAttribute("role", "status");
+  t.innerHTML = `<span>${esc(msg)}</span><button type="button">${esc(label)}</button>`;
+  t.querySelector("button").addEventListener("click", () => { t.remove(); fn(); });
+  document.body.appendChild(t); setTimeout(() => t.remove(), ms);
+}
+export function diasDesde(iso) { if (!iso) return null; return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)); }
 
 export function skeleton(n = 4, cls = "sk-item") { return `<div class="list">${Array.from({ length: n }, () => `<div class="sk ${cls}"></div>`).join("")}</div>`; }
 

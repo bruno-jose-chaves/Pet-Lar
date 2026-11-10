@@ -2,6 +2,7 @@
 import * as U from "../ui.js";
 import * as db from "../db.js";
 import { gestao } from "../perfil.js";
+import * as A from "../acoes.js";
 
 export function itemProposta(p, fotos = {}, extra = "") {
   const pets = (p.proposta_pets || []).map(x => x.pets).filter(Boolean);
@@ -22,20 +23,20 @@ export async function mount(root) {
     <div class="kpis" id="kpis">${'<div class="sk sk-kpi"></div>'.repeat(4)}</div>
     <h2 class="sec">Hoje · ${U.fmtY(hoje)} <span class="count" id="cHoje"></span></h2><div id="hoje">${U.skeleton(2)}</div>
     <h2 class="sec">Próximos 7 dias <span class="count" id="cProx"></span></h2><div id="prox">${U.skeleton(2)}</div>
-    ${g ? `<h2 class="sec">Propostas sem resposta <span class="count" id="cFu"></span></h2><div id="fu">${U.skeleton(1)}</div>
+    ${g ? `<h2 class="sec">Cobrar resposta <span class="count" id="cFu"></span></h2><div id="fu">${U.skeleton(1)}</div>
     <a class="btn primary fab" href="#/proposta/nova">+ Nova proposta</a>` : ""}`;
 
   const set = await db.getSettings().catch(() => ({ follow_up_dias: 2 }));
   // tudo em paralelo
   const [res, ativos, prox, fus] = await Promise.all([
     db.resumo(hoje).catch(() => null), db.propostasAtivas(hoje).catch(() => []),
-    db.propostasProximas(hoje, 7).catch(() => []), g ? db.followUps(set.follow_up_dias || 2).catch(() => []) : [],
+    db.propostasProximas(hoje, 7).catch(() => []), g ? db.propostasEnviadas().catch(() => []) : [],
   ]);
   const r = res || {};
   U.$("#kpis", root).innerHTML = `
     <a class="kpi" href="#/pets"><span>Serviços hoje</span><b>${r.servicos_hoje ?? "—"}</b><small>${r.hospedados_hoje || 0} hospedado(s)</small></a>
     <a class="kpi" href="#/agenda"><span>Próximos 7 dias</span><b>${r.proximos_7 ?? "—"}</b><small>serviços confirmados</small></a>
-    ${g ? `<a class="kpi ${r.follow_up ? "alert" : ""}" href="#/propostas"><span>Aguardando resposta</span><b>${r.aguardando ?? "—"}</b><small>${U.brl(r.aguardando_valor || 0)} em propostas</small></a>
+    ${g ? `<a class="kpi ${r.follow_up ? "alert" : ""}" href="#/cobrar"><span>Aguardando resposta</span><b>${r.aguardando ?? "—"}</b><small>${U.brl(r.aguardando_valor || 0)} em propostas</small></a>
     <a class="kpi" href="#/financeiro"><span>A receber</span><b>${U.brl(r.a_receber || 0)}</b><small>recebido no mês: ${U.brl(r.recebido_mes || 0)}</small></a>` : ""}`;
 
   const paths = [...ativos, ...prox].flatMap(p => (p.proposta_pets || []).map(x => x.pets?.foto_path)).filter(Boolean);
@@ -46,10 +47,17 @@ export async function mount(root) {
   U.$("#cProx", root).textContent = prox.length;
   U.$("#prox", root).innerHTML = prox.length ? `<div class="list">${prox.map(p => itemProposta(p, fotos, `<b style="font-size:13px">${U.fmt(p.data_inicio)}</b>`)).join("")}</div>` : `<div class="empty">Nada confirmado para a próxima semana.</div>`;
   if (!g) return;
-  U.$("#cFu", root).textContent = fus.length;
-  U.$("#fu", root).innerHTML = fus.length ? `<p class="muted" style="margin:-4px 0 8px">Enviadas há mais de ${set.follow_up_dias || 2} dias. Vale um “oi, conseguiu ver?”</p><div class="list">${fus.map(p => {
-    const msg = `Oi${p.tutor_nome ? ", " + p.tutor_nome.split(" ")[0] : ""}! Tudo bem? 🐾 Conseguiu ver a proposta ${p.numero} da Pet Lar? Qualquer dúvida estou por aqui!`;
-    return `<div class="item"><a href="#/proposta/${p.id}" class="main" style="text-decoration:none"><div class="t">${U.esc(p.tutor_nome || p.numero)}</div><div class="s">${U.esc(p.numero)} · ${U.SERVICOS[p.servico]} · ${U.brl(p.valor_total)} · enviada há ${U.relTime(p.enviada_em)}</div></a>
-      <a class="btn wa small" href="${U.waLink(p.tutores?.whatsapp, msg)}" target="_blank" rel="noopener">Lembrar</a></div>`;
-  }).join("")}</div>` : `<div class="empty">Nenhuma proposta esperando há muito tempo ✓</div>`;
+  const cob = A.agrupar(fus, set.follow_up_dias || 2, set.expira_dias || 15).agora;
+  U.$("#cFu", root).textContent = cob.length;
+  const linha = p => { const pets = A.nomesPets(p).join(", "); const d = U.diasDesde(p.enviada_em);
+    return `<div class="pwrap" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}"><div class="main"><div class="t">${U.esc(p.tutor_nome || p.numero)}${pets ? ` <span class="muted" style="font-weight:400">· ${U.esc(pets)}</span>` : ""}</div>
+      <div class="s">${U.SERVICOS[p.servico]} · ${U.brl(p.valor_total)} · enviada há ${d} dia${d === 1 ? "" : "s"}${p.cobrancas ? ` · cobrada ${p.cobrancas}×` : ""}</div></div></a>${A.botoes(p)}</div>`; };
+  const pintar = () => {
+    const lista = cob.filter(p => p.status === "enviada" && !(p.lembrar_em && p.lembrar_em > hoje) && !(p.cobrada_em && U.diasDesde(p.cobrada_em) < (set.follow_up_dias || 2)));
+    U.$("#cFu", root).textContent = lista.length;
+    U.$("#fu", root).innerHTML = lista.length ? `<div class="list">${lista.slice(0, 5).map(linha).join("")}</div><a class="btn soft small" href="#/cobrar" style="margin-top:8px">Ver todas em Cobrar resposta ›</a>`
+      : `<div class="empty">Ninguém para cobrar agora ✓ <a href="#/cobrar">Ver enviadas</a></div>`;
+  };
+  pintar();
+  A.ligar(U.$("#fu", root), id => cob.find(x => x.id === id), () => pintar());
 }

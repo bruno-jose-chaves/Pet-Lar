@@ -736,7 +736,11 @@ export async function mount(root, ctx) {
   function payloadDe() {
     const c = JSON.parse(JSON.stringify(S));
     c.pets = c.pets.map(p => { const { foto, _fotoNova, _fotoRemover, ...r } = p; return r; });
-    delete c._tutorWhatsDirty; return c;
+    delete c._tutorWhatsDirty;
+    // resumo de cada opção, para aceitar direto da lista sem abrir o editor
+    c.opcoes = S.alt ? [1, 2].map(n => withOpt(n, () => { const r = calc(); const pe = periodoDe(); const vf = Number(S.valorFechado) || 0;
+      return { n, servico: S.servico, titulo: r.title, valor_total: r.ok ? r.final : vf, valor_cheio: r.ok ? r.full : vf, data_inicio: pe.data_inicio, data_fim: pe.data_fim }; })) : null;
+    return c;
   }
   function podeSalvar() { return !!(S.tutor.trim() || S.pets.some(p => p.nome.trim())); }
   let dirty = false, saving = null, autoT = null, saveAgain = false;
@@ -800,6 +804,7 @@ export async function mount(root, ctx) {
     const antes = META.status; META.status = st; renderHead(); // otimista
     try { await db.updateProposta(META.id, { status: st }); db.invalidate("lista"); }
     catch (e) { META.status = antes; renderHead(); toast("Não consegui mudar o status."); return; }
+    window.dispatchEvent(new Event("petlar:propostas"));
     if (st === "aceita") { toast("Proposta aceita! Sinal e saldo foram lançados no Financeiro 💛", 4000); loadPagtos(); }
     else toast("Status: " + U.STATUS[st]);
   }

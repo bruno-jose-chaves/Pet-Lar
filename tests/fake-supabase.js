@@ -5,7 +5,7 @@
   const nowISO = () => new Date().toISOString();
   const today = () => new Date().toISOString().slice(0, 10);
   const T = window.__FAKE_DB = window.__FAKE_DB || {
-    settings: [{ id: 1, pix_chave: null, pix_nome: "Larissa", pix_cidade: "BALNEARIO CAMBORIU", whatsapp: "(47) 99917-9091", instagram: "@petlar.bc", capacidade_hospedagem: 3, follow_up_dias: 2 }],
+    settings: [{ id: 1, pix_chave: null, pix_nome: "Larissa", pix_cidade: "BALNEARIO CAMBORIU", whatsapp: "(47) 99917-9091", instagram: "@petlar.bc", capacidade_hospedagem: 3, follow_up_dias: 2, expira_dias: 15 }],
     admins: [{ email: "teste@petlar.app", nome: "Teste", papel: window.__FAKE_PAPEL || "admin", created_at: nowISO() }],
     tutores: [], pets: [], propostas: [], proposta_pets: [], pagamentos: [],
   };
@@ -35,7 +35,7 @@
     for (const s of sel) {
       if (s.col) {
         if (s.col === "*") { Object.assign(o, row); continue; }
-        const m = s.col.match(/^(\w+):(\w+)->>(\w+)$/); if (m) { o[m[1]] = row[m[2]]?.[m[3]] ?? null; continue; }
+        const m = s.col.match(/^(\w+):(\w+)->>?(\w+)$/); if (m) { const v = row[m[2]]?.[m[3]]; o[m[1]] = v === undefined ? null : (s.col.includes("->>") && v !== null && typeof v !== "string" ? String(v) : v); continue; }
         o[s.col] = row[s.col] ?? null; continue;
       }
       const r = REL[table][s.rel]; if (!r) throw { code: "PGRST200", message: "relação desconhecida " + s.rel };

@@ -8,6 +8,7 @@ const ICON = {
   pets: '<ellipse cx="12" cy="16" rx="4.5" ry="3.6"/><circle cx="6.5" cy="10.5" r="1.8"/><circle cx="9.8" cy="7" r="1.8"/><circle cx="14.2" cy="7" r="1.8"/><circle cx="17.5" cy="10.5" r="1.8"/>',
   agenda: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   tutores: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+  cobrar: '<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/><path d="M9 11h6M9 14h4"/>',
   mais: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
 };
 const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
@@ -25,9 +26,10 @@ const ROUTES = [
   { re: /^#\/financeiro$/, mod: "financeiro", nav: "mais", title: "Financeiro" },
   { re: /^#\/config$/, mod: "config", nav: "mais", title: "Configurações" },
   { re: /^#\/ajuda$/, mod: "ajuda", nav: "mais", title: "Como usar" },
+  { re: /^#\/cobrar$/, mod: "cobrar", nav: "cobrar", title: "Cobrar resposta" },
 ];
 // telas só da gestão (admin e gestora); o banco também bloqueia
-const SO_GESTAO = new Set(["propostas", "financeiro"]);
+const SO_GESTAO = new Set(["propostas", "financeiro", "cobrar"]);
 
 let current = null; // {destroy}
 let session = null;
@@ -38,19 +40,19 @@ export function replaceHash(h) { history.replaceState(null, "", h); lastHash = h
 
 function shell() {
   const g = gestao();
-  const top = [["hoje", "Hoje"], g && ["propostas", "Propostas"], ["pets", "Pets"], ["tutores", "Tutores"], ["agenda", "Agenda"], g && ["financeiro", "Financeiro"], ["config", "Ajustes"], ["ajuda", "Ajuda"]].filter(Boolean);
-  const bottom = g ? [["hoje", "Hoje"], ["propostas", "Propostas"], ["pets", "Pets"], ["agenda", "Agenda"]] : [["hoje", "Hoje"], ["pets", "Pets"], ["agenda", "Agenda"], ["tutores", "Tutores"]];
+  const top = [["hoje", "Hoje"], g && ["propostas", "Propostas"], g && ["cobrar", "Cobrar"], ["pets", "Pets"], ["tutores", "Tutores"], ["agenda", "Agenda"], g && ["financeiro", "Financeiro"], ["config", "Ajustes"], ["ajuda", "Ajuda"]].filter(Boolean);
+  const bottom = g ? [["hoje", "Hoje"], ["propostas", "Propostas"], ["cobrar", "Cobrar"], ["pets", "Pets"], ["agenda", "Agenda"]] : [["hoje", "Hoje"], ["pets", "Pets"], ["agenda", "Agenda"], ["tutores", "Tutores"]];
   document.body.classList.toggle("papel-assistente", !g);
   $("#root").innerHTML = `<div class="app">
     <header class="appbar">
       <a class="brand" href="#/hoje"><img src="/assets/avatar.webp" alt="Pet Lar" width="36" height="36"><b>Pet Lar</b></a>
       <span class="page-title" id="pageTitle"></span>
-      <nav class="topnav" aria-label="Menu">${top.map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${t}</a>`).join("")}</nav>
+      <nav class="topnav" aria-label="Menu">${top.map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${t}${k === "cobrar" ? '<i class="badge-n hide" data-badge></i>' : ""}</a>`).join("")}</nav>
       <span class="sp"></span><span class="save-state" id="saveState"></span>
     </header>
     <main class="view" id="view"></main>
     <nav class="bottomnav" aria-label="Menu">
-      ${bottom.map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${svg(k)}<span>${t}</span></a>`).join("")}
+      ${bottom.map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${svg(k)}<span>${t}</span>${k === "cobrar" ? '<i class="badge-n hide" data-badge></i>' : ""}</a>`).join("")}
       <a href="#" data-nav="mais" id="navMais">${svg("mais")}<span>Mais</span></a>
     </nav></div>`;
   $("#navMais").addEventListener("click", e => {
@@ -68,6 +70,18 @@ function shell() {
 
 export async function sair() { const { sb } = await import("./db.js"); await sb.auth.signOut(); location.hash = "#/hoje"; }
 
+// contador de "Cobrar" no menu (quantas propostas pedem cobrança agora)
+let badgeT = 0;
+async function atualizarBadge() {
+  if (Date.now() - badgeT < 15000) return; badgeT = Date.now();
+  try {
+    const [db, A] = await Promise.all([import("./db.js"), import("./acoes.js")]);
+    const [set, todas] = await Promise.all([db.getSettings(), db.propostasEnviadas()]);
+    const n = A.agrupar(todas, set.follow_up_dias || 2, set.expira_dias || 15).agora.length;
+    document.querySelectorAll("[data-badge]").forEach(b => { b.textContent = n; b.classList.toggle("hide", !n); });
+  } catch { }
+}
+window.addEventListener("petlar:propostas", () => { badgeT = 0; atualizarBadge(); });
 async function route() {
   const h = location.hash || "#/hoje";
   if (navGuard && h !== lastHash) {
@@ -85,6 +99,7 @@ async function route() {
   const view = $("#view"); view.className = "view" + (r.wide ? " wide" : ""); $("#pageTitle").textContent = r.title; $("#saveState").textContent = "";
   view.innerHTML = `<div class="list" style="padding:${r.wide ? "18px" : "0"}"><div class="sk" style="height:34px;width:200px;margin:6px 0 10px"></div><div class="sk sk-item"></div><div class="sk sk-item"></div><div class="sk sk-item"></div></div>`;
   window.scrollTo(0, 0);
+  if (gestao()) atualizarBadge();
   try {
     const mod = await import(`./pages/${r.mod}.js`);
     if (location.hash !== h && !(h === "#/hoje" && !location.hash)) return; // trocou de rota enquanto carregava

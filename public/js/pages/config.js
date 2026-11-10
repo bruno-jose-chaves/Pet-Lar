@@ -21,13 +21,15 @@ export async function mount(root) {
         <div class="row">${f("whatsapp", "WhatsApp", "tel")}${f("instagram", "Instagram")}</div>
         <h3 style="margin-top:16px">Operação</h3>
         <div class="row">${f("capacidade_hospedagem", "Máx. de hóspedes por dia", "number")}${f("follow_up_dias", "Lembrar proposta sem resposta após (dias)", "number")}</div>
+        ${f("expira_dias", "Considerar “sem resposta” depois de (dias)", "number")}
         <button class="btn primary" type="submit">Salvar</button>
       </form>` : `<div class="panel"><h3>Seu acesso: ${U.esc(PAPEIS[perfil.papel]?.nome || "")}</h3><p class="muted" style="margin:0">${U.esc(PAPEIS[perfil.papel]?.desc || "")}</p><p class="muted">Contato da Pet Lar: ${U.esc(s.whatsapp || "")} · ${U.esc(s.instagram || "")}</p></div>`}
       <div>
         ${A ? `<div class="panel"><h3>Quem tem acesso</h3>
           <div class="list" id="adm">${admins.map(a => `<div class="item" style="background:#fff;flex-wrap:wrap"><div class="main"><div class="t">${U.esc(a.nome || a.email)}${a.email === user?.email ? ' <span class="muted">(você)</span>' : ""}</div><div class="s">${U.esc(a.email)}</div></div>
             <select data-papel="${U.esc(a.email)}" aria-label="Nível de acesso" style="min-height:36px;border-radius:10px;border:1px solid var(--line);padding:4px 8px">${optPapel(a.papel || "gestora")}</select>
-            ${a.email !== user?.email ? `<button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
+            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">🔑 link de senha</button><button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
+          <p class="muted" style="margin:6px 0 0">🔑 manda para a pessoa um e-mail com link para criar uma senha nova (serve para quem esqueceu a senha ou ainda não fez o primeiro acesso).</p>
           <form id="fA" style="margin-top:12px"><div class="row"><label class="f">Nome<input type="text" name="nome" placeholder="Larissa"></label><label class="f">E-mail<input type="text" name="email" inputmode="email" placeholder="email@exemplo.com"></label></div>
           <label class="f">Nível<select name="papel">${optPapel("gestora")}</select></label>
           <button class="btn soft" type="submit">Dar acesso</button>
@@ -37,7 +39,7 @@ export async function mount(root) {
         <div class="panel" style="margin-top:12px"><h3>Minha conta</h3><p class="muted" style="margin-top:0">${U.esc(user?.email || "")}</p>
           <form id="fP"><label class="f">Nova senha<input type="password" name="s" minlength="6" autocomplete="new-password"></label><div class="row-actions"><button class="btn soft" type="submit">Trocar senha</button><button class="btn danger" type="button" id="bSair">Sair</button></div></form>
         </div>
-        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v1.2 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
+        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v1.3 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
       </div>
     </div>`;
   async function testePix() {
@@ -52,7 +54,7 @@ export async function mount(root) {
   U.$("[name=pix_chave]", root).addEventListener("input", U.debounce(testePix, 500));
   U.$("#fS", root).addEventListener("submit", async e => {
     e.preventDefault(); const v = Object.fromEntries(new FormData(e.target));
-    v.capacidade_hospedagem = Number(v.capacidade_hospedagem) || 3; v.follow_up_dias = Number(v.follow_up_dias) || 2;
+    v.capacidade_hospedagem = Number(v.capacidade_hospedagem) || 3; v.follow_up_dias = Number(v.follow_up_dias) || 2; v.expira_dias = Number(v.expira_dias) || 15;
     for (const k of ["pix_chave", "pix_nome", "pix_cidade", "whatsapp", "instagram"]) v[k] = String(v[k]).trim() || null;
     try { await db.saveSettings(v); U.toast("Configurações salvas ✓"); } catch (err) { U.toast("Não consegui salvar: " + err.message); }
   });
@@ -67,6 +69,15 @@ export async function mount(root) {
     const b = e.target.closest("[data-rm]"); if (!b) return;
     if (!(await U.confirmDialog("Remover o acesso de " + b.dataset.rm + "?", { ok: "Remover", danger: true }))) return;
     try { await db.removeAdmin(b.dataset.rm); U.toast("Acesso removido"); } catch (err) { U.toast(err.message); } mount(root);
+  });
+  U.$("#adm", root).addEventListener("click", async e => {
+    const b = e.target.closest("[data-senha]"); if (!b) return;
+    const email = b.dataset.senha;
+    if (!(await U.confirmDialog(`Mandar para ${email} um link para criar uma senha nova?`, { ok: "Mandar link" }))) return;
+    b.disabled = true;
+    try { await db.linkNovaSenha(email); U.toast(`Link enviado para ${email} ✓ Ele vale por 1 hora.`, 4500); }
+    catch (err) { U.toast(/rate|limit|seconds/i.test(err.message || "") ? "Muitos e-mails em pouco tempo. Espere alguns minutos e tente de novo." : "Não consegui mandar: " + err.message, 4500); }
+    finally { b.disabled = false; }
   });
   U.$("#adm", root).addEventListener("change", async e => {
     const sel = e.target.closest("[data-papel]"); if (!sel) return;

@@ -8,7 +8,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 
 ## Pedidos do Bruno
 
-### A-01 · Mudar a situação da proposta direto da lista 🟡
+### A-01 · Mudar a situação da proposta direto da lista ✅ (v1.3)
 - **Origem:** Bruno, 10/11/2026
 - **Problema:** em Propostas, para marcar aceita, recusada etc. é preciso abrir a proposta e ir no menu •••. Com muitos orçamentos, fica lento.
 - **Ideia de solução:**
@@ -34,7 +34,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - Atalhos de período: hoje, esta semana, este mês, mês passado, personalizado.
 - Filtro aplicado aparece como etiqueta removível ("Hospedagem ✕").
 
-### A-03 · Aba "Cobrar resposta" 🟡
+### A-03 · Aba "Cobrar resposta" ✅ (v1.3)
 - **Origem:** Bruno, 10/11/2026
 - **Problema:** falta um lugar só com quem recebeu orçamento e ainda não respondeu. Hoje isso aparece só como "Propostas sem resposta" no fim da tela Hoje.
 - **Ideia de solução:**
@@ -46,12 +46,13 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Regra para expirar sozinho: depois de N dias sem resposta, vira "Expirada" (N em Configurações).
 - **Depende de:** A-01 (mesmas ações rápidas).
 
-### A-04 · Administrador trocar a senha de outra pessoa 🟡
+### A-04 · Administrador trocar a senha de outra pessoa 🔵 (parte rápida feita na v1.3)
 - **Origem:** Bruno, 10/11/2026
 - **Problema:** em Configurações, o administrador não consegue mudar a senha de quem tem acesso. Se a Larissa esquecer, ela precisa usar "Esqueci a senha" sozinha.
 - **Ideia de solução:**
   1. **Rápido:** botão "Mandar link de nova senha" ao lado de cada pessoa em Quem tem acesso. Usa o mesmo e-mail do "Esqueci a senha".
-  2. **Completo:** "Definir senha provisória". O administrador digita uma senha e a pessoa troca no primeiro acesso. Precisa de uma função no servidor (Edge Function do Supabase com chave de serviço), porque o navegador não pode mudar a senha de outra pessoa.
+  - ✅ Feito na v1.3: botão "🔑 link de senha" em Configurações → Quem tem acesso.
+  2. **Completo (falta):** "Definir senha provisória". O administrador digita uma senha e a pessoa troca no primeiro acesso. Precisa de uma função no servidor (Edge Function do Supabase com chave de serviço), porque o navegador não pode mudar a senha de outra pessoa.
 
 ## Observados durante o desenvolvimento (precisam do seu ok)
 

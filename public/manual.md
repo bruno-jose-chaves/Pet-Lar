@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 1.2 · atualizado em 10/11/2026
+Versão 1.3 · atualizado em 10/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -17,6 +17,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Histórico por cliente](#historico-por-cliente)
 - [Orçamentos importados](#orcamentos-importados)
 - [Depois que o cliente responde](#depois-que-o-cliente-responde)
+- [Cobrar resposta](#cobrar-resposta)
 - [Regras de preço](#regras-de-preco)
 - [Dicas e dúvidas](#dicas-e-duvidas)
 
@@ -48,7 +49,8 @@ Para mudar o nível de alguém: **Configurações → Quem tem acesso**, escolha
 | Aba | Para que serve |
 |---|---|
 | **Hoje** | Resumo do dia: quantos serviços tem hoje, quem chega e quem vai embora, os próximos 7 dias, propostas sem resposta (com botão **Lembrar** no WhatsApp) e quanto há a receber. |
-| **Propostas** | Todos os orçamentos. Filtre por situação (rascunho, enviada, aceita, recusada) ou veja **Por cliente**. Busque pelo nome do tutor ou pelo número (PL-2026-001). |
+| **Propostas** | Todos os orçamentos. Filtre por situação (rascunho, enviada, aceita, recusada) ou veja **Por cliente**. Busque pelo nome do tutor ou pelo número (PL-2026-001). Cada orçamento em aberto tem os botões **Aceitou**, **Recusou**, **Cobrar** e **Adiar**, sem precisar abrir. |
+| **Cobrar** | Quem recebeu orçamento e ainda não respondeu: quem cobrar agora, quem recebeu há pouco, quem ficou para depois e quem está sem resposta há muito tempo. O número no menu mostra quantos estão para cobrar. |
 | **Pets** | **Com a Lari agora** (serviços em andamento), **Próximos** (confirmados nos próximos 60 dias) e **Todos**. Toque no pet para abrir a ficha. |
 | **Tutores** | Os clientes. A ficha tem contato, endereço, observações de acesso (chave, portaria), os pets dele e o histórico de orçamentos. |
 | **Agenda** | Calendário do mês. Mostra cada serviço confirmado e quantos hóspedes há por dia. Avisa quando passa da capacidade da casa. |
@@ -57,6 +59,8 @@ Para mudar o nível de alguém: **Configurações → Quem tem acesso**, escolha
 | **Como usar** | Este manual. |
 
 No celular, Tutores, Financeiro, Configurações e Como usar ficam no botão **Mais**.
+
+Para quem não é administrador, o menu mostra só o que aquele nível pode usar.
 
 ## Como fazer uma proposta
 
@@ -128,10 +132,41 @@ Ao abrir um deles, aparece um aviso **Orçamento importado do histórico**. Ness
 
 ## Depois que o cliente responde
 
+Dá para fazer tudo direto da lista, sem abrir o orçamento: em **Propostas**, **Cobrar** ou **Hoje**, use os botões embaixo de cada um.
+
+- **✅ Aceitou:** pede uma confirmação e lança o sinal e o saldo no Financeiro. Se o orçamento tiver duas opções, pergunta qual foi aceita.
+- **✖ Recusou:** muda na hora. Se tocou errado, toque em **Desfazer** no aviso.
+- **Vários de uma vez:** em Propostas, toque em **Selecionar**, marque os orçamentos e escolha **Aceitaram**, **Recusaram** ou **Sem resposta**.
+
+Dentro do orçamento também funciona:
+
 - **Aceitou:** menu ••• → **Cliente aceitou**. O sistema lança duas parcelas no Financeiro: o sinal de 50% (vence hoje) e o saldo de 50% (vence no último dia do serviço). O serviço aparece na Agenda e em Hoje.
 - **Recebeu o dinheiro:** Financeiro → **Recebi** → escolha Pix, dinheiro ou cartão. Também dá para fazer isso dentro da proposta, no quadro Pagamentos.
 - **Recusou:** menu ••• → **Cliente recusou**. Entra na taxa de aceite.
 - **Desistiu depois de aceitar:** menu ••• → **Cancelar serviço**.
+
+## Cobrar resposta
+
+A aba **Cobrar** junta os orçamentos enviados que ainda não tiveram resposta.
+
+| Grupo | O que entra |
+|---|---|
+| **Cobrar agora** | Enviados (ou cobrados pela última vez) há 2 dias ou mais. O prazo muda em Configurações → "Lembrar proposta sem resposta após (dias)" |
+| **Enviadas há pouco** | Ainda dentro do prazo, é só esperar |
+| **Adiadas** | Você pediu para lembrar numa data. Voltam para "Cobrar agora" nesse dia |
+| **Sem resposta há mais de 15 dias** (Configurações → "Considerar sem resposta depois de") | Dá para marcar todos de uma vez como sem resposta (expirados). Eles saem da lista |
+
+**Como cobrar:** toque em **💬 Cobrar**. Abre o WhatsApp do tutor com a mensagem pronta, e a mensagem muda conforme a vez:
+
+1. 1ª vez: pergunta com carinho se deu para ver e se ficou alguma dúvida.
+2. 2ª vez: avisa que as datas estão procuradas e oferece segurar com o sinal.
+3. 3ª vez em diante: avisa que vai liberar as datas na agenda.
+
+Revise a mensagem no WhatsApp e mande. A cobrança fica registrada (quantas vezes e quando) e o orçamento volta para "Cobrar agora" depois do prazo.
+
+**⏰ Adiar:** quando o cliente pediu um tempo ("vou ver com meu marido", "te falo na sexta"). Escolha amanhã, 3 dias, 1 semana, 15 dias ou uma data.
+
+Se o tutor não tem WhatsApp cadastrado, o WhatsApp abre para você escolher o contato.
 
 ## Regras de preço
 
@@ -163,10 +198,13 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 **Alguém novo vai ajudar.** O Administrador libera o e-mail com o nível **Assistente**.
 
+**Alguém esqueceu a senha.** A própria pessoa pode tocar em **Esqueci a senha** no login. O Administrador também pode mandar o link: Configurações → Quem tem acesso → **🔑 link de senha** ao lado do nome. Chega um e-mail com um link que vale por 1 hora. O e-mail gratuito tem limite de alguns envios por hora; se aparecer aviso de "muitos e-mails", espere uns minutos.
+
 ## Histórico de versões
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 1.3 | 10/11/2026 | Aba Cobrar resposta, botões Aceitou/Recusou/Cobrar/Adiar direto da lista, mudança em lote e link de nova senha |
 | 1.2 | 10/11/2026 | Proposta com duas opções (recomendada, escolhida e aceite por opção) |
 | 1.1 | 10/11/2026 | Níveis de acesso (administrador, gestora, assistente), valor final combinado, histórico por cliente, orçamentos antigos importados, endereço novo e este manual dentro do painel |
 | 1.0 | 10/11/2026 | Painel com Hoje, Propostas, Pets, Tutores, Agenda, Financeiro e Configurações, ligado ao banco de dados |

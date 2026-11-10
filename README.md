@@ -1,4 +1,4 @@
-# Pet Lar · Painel (v1.2)
+# Pet Lar · Painel (v1.3)
 
 Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, WhatsApp e Pix), **tutores**, **pets**, **agenda** e **financeiro**.
 
@@ -21,6 +21,7 @@ Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, W
 | **Tutores** | Lista e ficha: contato, endereço (link para o mapa), pets, propostas e quanto já contratou. Botão de nova proposta já preenchida |
 | **Agenda** | Mês com hospedagens, visitas e banhos. **Alerta de lotação** acima da capacidade de hóspedes |
 | **Financeiro** | A receber, vencido (com lembrete no WhatsApp), recebido no mês e receita por serviço. "Recebi" com Pix, dinheiro ou cartão |
+| **Cobrar** | Enviadas sem resposta: cobrar agora, recentes, adiadas e antigas. Cobrança no WhatsApp com mensagem que muda a cada vez, registro (`cobrancas`, `cobrada_em`, `lembrar_em`) e contador no menu |
 | **Como usar** | Manual de uso dentro do painel (lê `manual.md`) |
 | **Configurações** | Chave Pix (QR do sinal no PDF + copia e cola na mensagem), contato, capacidade, dias para follow-up, **quem tem acesso**, trocar senha |
 
@@ -54,7 +55,7 @@ public/
   vendor/               supabase-js, html2canvas, jsPDF, qrcode (sem CDN de terceiros)
   fonts/                Lato e Playfair (só os pesos usados)
 tests/
-  test_app.py           fluxo completo (104 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
+  test_app.py           fluxo completo (125 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
   test_precos.py        tabela de preços (21 casos)
   test_perf.py          3G lento + CPU 4x mais lenta
   fake-supabase.js      Supabase em memória para os testes
