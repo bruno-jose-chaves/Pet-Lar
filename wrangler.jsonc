@@ -1,8 +1,8 @@
-// Configuração do Cloudflare Worker "pet-lar" (site estático, sem código de servidor).
+// Configuração do Cloudflare Worker "propostas" (site estático, sem código de servidor).
 // O deploy roda sozinho a cada push na branch main (Workers Builds → "npx wrangler deploy").
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "pet-lar",
+  "name": "propostas",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./public",
