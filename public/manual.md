@@ -50,7 +50,7 @@ Para mudar o nível de alguém: **Configurações → Quem tem acesso**, escolha
 
 | Aba | Para que serve |
 |---|---|
-| **Hoje** | Resumo do dia: quantos serviços tem hoje, quem chega e quem vai embora, os próximos 7 dias, propostas sem resposta (com botão **Lembrar** no WhatsApp) e quanto há a receber. |
+| **Hoje** | Resumo do dia: quantos serviços tem hoje, quem chega e quem vai embora, os próximos 7 dias, o botão **📓 Diário de hoje** de cada serviço, os orçamentos para cobrar (com Aceitou, Recusou, Cobrar e Adiar) e quanto há a receber. |
 | **Propostas** | Todos os orçamentos. Filtre por situação (rascunho, enviada, aceita, recusada) ou veja **Por cliente**. Busque pelo nome do tutor ou pelo número (PL-2026-001). Cada orçamento em aberto tem os botões **Aceitou**, **Recusou**, **Cobrar** e **Adiar**, sem precisar abrir. |
 | **Cobrar** | Quem recebeu orçamento e ainda não respondeu: quem cobrar agora, quem recebeu há pouco, quem ficou para depois e quem está sem resposta há muito tempo. O número no menu mostra quantos estão para cobrar. |
 | **Pets** | **Com a Lari agora** (serviços em andamento), **Próximos** (confirmados nos próximos 60 dias) e **Todos**. Toque no pet para abrir a ficha. |
@@ -70,7 +70,7 @@ Toque em **+ Nova proposta** (na tela Hoje, em Propostas ou na ficha do tutor).
 
 1. **Cliente.** Comece a digitar o nome. Se o tutor já existe, ele aparece na lista: toque e os pets dele entram sozinhos. Se é novo, continue digitando. Ele é cadastrado ao salvar. Escolha a cidade do atendimento: fora de Balneário Camboriú entra o deslocamento.
 2. **Pets.** Nome, espécie, raça, idade, porte e foto. Toque em **+ pet** para incluir outro. Sem foto, a proposta usa uma patinha.
-3. **Serviço.** Visitas, pacote mensal, visita estendida (3h), hospedagem ou banho em casa. Preencha as datas. O valor é calculado na hora pela tabela.
+3. **Serviço.** Visitas, pacote mensal, visita estendida (3h), hospedagem ou banho em casa. Preencha as datas. O valor é calculado na hora pela tabela. Para mandar duas alternativas, veja [Proposta com duas opções](#proposta-com-duas-opcoes).
 4. **Ajustes.** Desconto especial (%), adicionais (cuidado especial, pet reativo, outro) e **Valor final combinado**. Use este último quando fechar um valor diferente da tabela: a proposta mostra a diferença como "Condição especial combinada".
 5. **Recado.** Texto livre que aparece no PDF.
 
@@ -128,7 +128,8 @@ Ao abrir um deles, aparece um aviso **Orçamento importado do histórico**. Ness
 
 - o valor passado ao cliente está em **Valor final combinado**, então o número não muda mesmo que a tabela tenha mudado;
 - onde faltou informação, o campo ficou vazio: datas, WhatsApp, foto, nome de alguns pets e tutores;
-- todos entraram como **Enviada**. Marque como aceita ou recusada conforme o que aconteceu.
+- todos entraram como **Enviada**. Marque como aceita ou recusada conforme o que aconteceu (dá para marcar vários de uma vez em Propostas → **Selecionar**);
+- os do Hulk e Máximus e do Lupi já estão com **duas opções**.
 
 **Para completar:** abra o orçamento ou a ficha do pet, preencha o que faltar e coloque a foto (toque no quadrado da foto). Tudo salva sozinho ou no botão Salvar.
 
