@@ -1,11 +1,13 @@
 // Pet Lar · painel — roteador, login e moldura do app
 import { $, esc, toast, modal } from "./ui.js";
+import { perfil, gestao, PAPEIS } from "./perfil.js";
 
 const ICON = {
   hoje: '<path d="M4 11l8-7 8 7M6 10v10h12V10"/>',
   propostas: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
   pets: '<ellipse cx="12" cy="16" rx="4.5" ry="3.6"/><circle cx="6.5" cy="10.5" r="1.8"/><circle cx="9.8" cy="7" r="1.8"/><circle cx="14.2" cy="7" r="1.8"/><circle cx="17.5" cy="10.5" r="1.8"/>',
   agenda: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  tutores: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
   mais: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
 };
 const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
@@ -22,7 +24,10 @@ const ROUTES = [
   { re: /^#\/agenda$/, mod: "agenda", nav: "agenda", title: "Agenda" },
   { re: /^#\/financeiro$/, mod: "financeiro", nav: "mais", title: "Financeiro" },
   { re: /^#\/config$/, mod: "config", nav: "mais", title: "Configurações" },
+  { re: /^#\/ajuda$/, mod: "ajuda", nav: "mais", title: "Como usar" },
 ];
+// telas só da gestão (admin e gestora); o banco também bloqueia
+const SO_GESTAO = new Set(["propostas", "financeiro"]);
 
 let current = null; // {destroy}
 let session = null;
@@ -32,7 +37,10 @@ export function setNavGuard(fn) { navGuard = fn; }
 export function replaceHash(h) { history.replaceState(null, "", h); lastHash = h; }
 
 function shell() {
-  const top = [["hoje", "Hoje"], ["propostas", "Propostas"], ["pets", "Pets"], ["tutores", "Tutores"], ["agenda", "Agenda"], ["financeiro", "Financeiro"], ["config", "Ajustes"]];
+  const g = gestao();
+  const top = [["hoje", "Hoje"], g && ["propostas", "Propostas"], ["pets", "Pets"], ["tutores", "Tutores"], ["agenda", "Agenda"], g && ["financeiro", "Financeiro"], ["config", "Ajustes"], ["ajuda", "Ajuda"]].filter(Boolean);
+  const bottom = g ? [["hoje", "Hoje"], ["propostas", "Propostas"], ["pets", "Pets"], ["agenda", "Agenda"]] : [["hoje", "Hoje"], ["pets", "Pets"], ["agenda", "Agenda"], ["tutores", "Tutores"]];
+  document.body.classList.toggle("papel-assistente", !g);
   $("#root").innerHTML = `<div class="app">
     <header class="appbar">
       <a class="brand" href="#/hoje"><img src="/assets/avatar.webp" alt="Pet Lar" width="36" height="36"><b>Pet Lar</b></a>
@@ -42,15 +50,17 @@ function shell() {
     </header>
     <main class="view" id="view"></main>
     <nav class="bottomnav" aria-label="Menu">
-      ${[["hoje", "Hoje"], ["propostas", "Propostas"], ["pets", "Pets"], ["agenda", "Agenda"]].map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${svg(k)}<span>${t}</span></a>`).join("")}
+      ${bottom.map(([k, t]) => `<a href="#/${k}" data-nav="${k}">${svg(k)}<span>${t}</span></a>`).join("")}
       <a href="#" data-nav="mais" id="navMais">${svg("mais")}<span>Mais</span></a>
     </nav></div>`;
   $("#navMais").addEventListener("click", e => {
     e.preventDefault();
     const m = modal(`<h3>Mais</h3><div class="acts">
-      <a class="btn soft" href="#/tutores" data-close>👤 Tutores</a>
-      <a class="btn soft" href="#/financeiro" data-close>💰 Financeiro</a>
+      ${g ? `<a class="btn soft" href="#/tutores" data-close>👤 Tutores</a>
+      <a class="btn soft" href="#/financeiro" data-close>💰 Financeiro</a>` : ""}
       <a class="btn soft" href="#/config" data-close>⚙️ Configurações</a>
+      <a class="btn soft" href="#/ajuda" data-close>❔ Como usar</a>
+      <p class="muted" style="margin:4px 0 0;text-align:center">${esc(perfil.email || "")} · ${esc(PAPEIS[perfil.papel]?.nome || "")}</p>
       <button class="btn danger" data-sair>Sair</button></div>`);
     m.el.querySelector("[data-sair]").addEventListener("click", async () => { m.close(); await sair(); });
   });
@@ -64,8 +74,10 @@ async function route() {
     const ok = await navGuard(); if (!ok) { history.replaceState(null, "", lastHash); return; }
   }
   navGuard = null; lastHash = h;
-  const r = ROUTES.find(x => x.re.test(h)) || ROUTES[0];
+  let r = ROUTES.find(x => x.re.test(h)) || ROUTES[0];
   const params = (h.match(r.re) || []).slice(1);
+  if (!gestao() && SO_GESTAO.has(r.mod)) { location.replace("#/hoje"); return; }
+  if (!gestao() && r.mod === "proposta") r = { ...r, mod: "servico", title: "Serviço", wide: false };
   if (current && current.destroy) { try { current.destroy(); } catch { } }
   current = null;
   document.body.classList.toggle("editing", r.mod === "proposta");
@@ -131,13 +143,24 @@ function novaSenha() {
 }
 
 let started = false;
+async function entrar(s) {
+  const { sb } = await import("./db.js");
+  const { data: papel, error } = await sb.rpc("meu_papel");
+  if (error) throw error;
+  perfil.email = s.user?.email || null; perfil.papel = papel || null;
+  if (!papel) {
+    $("#root").innerHTML = `<div class="login"><div class="box"><img src="/assets/logo-petlar.webp" alt="Pet Lar" width="180"><p class="msg err">O e-mail ${esc(perfil.email || "")} não tem mais acesso ao painel. Fale com o administrador.</p><button class="btn soft" id="bSairX">Sair</button></div></div>`;
+    $("#bSairX").onclick = sair; return;
+  }
+  shell(); route();
+}
 async function start() {
   const { sb } = await import("./db.js");
   sb.auth.onAuthStateChange((ev, s) => {
     session = s;
     if (ev === "PASSWORD_RECOVERY") { setTimeout(novaSenha, 300); }
     if (!s) { started = false; loginView(); return; }
-    if (!started) { started = true; shell(); route(); }
+    if (!started) { started = true; entrar(s).catch(e => { started = false; console.error(e); loginView("Não consegui carregar seu acesso. Verifique a internet e tente de novo.", true); }); }
   });
   const { data } = await sb.auth.getSession();
   session = data.session;

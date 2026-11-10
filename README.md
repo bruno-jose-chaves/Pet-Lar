@@ -1,10 +1,11 @@
-# Pet Lar · Painel (v1)
+# Pet Lar · Painel (v1.1)
 
 Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, WhatsApp e Pix), **tutores**, **pets**, **agenda** e **financeiro**.
 
-- **Site:** https://propostas.petlar.workers.dev (Cloudflare Worker `propostas`). Até a troca de nome, o endereço é https://pet-lar.brunojosechavescarvalho.workers.dev
+- **Site:** https://propostas.petlar.workers.dev (Cloudflare Worker `propostas`, conta com subdomínio `petlar`).
 - **Banco:** Supabase, projeto `pet-lar` (São Paulo), com login e fotos privadas.
-- **Publicação:** todo `git push` na `main` publica sozinho (Workers Builds).
+- **Publicação:** todo `git push` na `main` publica o site sozinho (Workers Builds) e o Supabase aplica as migrações novas de `supabase/migrations` (integração GitHub).
+- **Manual de uso:** `public/manual.md`, aberto dentro do painel em **Como usar** (`#/ajuda`). A mesma nota fica no Obsidian. **Atualize os dois a cada mudança.**
 
 ---
 
@@ -19,10 +20,19 @@ Sistema da Pet Lar para a Larissa usar no celular: **propostas** (PDF, imagem, W
 | **Tutores** | Lista e ficha: contato, endereço (link para o mapa), pets, propostas e quanto já contratou. Botão de nova proposta já preenchida |
 | **Agenda** | Mês com hospedagens, visitas e banhos. **Alerta de lotação** acima da capacidade de hóspedes |
 | **Financeiro** | A receber, vencido (com lembrete no WhatsApp), recebido no mês e receita por serviço. "Recebi" com Pix, dinheiro ou cartão |
+| **Como usar** | Manual de uso dentro do painel (lê `manual.md`) |
 | **Configurações** | Chave Pix (QR do sinal no PDF + copia e cola na mensagem), contato, capacidade, dias para follow-up, **quem tem acesso**, trocar senha |
 
-## Acesso
-1. O e-mail precisa estar liberado em **Configurações → Quem tem acesso**. Os dois e-mails do Bruno já vêm liberados.
+## Acesso e níveis
+| Nível | O que pode |
+|---|---|
+| **Administrador** (Bruno) | Tudo, inclusive dar, mudar e tirar acessos |
+| **Gestora** (Larissa) | Todo o negócio: propostas, valores, financeiro, Pix, configurações. Não mexe em acessos |
+| **Assistente** | Hoje, Agenda, Pets e Tutores; edita fichas e fotos. Não vê valores, propostas, financeiro nem Pix. Proposta aceita abre como “Serviço” (sem valores) |
+
+As regras valem no banco (RLS por papel em `admins.papel`), não só nas telas. Sempre existe pelo menos um administrador (gatilho).
+
+1. O e-mail precisa estar liberado em **Configurações → Quem tem acesso** (só o administrador vê esse painel). Os dois e-mails do Bruno já vêm liberados como administrador.
 2. No site, a pessoa digita o e-mail, cria uma senha e toca em **Primeiro acesso**.
 3. Ela confirma pelo link que chega no e-mail e depois entra com e-mail e senha.
 
@@ -43,18 +53,19 @@ public/
   vendor/               supabase-js, html2canvas, jsPDF, qrcode (sem CDN de terceiros)
   fonts/                Lato e Playfair (só os pesos usados)
 tests/
-  test_app.py           fluxo completo (66 verificações) com banco simulado · webkit e chromium
+  test_app.py           fluxo completo (90 verificações, inclui níveis de acesso) com banco simulado · webkit e chromium
   test_precos.py        tabela de preços (21 casos)
   test_perf.py          3G lento + CPU 4x mais lenta
   fake-supabase.js      Supabase em memória para os testes
 supabase/
-  schema.sql            banco (tabelas, segurança, gatilhos, índices)
+  config.toml           configuração do projeto (integração GitHub)
+  migrations/           histórico do banco, uma migração por mudança (fonte da verdade)
 wrangler.jsonc          Worker de arquivos estáticos (pasta public/)
 ```
 
 ## Banco (Supabase)
 `tutores` → `pets` · `propostas` (+ `proposta_pets`) → `pagamentos` · `settings` · `admins`
-- **Segurança (RLS):** só e-mails da tabela `admins` leem e gravam. Fotos ficam em armazenamento **privado**, com links temporários.
+- **Segurança (RLS):** só e-mails da tabela `admins` entram, e cada papel tem as suas permissões (`private.tem_acesso()`, `private.e_gestao()`, `private.e_admin()`). Fotos ficam em armazenamento **privado**, com links temporários.
 - **Gatilhos:** numeração anual sem buracos, data de envio e de resposta, sinal e saldo automáticos ao aceitar.
 - **Índices** para status, período, tutor, pagamentos em aberto e busca por nome.
 - `painel_resumo()` monta todos os números da tela Hoje numa chamada só.
@@ -78,3 +89,9 @@ python tests/test_perf.py
 | Textos do que está incluso | `incVisita`, `incHosp`, `incBanho` em `proposta.js` |
 | Pix, contato, capacidade | tela **Configurações** (sem código) |
 | Cores e fontes | `:root` em `css/gerador.css` |
+| Manual de uso | `public/manual.md` (e a nota do Obsidian) |
+| Mudança no banco | nova migração em `supabase/migrations/AAAAMMDDHHMMSS_nome.sql` e `git push` |
+
+## Valor combinado e orçamentos importados
+- Passo 4 do editor tem **Valor final combinado**: substitui o total da tabela e mostra a diferença como "Condição especial combinada".
+- Os 13 orçamentos feitos antes do painel (jul–nov/2026) foram importados com `payload.importada`; o editor mostra um aviso e mantém o valor passado ao cliente.

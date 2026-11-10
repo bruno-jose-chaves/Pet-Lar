@@ -1,6 +1,7 @@
 // Pets: ativos agora, próximos (confirmados) e todos
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import { gestao } from "../perfil.js";
 
 export async function mount(root) {
   let aba = sessionStorage.getItem("petlar_aba_pets") || "ativos", q = "", page = 0, items = [], total = 0;
@@ -8,7 +9,7 @@ export async function mount(root) {
     <div class="chips" id="abas"><button class="chip" data-v="ativos">Com a Lari agora</button><button class="chip" data-v="proximos">Próximos</button><button class="chip" data-v="todos">Todos</button></div>
     <div class="toolbar hide" id="tb"><div class="grow search"><input type="text" id="q" placeholder="Buscar pet pelo nome" autocomplete="off"></div></div>
     <div id="lista">${U.skeleton(4)}</div><div class="more" id="more"></div>
-    <a class="btn primary fab" href="#/pet/novo">+ Novo pet</a>`;
+    ${gestao() ? `<a class="btn primary fab" href="#/pet/novo">+ Novo pet</a>` : ""}`;
   const sync = () => { U.$$("#abas .chip", root).forEach(c => c.classList.toggle("on", c.dataset.v === aba)); U.$("#tb", root).classList.toggle("hide", aba !== "todos"); };
 
   const petRow = (p, fotos, sub, extra = "") => `<a class="item" href="#/pet/${p.id}">

@@ -25,3 +25,7 @@
 
 /assets/*
   Cache-Control: public, max-age=604800
+
+/manual.md
+  Cache-Control: no-cache
+  Content-Type: text/markdown; charset=utf-8

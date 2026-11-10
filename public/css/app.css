@@ -154,3 +154,22 @@ details.ficha-ed summary{cursor:pointer;font-weight:700;font-size:13px;color:var
 }
 input[type=email],input[type=password]{width:100%;min-height:46px;-webkit-appearance:none;appearance:none;display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;font-weight:500;color:var(--ink);outline:none}
 .login .f{margin-bottom:12px}
+
+/* v1.1: serviço (assistente), níveis de acesso, ajuda */
+.ficha-l{display:grid;gap:8px;margin-bottom:12px}
+.ficha-l div{display:flex;flex-direction:column}
+.ficha-l span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#8a7a6d)}
+.ficha-l b{font-weight:600}
+.niveis{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-size:13px}
+.niveis p{margin:4px 0}
+.item.hist .v s{font-size:11px;font-weight:400;margin-left:4px}
+.manual{max-width:760px;line-height:1.6}
+.manual h2{font-family:"Playfair Display",serif;margin:26px 0 8px;font-size:22px}
+.manual h3{margin:18px 0 6px;font-size:16px}
+.manual table{border-collapse:collapse;width:100%;margin:8px 0 14px;font-size:14px;background:#fff;border-radius:12px;overflow:hidden}
+.manual th,.manual td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.manual th{background:#F3E8DC;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.manual code{background:#F3E8DC;padding:1px 5px;border-radius:6px}
+.manual ul,.manual ol{padding-left:20px}
+.manual .toc{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.manual .toc a{font-size:13px;padding:5px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);text-decoration:none;color:inherit}

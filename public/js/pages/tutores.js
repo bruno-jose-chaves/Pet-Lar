@@ -1,13 +1,14 @@
 // Lista de tutores (clientes)
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import { gestao } from "../perfil.js";
 
 export async function mount(root) {
   let q = "", page = 0, items = [], total = 0;
   root.innerHTML = `<h1 class="pg">Tutores</h1>
     <div class="toolbar"><div class="grow search"><input type="text" id="q" placeholder="Buscar tutor pelo nome" autocomplete="off"></div></div>
     <div id="lista">${U.skeleton(5)}</div><div class="more" id="more"></div>
-    <a class="btn primary fab" href="#/tutor/novo">+ Novo tutor</a>`;
+    ${gestao() ? `<a class="btn primary fab" href="#/tutor/novo">+ Novo tutor</a>` : ""}`;
   async function load(reset = true) {
     if (reset) { page = 0; items = []; U.$("#lista", root).innerHTML = U.skeleton(5); }
     const myQ = q;

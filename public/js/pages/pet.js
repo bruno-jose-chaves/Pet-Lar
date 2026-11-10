@@ -1,6 +1,7 @@
 // Ficha do pet: foto, dados, anamnese, tutor e histórico
 import * as U from "../ui.js";
 import * as db from "../db.js";
+import { gestao } from "../perfil.js";
 
 function squareBlob(file, size = 900) {
   return new Promise((res, rej) => {
@@ -47,13 +48,13 @@ export async function mount(root, { params }) {
         ${f("observacoes", "Outras observações", "area")}
         <label class="check"><input type="checkbox" name="reativo" ${pet.reativo ? "checked" : ""}> Pode ser reativo / agressivo</label>
         <label class="check"><input type="checkbox" name="ativo" ${pet.ativo !== false ? "checked" : ""}> Cliente ativo</label>
-        <div class="row-actions" style="margin-top:8px"><button class="btn primary" type="submit">Salvar</button>${id ? `<a class="btn soft" href="#/proposta/nova" id="bProp">Nova proposta</a>` : ""}</div>
+        <div class="row-actions" style="margin-top:8px"><button class="btn primary" type="submit">Salvar</button>${id && gestao() ? `<a class="btn soft" href="#/proposta/nova" id="bProp">Nova proposta</a>` : ""}</div>
       </form>
       <div>
         <div class="panel"><h3>Tutor</h3><div id="tutorBox"></div></div>
         ${id ? `<h2 class="sec">Histórico <span class="count">${props.length}</span></h2>
-        <div class="list">${props.length ? props.map(p => `<a class="item" href="#/proposta/${p.id}"><div class="main"><div class="t">${U.SERVICOS[p.servico]} · ${U.esc(p.numero || "")}</div><div class="s">${U.esc(U.periodo(p.data_inicio, p.data_fim))}</div></div><div class="r"><div class="v">${U.brl(p.valor_total)}</div>${U.pill(p.status)}</div></a>`).join("") : `<div class="empty">Ainda sem propostas.</div>`}</div>
-        <div class="danger-zone"><button class="btn danger" id="bDel">Excluir pet</button></div>` : ""}
+        <div class="list">${props.length ? props.map(p => `<a class="item" href="#/proposta/${p.id}"><div class="main"><div class="t">${U.SERVICOS[p.servico]} · ${U.esc(p.numero || "")}</div><div class="s">${U.esc(U.periodo(p.data_inicio, p.data_fim))}</div></div><div class="r">${gestao() ? `<div class="v">${U.brl(p.valor_total)}</div>` : ""}${U.pill(p.status)}</div></a>`).join("") : `<div class="empty">Ainda sem propostas.</div>`}</div>
+        ${gestao() ? `<div class="danger-zone"><button class="btn danger" id="bDel">Excluir pet</button></div>` : ""}` : ""}
       </div>
     </div><input type="file" accept="image/*" id="file" class="hide">`;
 

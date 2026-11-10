@@ -6,7 +6,7 @@
   const today = () => new Date().toISOString().slice(0, 10);
   const T = window.__FAKE_DB = window.__FAKE_DB || {
     settings: [{ id: 1, pix_chave: null, pix_nome: "Larissa", pix_cidade: "BALNEARIO CAMBORIU", whatsapp: "(47) 99917-9091", instagram: "@petlar.bc", capacidade_hospedagem: 3, follow_up_dias: 2 }],
-    admins: [{ email: "teste@petlar.app", nome: "Teste", created_at: nowISO() }],
+    admins: [{ email: "teste@petlar.app", nome: "Teste", papel: window.__FAKE_PAPEL || "admin", created_at: nowISO() }],
     tutores: [], pets: [], propostas: [], proposta_pets: [], pagamentos: [],
   };
   const STORE = window.__FAKE_STORE = window.__FAKE_STORE || {};
@@ -33,7 +33,11 @@
   function project(table, row, sel) {
     const o = {};
     for (const s of sel) {
-      if (s.col) { if (s.col === "*") Object.assign(o, row); else o[s.col] = row[s.col] ?? null; continue; }
+      if (s.col) {
+        if (s.col === "*") { Object.assign(o, row); continue; }
+        const m = s.col.match(/^(\w+):(\w+)->>(\w+)$/); if (m) { o[m[1]] = row[m[2]]?.[m[3]] ?? null; continue; }
+        o[s.col] = row[s.col] ?? null; continue;
+      }
       const r = REL[table][s.rel]; if (!r) throw { code: "PGRST200", message: "relação desconhecida " + s.rel };
       if (r.many) o[s.rel] = T[r.t].filter(x => x[r.fk] === row.id).map(x => project(r.t, x, s.sub));
       else { const x = T[r.t].find(y => y.id === row[r.one] || (r.t === "pets" && y.id === row.pet_id) || (r.t === "propostas" && y.id === row.proposta_id)); o[s.rel] = x ? project(r.t, x, s.sub) : null; }
@@ -112,6 +116,7 @@
   let logged = !window.__FAKE_LOGGED_OUT;
   const subs = [];
   function rpc(fn, args) {
+    if (fn === "meu_papel") { const a = T.admins.find(x => x.email === session.user.email); return Promise.resolve({ data: a ? a.papel || "admin" : null, error: null }); }
     if (fn === "email_autorizado") return Promise.resolve({ data: T.admins.some(a => a.email === String(args.p_email).toLowerCase()), error: null });
     if (fn === "painel_resumo") {
       const d = args.p_hoje, ac = T.propostas.filter(p => p.status === "aceita");

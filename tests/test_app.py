@@ -178,6 +178,48 @@ with sync_playwright() as p:
     check("Pet: remover foto", DB("T.pets[0].foto_path") is None)
     no_hscroll("Ficha do pet")
 
+    # ---------- v1.1: valor combinado ----------
+    go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
+    pg.fill("[data-k=valorFechado]", "250"); pg.wait_for_timeout(2400)
+    check("Valor combinado: total vira R$ 250", pg.inner_text("#calcTot") == "R$ 250", pg.inner_text("#calcTot"))
+    check("Valor combinado: mostra a conta da tabela (R$ 300)", "R$ 300" in pg.inner_text("#valorTabela"))
+    check("Valor combinado: PDF mostra a condição especial", "Condição especial combinada" in pg.inner_text("#page"))
+    check("Valor combinado: salvo no banco", DB("T.propostas[0].valor_total") == 250)
+    pg.fill("[data-k=valorFechado]", ""); pg.wait_for_timeout(2400)
+    check("Valor combinado vazio: volta para a tabela", DB("T.propostas[0].valor_total") == 300)
+
+    # ---------- v1.1: orçamento importado (sem datas) ----------
+    pg.evaluate("""() => { const T=window.__FAKE_DB; T.tutores.push({id:'tImp',nome:'Louise',whatsapp:null,created_at:new Date().toISOString()});
+      T.pets.push({id:'pImp',tutor_id:'tImp',nome:'Benedita',especie:'cao',raca:'Dachshund',idade:'3 anos',porte:'P',passeia:true,ativo:true,reativo:false,foto_path:null});
+      T.propostas.push({id:'imp1',numero:'PL-2026-090',ano:2026,seq:90,status:'enviada',servico:'hosp',tutor_id:'tImp',tutor_nome:'Louise',data_inicio:null,data_fim:null,valor_total:680,valor_cheio:1000,
+        payload:{tutor:'Louise',servico:'hosp',cidade:'BC',tutor_id:'tImp',valorFechado:'680',obs:'importado',pets:[{id:'a1',pet_id:'pImp',nome:'Benedita',especie:'cao',raca:'Dachshund',idade:'3 anos',porte:'P',passeia:true}],importada:{quando:'Pet Sister, jul–out/2026',nota:'Datas não registradas.'}},
+        created_at:new Date(Date.now()-86400000).toISOString()});
+      T.proposta_pets.push({proposta_id:'imp1',pet_id:'pImp'}); }""")
+    go("#/proposta/imp1"); pg.wait_for_timeout(900)
+    check("Importado: aviso de orçamento do histórico", "importado do histórico" in pg.inner_text("#impBanner"))
+    check("Importado: valor combinado carregado", pg.input_value("[data-k=valorFechado]") == "680")
+    pg.fill("[data-k=obs]", "completando depois"); pg.wait_for_timeout(2400)
+    check("Importado: editar sem datas não zera o valor", DB("T.propostas.find(p=>p.id==='imp1').valor_total") == 680)
+    go("#/tutor/tImp"); pg.wait_for_timeout(700)
+    check("Tutor: seção Histórico de orçamentos", "Histórico de orçamentos" in pg.inner_text("#view") and pg.locator(".item.hist").count() == 1)
+    go("#/propostas"); tap("#fil .chip[data-v=cliente]"); pg.wait_for_timeout(700)
+    check("Propostas por cliente: 2 clientes", pg.locator("#lista .item").count() == 2, pg.locator("#lista .item").count())
+    check("Propostas por cliente: mostra quanto contratou", "contratado" in pg.inner_text("#lista"))
+    tap("#fil .chip[data-v='']"); pg.wait_for_timeout(500)
+    pg.evaluate("() => { const T=window.__FAKE_DB; T.propostas=T.propostas.filter(p=>p.id!=='imp1'); T.proposta_pets=T.proposta_pets.filter(x=>x.proposta_id!=='imp1'); T.pets=T.pets.filter(p=>p.id!=='pImp'); T.tutores=T.tutores.filter(t=>t.id!=='tImp'); }")
+
+    # ---------- v1.1: níveis de acesso (admin) e manual ----------
+    go("#/config"); pg.wait_for_timeout(700)
+    check("Config (admin): escolhe o nível de cada pessoa", pg.locator("#adm select[data-papel]").count() == 2)
+    pg.select_option("#adm select[data-papel='larissa@exemplo.com']", "assistente"); pg.wait_for_timeout(600)
+    check("Config (admin): nível da Larissa alterado", DB("T.admins.find(a=>a.email==='larissa@exemplo.com').papel") == "assistente")
+    pg.select_option("#adm select[data-papel='larissa@exemplo.com']", "gestora"); pg.wait_for_timeout(500)
+    go("#/ajuda"); pg.wait_for_timeout(900)
+    check("Manual: abre dentro do painel", "Manual do painel" in pg.inner_text(".manual h1") and pg.locator(".manual table").count() >= 4)
+    y0 = pg.evaluate("scrollY"); pg.click(".manual a[data-ancora=niveis-de-acesso]"); pg.wait_for_timeout(900)
+    check("Manual: link do sumário rola até a seção (sem trocar de tela)", pg.evaluate("scrollY") > y0 and pg.evaluate("location.hash") == "#/ajuda")
+    no_hscroll("Manual")
+
     # ---------- Falha de rede ao salvar ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(800)
     pg.evaluate("() => { window.__FAKE_FAIL = q => q.t==='propostas' && q.op==='update'; }")
@@ -194,6 +236,35 @@ with sync_playwright() as p:
     pg.fill("#fLogin [name=email]", "teste@petlar.app"); pg.fill("#fLogin [name=senha]", "senha123"); pg.click("#fLogin button[type=submit]"); pg.wait_for_timeout(1200)
     check("Login: entra no painel", pg.is_visible(".appbar") and pg.locator(".kpi").count() == 4)
     pg.screenshot(path=str(OUT / "app_hoje_final.png"))
+
+    # ---------- v1.1: assistente e gestora (outra sessão) ----------
+    def sessao(papel):
+        c = br.new_context(**opts); c.route("**/vendor/supabase.js", lambda r: r.fulfill(body=FAKE, content_type="application/javascript"))
+        c.add_init_script(f"window.__FAKE_PAPEL = '{papel}';")
+        q = c.new_page(); q.on("pageerror", lambda e: errs.append(papel + ": " + str(e))); q.goto(URL); q.wait_for_timeout(1500); return c, q
+    c2, q = sessao("assistente")
+    q.evaluate("""() => { const T=window.__FAKE_DB; const h=new Date().toISOString().slice(0,10);
+      T.tutores.push({id:'tA',nome:'Milena',whatsapp:'(47) 90000-0000',endereco:'Rua 1',bairro:'Centro',cidade:'BC'});
+      T.pets.push({id:'pA',tutor_id:'tA',nome:'Duque',especie:'cao',raca:'Shih Tzu',porte:'P',passeia:true,ativo:true,reativo:false,medicacao:'Vermífugo dia 25'});
+      T.propostas.push({id:'sA',numero:'PL-2026-050',status:'aceita',servico:'hosp',tutor_id:'tA',tutor_nome:'Milena',data_inicio:h,data_fim:h,valor_total:540,valor_cheio:540,payload:{obs:'Leva a caminha dele'},created_at:new Date().toISOString()});
+      T.proposta_pets.push({proposta_id:'sA',pet_id:'pA'}); }""")
+    q.evaluate("location.hash='#/agenda'"); q.wait_for_timeout(300); q.evaluate("location.hash='#/hoje'"); q.wait_for_timeout(900)
+    check("Assistente: menu sem Propostas e sem Financeiro", q.locator(".bottomnav [data-nav=propostas]").count() == 0 and q.locator(".topnav [data-nav=financeiro]").count() == 0)
+    check("Assistente: Hoje sem valores em R$", q.locator(".kpi").count() == 2 and "R$" not in q.inner_text("#view"))
+    check("Assistente: sem botão de nova proposta", q.locator(".fab").count() == 0)
+    q.evaluate("location.hash='#/financeiro'"); q.wait_for_timeout(700)
+    check("Assistente: Financeiro bloqueado (volta para Hoje)", q.evaluate("location.hash") == "#/hoje")
+    q.evaluate("location.hash='#/proposta/sA'"); q.wait_for_timeout(900)
+    t = q.inner_text("#view")
+    check("Assistente: serviço abre sem valores, com cuidados e recado", "Duque" in t and "Vermífugo" in t and "caminha" in t and "R$" not in t)
+    q.evaluate("location.hash='#/config'"); q.wait_for_timeout(700)
+    check("Assistente: Configurações só mostra o próprio acesso", q.locator("#fS").count() == 0 and q.locator("#fA").count() == 0 and "Assistente" in q.inner_text("#view"))
+    q.screenshot(path=str(OUT / "app_assistente.png")); c2.close()
+    c3, q = sessao("gestora")
+    q.evaluate("location.hash='#/config'"); q.wait_for_timeout(900)
+    check("Gestora: edita Pix e configurações, mas não acessos", q.locator("#fS").count() == 1 and q.locator("#fA").count() == 0)
+    check("Gestora: vê Propostas e Financeiro", q.locator(".topnav [data-nav=propostas]").count() == 1 and q.locator(".topnav [data-nav=financeiro]").count() == 1)
+    c3.close()
 
     real_errs = [e for e in errs if "falha simulada" not in e and "Failed to load resource" not in e]
     check("Sem erros de JavaScript", not real_errs, " | ".join(real_errs)[:300])

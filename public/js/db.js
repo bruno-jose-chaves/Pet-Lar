@@ -27,8 +27,9 @@ export function invalidate(prefix) { for (const k of cache.keys()) if (k.startsW
 // ---------- configurações ----------
 export const getSettings = () => cached("settings", 60000, async () => chk(await sb.from("settings").select("*").eq("id", 1).single()));
 export async function saveSettings(v) { invalidate("settings"); return chk(await sb.from("settings").update(v).eq("id", 1).select().single()); }
-export async function listAdmins() { return chk(await sb.from("admins").select("email,nome,created_at").order("created_at")); }
-export async function addAdmin(email, nome) { return chk(await sb.from("admins").insert({ email: email.trim().toLowerCase(), nome })); }
+export async function listAdmins() { return chk(await sb.from("admins").select("email,nome,papel,created_at").order("created_at")); }
+export async function addAdmin(email, nome, papel = "gestora") { return chk(await sb.from("admins").insert({ email: email.trim().toLowerCase(), nome, papel })); }
+export async function setPapel(email, papel) { return chk(await sb.from("admins").update({ papel }).eq("email", email)); }
 export async function removeAdmin(email) { return chk(await sb.from("admins").delete().eq("email", email)); }
 
 // ---------- painel ----------
@@ -83,7 +84,7 @@ export async function tutorDetalhe(id) {
   const [tutor, pets, props] = await Promise.all([
     getTutor(id),
     sb.from("pets").select("id,nome,especie,raca,porte,foto_path,ativo").eq("tutor_id", id).order("nome").then(chk),
-    sb.from("propostas").select("id,numero,status,servico,data_inicio,data_fim,valor_total,created_at").eq("tutor_id", id).order("created_at", { ascending: false }).then(chk),
+    sb.from("propostas").select("id,numero,status,servico,data_inicio,data_fim,valor_total,valor_cheio,resumo,created_at,enviada_em,respondida_em,proposta_pets(pets(id,nome))").eq("tutor_id", id).order("created_at", { ascending: false }).then(chk),
   ]);
   return { tutor, pets, props };
 }
@@ -150,4 +151,21 @@ export async function marcarPago(id, forma = "pix", data = null) { return chk(aw
 export async function desmarcarPago(id) { return chk(await sb.from("pagamentos").update({ pago_em: null, forma: null }).eq("id", id)); }
 export async function receitaPorServico(ini, fim) {
   return chk(await sb.from("propostas").select("servico,valor_total").eq("status", "aceita").gte("data_inicio", ini).lte("data_inicio", fim));
+}
+
+// histórico agrupado por cliente (tela Propostas → "Por cliente")
+export async function propostasPorCliente() {
+  const rows = chk(await sb.from("propostas").select("tutor_id,tutor_nome,status,valor_total,created_at").order("created_at", { ascending: false }).limit(2000));
+  const m = new Map();
+  for (const p of rows) {
+    const k = p.tutor_id || "nome:" + (p.tutor_nome || "Sem tutor");
+    const g = m.get(k) || { tutor_id: p.tutor_id, nome: p.tutor_nome || "Sem tutor", total: 0, aceitas: 0, recusadas: 0, valorAceito: 0, ultima: p.created_at };
+    g.total++; if (p.status === "aceita") { g.aceitas++; g.valorAceito += Number(p.valor_total || 0); } if (p.status === "recusada") g.recusadas++;
+    m.set(k, g);
+  }
+  return [...m.values()];
+}
+// serviço confirmado (visão da assistente: sem valores)
+export async function getServico(id) {
+  return chk(await sb.from("propostas").select("id,numero,servico,status,data_inicio,data_fim,cidade,tutor_id,tutor_nome,resumo,obs:payload->>obs,tutores(id,nome,whatsapp,endereco,bairro,cidade,observacoes),proposta_pets(pets(id,nome,especie,raca,porte,foto_path,alimentacao,medicacao,comportamento,limitacoes,reativo))").eq("id", id).single());
 }

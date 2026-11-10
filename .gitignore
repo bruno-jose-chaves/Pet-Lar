@@ -5,3 +5,4 @@ __pycache__/
 tests/output/
 .wrangler/
 tests/output/
+supabase/seed/

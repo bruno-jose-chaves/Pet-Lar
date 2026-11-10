@@ -2,7 +2,7 @@
 import * as U from "../ui.js";
 import * as db from "../db.js";
 
-const FILTROS = [["", "Todas"], ["rascunho", "Rascunho"], ["enviada", "Enviadas"], ["aceita", "Aceitas"], ["recusada", "Recusadas"]];
+const FILTROS = [["", "Todas"], ["rascunho", "Rascunho"], ["enviada", "Enviadas"], ["aceita", "Aceitas"], ["recusada", "Recusadas"], ["cliente", "👤 Por cliente"]];
 
 export async function mount(root) {
   let st = sessionStorage.getItem("petlar_filtro_prop") || "", q = "", page = 0, total = 0, items = [];
@@ -20,7 +20,21 @@ export async function mount(root) {
     <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}</div></div>
     <div class="r"><div class="v">${U.brl(p.valor_total)}</div>${U.pill(p.status)}</div></a>`;
 
+  async function porCliente() {
+    U.$("#lista", root).innerHTML = U.skeleton(5); U.$("#more", root).innerHTML = "";
+    const myQ = q;
+    try {
+      let gs = await db.propostasPorCliente(); if (myQ !== q || st !== "cliente") return;
+      if (q) gs = gs.filter(x => x.nome.toLowerCase().includes(q.toLowerCase()));
+      U.$("#lista", root).innerHTML = gs.length ? `<p class="muted" style="margin:0 0 8px">Toque no cliente para ver o histórico completo de orçamentos dele.</p><div class="list">${gs.map(x => `<a class="item" href="${x.tutor_id ? "#/tutor/" + x.tutor_id : "#/propostas"}" ${x.tutor_id ? "" : `data-busca="${U.esc(x.nome)}"`}>
+        <div class="av round">${U.USER}</div>
+        <div class="main"><div class="t">${U.esc(x.nome)}</div><div class="s">${x.total} orçamento${x.total > 1 ? "s" : ""} · ${x.aceitas} aceito${x.aceitas === 1 ? "" : "s"}${x.recusadas ? " · " + x.recusadas + " recusado" + (x.recusadas > 1 ? "s" : "") : ""} · último em ${U.fmtY(x.ultima.slice(0, 10))}</div></div>
+        <div class="r"><div class="v">${U.brl(x.valorAceito)}</div><small class="muted">contratado</small></div></a>`).join("")}</div>`
+        : `<div class="empty">Nenhum cliente${q ? " com esse nome" : ""}.</div>`;
+    } catch { U.$("#lista", root).innerHTML = `<div class="empty">Não consegui carregar.</div>`; }
+  }
   async function load(reset = true) {
+    if (st === "cliente") return porCliente();
     if (reset) { page = 0; items = []; U.$("#lista", root).innerHTML = U.skeleton(5); }
     const myQ = q, mySt = st;
     try {
@@ -39,6 +53,7 @@ export async function mount(root) {
     U.$("#funil", root).innerHTML = `Enviadas aguardando: <b>${e}</b> · Aceitas: <b>${a}</b> · Recusadas: <b>${r}</b>${resp ? ` · Taxa de aceite: <b>${Math.round(a / resp * 100)}%</b>` : ""}`;
   }
   U.$("#fil", root).addEventListener("click", e => { const c = e.target.closest(".chip"); if (!c) return; st = c.dataset.v; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); load(); });
+  U.$("#lista", root).addEventListener("click", e => { const a = e.target.closest("[data-busca]"); if (!a) return; e.preventDefault(); st = ""; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); q = a.dataset.busca; U.$("#q", root).value = q; load(); });
   U.$("#q", root).addEventListener("input", U.debounce(e => { q = e.target.value.trim(); load(); }, 300));
   load(); funil();
 }

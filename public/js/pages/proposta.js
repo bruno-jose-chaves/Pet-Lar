@@ -16,6 +16,7 @@ const TEMPLATE = `
 </div>
 <main class="layout">
   <section class="form">
+    <div id="impBanner"></div>
     <div class="card">
       <h3><span class="n">1</span>Cliente</h3>
       <div id="tutorLinked"></div>
@@ -102,6 +103,9 @@ const TEMPLATE = `
         <input type="number" min="0" max="50" step="1" data-k="descManual" placeholder="Automático">
       </label>
       <div id="descWarn" class="warn hide">Acima do teto de 15%. Tudo bem se for uma exceção combinada.</div>
+      <label class="f">Valor final combinado (R$) <span class="hint">Deixe vazio para usar a conta da tabela. Use quando fechar um valor diferente com o cliente. Conta da tabela: <b id="valorTabela">—</b></span>
+        <input type="number" min="0" step="5" inputmode="decimal" data-k="valorFechado" placeholder="Pela tabela">
+      </label>
       <label class="f" style="margin-bottom:6px">Adicionais <span class="hint">Cuidado especial, pet reativo, horário fora do comum… em % ou em R$.</span></label>
       <div id="addList"></div>
       <div class="chips" id="addPresets">
@@ -162,7 +166,7 @@ export async function mount(root, ctx) {
     pets:[newPet()],
     v_ini:"", v_fim:"", v_dia:"1", v_combo:false,
     p_plano:"3", p_outro:"", p_ini:"", e_qtd:1, e_data:"", h_in:"", h_out:"", h_leva:false,
-    b_plano:"avulso", b_data:"", descManual:"", obs:"", adds:[], cidadeNome:"", deslocValor:30, tutor_id:null, tutorWhats:"" }; }
+    b_plano:"avulso", b_data:"", descManual:"", valorFechado:"", obs:"", adds:[], cidadeNome:"", deslocValor:30, tutor_id:null, tutorWhats:"" }; }
   function newPet(){ return {id:Math.random().toString(36).slice(2,8), pet_id:null, foto_path:null, nome:"", especie:"cao", raca:"", idade:"", porte:"P", passeia:true, foto:"", alimentacao:"", medicacao:"", comportamento:"", limitacoes:"", veterinario:"", reativo:false}; }
 
   const store = { get(k){ try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;} },
@@ -327,6 +331,9 @@ export async function mount(root, ctx) {
     R.final = r5(base + addTot) + R.desloc;
     R.full = Math.max(R.full, R.final);
     R.save = R.full - R.final;
+    R.tabela = R.final;
+    const vf = Number(S.valorFechado) || 0;
+    if (vf > 0) { R.ajuste = vf - R.final; R.final = vf; R.full = Math.max(R.full, vf); R.save = R.full - R.final; }
     R.perUnit = R.count ? (R.final - R.desloc) / R.count : 0;
     R.cidadeTxt = S.cidade==="outra" ? (S.cidadeNome.trim()||"outra cidade") : S.cidade;
     return R;
@@ -472,6 +479,7 @@ export async function mount(root, ctx) {
 
   /* ================= RENDER: CALC PANEL ================= */
   function renderCalc(R){
+    $("#valorTabela").textContent = R.ok ? brl(R.tabela) : "—";
     $("#autoDesc").textContent = R.ok ? (R.discAuto? Math.round(R.discAuto*100)+"%" : "sem desconto") : "—";
     $("#descWarn").classList.toggle("hide", !(Number(S.descManual)>15));
     if(!R.ok){ $("#calcLines").innerHTML=`<div><span>${R.msg}</span></div>`; $("#calcTot").textContent="—"; $("#calcInt").textContent=""; return; }
@@ -480,11 +488,12 @@ export async function mount(root, ctx) {
     if(S.servico==="banho"&&R.second2) h+=`<div><span>2º pet no banho −10%</span><span>− ${brl2(R.second2*(1-R.disc)*T.banho2pet)}</span></div>`;
     h += R.addLines.map(x=>`<div><span>${esc(x.l)}${x.show?"":" · interno"}</span><span>${brl2(x.v)}</span></div>`).join("");
     if(R.desloc) h+=`<div><span>Deslocamento ${esc(R.cidadeTxt)} · ${brl(R.deslocUnit)} × ${R.deslocN}</span><span>${brl(R.desloc)}</span></div>`;
+    if(R.ajuste) h+=`<div><span>Valor combinado (tabela dava ${brl(R.tabela)})</span><span>${R.ajuste<0?"− "+brl2(-R.ajuste):"+ "+brl2(R.ajuste)}</span></div>`;
     $("#calcLines").innerHTML=h; $("#calcTot").textContent=brl(R.final);
     const notes=[]; if(R.holidays) notes.push(`Inclui +20% de feriado em ${R.holidays} ${S.servico==="hosp"?"diária(s)":"atendimento(s)"} (não aparece no PDF).`);
     if(S.servico==="hosp" && daysBetween(pd(S.h_in),pd(S.h_out))+1>=21) notes.push("21+ diárias: sem adicional de feriado.");
     if(R.warnGato) notes.push("Banho de gato não tem plano semanal na tabela. Confira antes de mandar.");
-    notes.push("Valor arredondado para múltiplo de R$ 5.");
+    notes.push(R.ajuste ? "Valor final combinado à mão (campo do passo 4)." : "Valor arredondado para múltiplo de R$ 5.");
     $("#calcInt").innerHTML=notes.join("<br>");
   }
 
@@ -513,6 +522,8 @@ export async function mount(root, ctx) {
       if(S.servico==="banho"&&R.second2) detail+=`<div class="neg"><span>Desconto do 2º pet no banho (10%)</span><span>− ${brl2(R.second2*(1-R.disc)*T.banho2pet)}</span></div>`;
       detail += R.addLines.filter(x=>x.show).map(x=>`<div><span>${esc(x.l)}</span><span>${brl2(x.v)}</span></div>`).join("");
       if(R.desloc) detail+=`<div><span>Deslocamento ${esc(R.cidadeTxt)} · ${brl(R.deslocUnit)} por deslocamento × ${R.deslocN}</span><span>${brl(R.desloc)}</span></div>`;
+      if(R.ajuste<0) detail+=`<div class="neg"><span>Condição especial combinada</span><span>− ${brl2(-R.ajuste)}</span></div>`;
+      else if(R.ajuste>0) detail+=`<div><span>Ajuste combinado</span><span>${brl2(R.ajuste)}</span></div>`;
     }
     const badges=[];
     if(R.ok&&R.count>1) badges.push(`<span class="badge alt">${brl(R.perUnit)}/${R.unitLabel}</span>`);
@@ -710,7 +721,7 @@ export async function mount(root, ctx) {
     const per = periodoDe();
     const valDays = Number(S.validade) || 7;
     const row = { tutor_id: S.tutor_id || null, tutor_nome: S.tutor.trim() || null, servico: S.servico, ...per, cidade: cidadeNome() || null,
-      valor_total: R.ok ? R.final : 0, valor_cheio: R.ok ? R.full : 0, resumo: resumoDe(R), payload: payloadDe(), validade_ate: S.data ? U.addDays(S.data, valDays) : null };
+      valor_total: R.ok ? R.final : (Number(S.valorFechado) || 0), valor_cheio: R.ok ? R.full : (Number(S.valorFechado) || 0), resumo: resumoDe(R), payload: payloadDe(), validade_ate: S.data ? U.addDays(S.data, valDays) : null };
     if (!META.id) { const r = await db.insertProposta(row); Object.assign(META, { id: r.id, numero: r.numero, status: r.status }); if (alive) replaceHash("#/proposta/" + r.id); }
     else await db.updateProposta(META.id, row);
     await db.setPropostaPets(META.id, [...new Set(S.pets.map(p => p.pet_id).filter(Boolean))]);
@@ -871,7 +882,7 @@ export async function mount(root, ctx) {
       const n = Object.assign(newPet(), p); n.foto = ""; return n;
     }));
     if (acao === "duplicar") {
-      Object.assign(META, { id: null, numero: null, status: "rascunho" }); S.data = U.today();
+      Object.assign(META, { id: null, numero: null, status: "rascunho" }); S.data = U.today(); delete S.importada;
     } else Object.assign(META, { id: row.id, numero: row.numero, status: row.status });
     if (S.tutor_id) db.petsDoTutor(S.tutor_id).then(r => { tutorPetsCache = r; renderTutorPets(); }).catch(() => {});
   } else if (tutorParaNova) {
@@ -882,6 +893,7 @@ export async function mount(root, ctx) {
   // para os testes automáticos
   window.G = { get S() { return S; }, set S(v) { S = v; }, blank, newPet, calc, bindValues, update, renderAdds, renderPets, save, META, setStatus };
 
+  if (S.importada && META.id) $("#impBanner").innerHTML = `<div class="warn" style="margin-bottom:12px">📥 <b>Orçamento importado do histórico</b> (feito antes do sistema${S.importada.quando ? ", " + U.esc(S.importada.quando) : ""}). O valor que foi passado ao cliente está em “Valor final combinado”. Complete o que faltar: datas, WhatsApp, fotos e a ficha dos pets.${S.importada.nota ? "<br>" + U.esc(S.importada.nota) : ""}</div>`;
   bindForm(); bindValues(); renderLinked(); renderHead(); renderPets(); renderAdds(); syncChips(); renderPage(); loadPagtos();
   document.fonts && document.fonts.ready.then(fitPreview);
   clearTimeout(autoT); dirty = false; window.__dirty = false; setState(META.id ? "Salvo ✓" : "");
