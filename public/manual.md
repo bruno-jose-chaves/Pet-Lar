@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.0 · atualizado em 10/11/2026
+Versão 2.1 · atualizado em 11/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -16,6 +16,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Clientes com mais de um pet](#clientes-com-mais-de-um-pet)
 - [Histórico por cliente](#historico-por-cliente)
 - [Orçamentos importados](#orcamentos-importados)
+- [Completar cadastros](#completar-cadastros)
 - [Depois que o cliente responde](#depois-que-o-cliente-responde)
 - [Cobrar resposta](#cobrar-resposta)
 - [Filtros](#filtros)
@@ -32,6 +33,8 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 4. Volte ao site e toque em **Entrar** com o e-mail e a senha.
 
 Se esquecer a senha, digite o e-mail e toque em **Esqueci a senha**. Chega um link para criar uma nova.
+
+**Jeito mais rápido (sem e-mail):** o Administrador cria uma **senha provisória** para a pessoa (veja abaixo, em Dicas e dúvidas). Ela entra com o e-mail e essa senha, e o painel pede na hora para ela criar a senha dela.
 
 **No iPhone:** abra o site no Safari, toque em Compartilhar e depois em **Adicionar à Tela de Início**. O painel vira um ícone, igual a um app.
 
@@ -99,7 +102,8 @@ Marcar como aceita ou recusada, voltar para enviada, cancelar o serviço, duplic
 Serve para mandar, no mesmo PDF, duas alternativas para o cliente escolher. Por exemplo: hospedagem aqui em casa **ou** visitas na casa dele.
 
 1. No passo 3 (Serviço), toque em **+ Adicionar opção 2**. A opção 2 começa igual à 1.
-2. Mude o que for diferente: serviço, datas, desconto, adicionais ou valor combinado. Use as abas **Opção 1** e **Opção 2** para alternar entre elas. Cliente, pets e recado valem para as duas.
+2. Mude o que for diferente: serviço, datas, desconto, adicionais ou valor combinado. Use as abas **Opção 1** e **Opção 2** para alternar entre elas. Cliente e recado valem para as duas.
+   - **Pets diferentes em cada opção:** com mais de um pet, aparece **Pets nesta opção** logo abaixo das abas. Toque no pet para tirar ou pôr de volta naquela opção. Ex.: opção 1 com os dois gatos (visitas), opção 2 só com um (hospedagem). O preço, o PDF ("Para Mimi") e o aceite usam só os pets daquela opção. Cada opção precisa de pelo menos 1 pet.
 3. A opção com ⭐ é a **recomendada**: fica em destaque no PDF e no card. Para trocar, abra a outra opção e toque em **Recomendar a opção**.
 4. No PDF, no card e na mensagem aparecem as duas, cada uma com o seu valor. O Pix do sinal só vai depois que o cliente escolher.
 5. Quando o cliente responder: menu ••• → **Aceitou a opção 1** ou **Aceitou a opção 2**. O sinal e o saldo saem com o valor da opção escolhida, e ela passa a aparecer como "Escolhida". Se precisar mandar de novo, o PDF já sai com o QR do Pix.
@@ -132,7 +136,22 @@ Ao abrir um deles, aparece um aviso **Orçamento importado do histórico**. Ness
 - todos entraram como **Enviada**. Marque como aceita ou recusada conforme o que aconteceu (dá para marcar vários de uma vez em Propostas → **Selecionar**);
 - os do Hulk e Máximus e do Lupi já estão com **duas opções**.
 
-**Para completar:** abra o orçamento ou a ficha do pet, preencha o que faltar e coloque a foto (toque no quadrado da foto). Tudo salva sozinho ou no botão Salvar.
+**Para completar:** use a tela **Completar cadastros** (abaixo). Também dá para abrir o orçamento ou a ficha do pet e preencher por lá.
+
+## Completar cadastros
+
+Junta numa tela só tudo o que está faltando, principalmente nos orçamentos importados. Abra pelo aviso **Completar cadastros** no Hoje ou em **Mais → Completar cadastros** (só Administrador e Gestora).
+
+| Parte | O que fazer ali mesmo |
+|---|---|
+| Propostas sem cliente | Toque para abrir e escolher o cliente |
+| Clientes sem WhatsApp | Digite o número e toque em **Salvar** |
+| Pets sem nome / sem raça | Digite e toque em **Salvar** |
+| Pets sem foto | Toque em **Pôr foto** e escolha a foto do celular |
+| Orçamentos sem data | Toque para abrir e pôr as datas |
+
+Cada item some da lista assim que é salvo. O aviso no Hoje mostra quantas informações ainda faltam.
+
 
 ## Depois que o cliente responde
 
@@ -233,17 +252,18 @@ Na mesma caixa você vê quando o link foi criado, se o cliente já aceitou o av
 
 ### O que o cliente vê
 
-| Parte | O que tem |
+A área do tutor funciona como um aplicativo, com uma barra de 5 abas embaixo:
+
+| Aba | O que tem |
 |---|---|
 | Primeira vez | Boas-vindas e o aviso sobre os dados (LGPD). Ele toca em **Entendi, quero entrar** |
-| Para você responder | Orçamentos enviados. Com duas opções, ele escolhe a que prefere. Ao confirmar, a proposta vira **Aceita** no painel e abre o Pix do sinal (QR Code e copia e cola) |
-| Agora com a Lari | O serviço de hoje, com o aviso se o sinal ainda não foi pago |
-| Diário de hoje | Tudo o que você registrou no Diário, com hora, recados e fotos. Os dias anteriores ficam logo abaixo |
-| Próximos serviços | Datas confirmadas e o Pix do sinal, se faltar |
-| Fotos | Todas as fotos dos últimos 60 dias. Toque para ver grande |
-| Meus pets | Ficha de cada pet para ele completar (alimentação, remédios, jeitinho, saúde, veterinário, outras informações) e trocar a foto |
-| Serviços anteriores | Ele dá de 1 a 5 estrelas e deixa um recado |
-| Precisa de algo? | Botão para falar com você no WhatsApp e o passo a passo para salvar a página na tela do celular |
+| **Início** | O pet em destaque (foto grande), se ele está com você agora, **o dia do pet** (comeu, água, passeio, xixi, cocô e remédio, com a hora em que você marcou), a foto mais recente, os próximos cuidados e avisos de orçamento para responder ou sinal para pagar. Com mais de um pet, ele troca de pet no topo |
+| **Diário** | Os dias com registro (Hoje, Ontem…) e a linha do tempo de cada dia, com recados e fotos |
+| **Fotos** | Todas as fotos dos últimos 60 dias. Toque para ver em tela cheia, passar para o lado e salvar ou compartilhar |
+| **Pets** | Cada pet com o que falta na ficha. Na ficha ele preenche um item por vez (alimentação, remédios, jeitinho, saúde, veterinário, casa) e troca a foto |
+| **Mais** | Orçamentos para responder (com as duas opções, se houver), cuidados confirmados, pagamentos (pago ou a vencer, com Pix), cuidados anteriores com estrelas, falar com você, como deixar na tela do celular e o aviso sobre os dados |
+
+Quando ele confirma um orçamento, a proposta vira **Aceita** e abre o Pix do sinal (QR Code e copia e cola).
 
 ### O que muda no painel
 
@@ -288,12 +308,16 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 **Alguém novo vai ajudar.** O Administrador libera o e-mail com o nível **Assistente**.
 
-**Alguém esqueceu a senha.** A própria pessoa pode tocar em **Esqueci a senha** no login. O Administrador também pode mandar o link: Configurações → Quem tem acesso → **🔑 link de senha** ao lado do nome. Chega um e-mail com um link que vale por 1 hora. O e-mail gratuito tem limite de alguns envios por hora; se aparecer aviso de "muitos e-mails", espere uns minutos.
+**Alguém esqueceu a senha.** A própria pessoa pode tocar em **Esqueci a senha** no login. O Administrador tem dois caminhos em Configurações → Quem tem acesso, ao lado do nome:
+
+- **senha provisória**: o painel sugere uma senha fácil de ditar (pode trocar), você toca em **Definir senha** e manda para a pessoa (botões de copiar e de WhatsApp). Ela entra com essa senha e o painel obriga a criar a dela antes de continuar. Se a pessoa ainda não tinha conta, a conta é criada na hora, sem e-mail de confirmação.
+- **link de senha**: Chega um e-mail com um link que vale por 1 hora. O e-mail gratuito tem limite de alguns envios por hora; se aparecer aviso de "muitos e-mails", espere uns minutos.
 
 ## Histórico de versões
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.1 | 11/11/2026 | Área do tutor refeita como aplicativo com abas (Início, Diário, Fotos, Pets, Mais). Senha provisória pelo Administrador. Pets diferentes em cada opção da proposta. Tela Completar cadastros |
 | 2.0 | 10/11/2026 | Área do tutor (link pessoal no WhatsApp: diário, fotos, orçamento com Pix, ficha, avaliação). Painel com a identidade visual da Pet Lar (ícones de traço, paleta oficial, logo em imagem). O nome do cliente só é cadastrado quando você sai do campo |
 | 1.5 | 10/11/2026 | Diário do pet: registros com um toque, fotos, recados, linha do tempo e resumo do dia para o WhatsApp |
 | 1.4 | 10/11/2026 | Filtros em Propostas, Pets, Tutores, Agenda e Financeiro |

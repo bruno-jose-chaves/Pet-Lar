@@ -136,6 +136,12 @@ Deno.serve(async req => {
         if (o.data_inicio) Object.assign(row, { data_inicio: o.data_inicio, data_fim: o.data_fim || o.data_inicio });
       }
       await chk(sb.from("propostas").update(row).eq("id", p.id).eq("status", "enviada"));
+      // C-05: a opção escolhida pode ter só alguns pets
+      const escolhida = ops ? ops.find((x: any) => x.n === Number(body.opcao)) : null;
+      const ficam = (escolhida?.pet_ids || []).filter((x: unknown) => typeof x === "string" && /^[0-9a-f-]{36}$/i.test(x));
+      if (ficam.length) {
+        await chk(sb.from("proposta_pets").delete().eq("proposta_id", p.id).not("pet_id", "in", `(${ficam.join(",")})`));
+      }
       return json(await dados(a));
     }
     if (acao === "avaliar") {

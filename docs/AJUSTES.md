@@ -46,13 +46,13 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Regra para expirar sozinho: depois de N dias sem resposta, vira "Expirada" (N em Configurações).
 - **Depende de:** A-01 (mesmas ações rápidas).
 
-### A-04 · Administrador trocar a senha de outra pessoa 🔵 (parte rápida feita na v1.3)
+### A-04 · Administrador trocar a senha de outra pessoa ✅ (v2.1)
 - **Origem:** Bruno, 10/11/2026
 - **Problema:** em Configurações, o administrador não consegue mudar a senha de quem tem acesso. Se a Larissa esquecer, ela precisa usar "Esqueci a senha" sozinha.
 - **Ideia de solução:**
   1. **Rápido:** botão "Mandar link de nova senha" ao lado de cada pessoa em Quem tem acesso. Usa o mesmo e-mail do "Esqueci a senha".
   - ✅ Feito na v1.3: botão "🔑 link de senha" em Configurações → Quem tem acesso.
-  2. **Completo (falta):** "Definir senha provisória". O administrador digita uma senha e a pessoa troca no primeiro acesso. Precisa de uma função no servidor (Edge Function do Supabase com chave de serviço), porque o navegador não pode mudar a senha de outra pessoa.
+  2. ✅ **Feito na v2.1:** "senha provisória" (Edge Function `admin-senha`; só administrador; a pessoa troca no primeiro acesso). Texto original: "Definir senha provisória". O administrador digita uma senha e a pessoa troca no primeiro acesso. Precisa de uma função no servidor (Edge Function do Supabase com chave de serviço), porque o navegador não pode mudar a senha de outra pessoa.
 
 ## Observados durante o desenvolvimento (precisam do seu ok)
 
@@ -62,9 +62,10 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - Hulk e Máximus (PL-2026-011) e Lupi (PL-2026-013) foram convertidos para 2 opções. Karina (PL-2026-009) ficou com a opção 2 no recado, porque a opção 2 era só para 1 dos 2 gatos.
 - **Limite conhecido:** as duas opções usam os mesmos pets. Ver C-05.
 
-### C-02 · Completar os orçamentos importados 🟡
+### C-02 · Completar os orçamentos importados ✅ (v2.1, falta só material)
 - **Origem:** Claude. 12 entraram como Enviada. Faltam fotos, datas, WhatsApp, alguns nomes de pets e 4 tutores.
 - **Ideia:** depois do A-01, marcar a situação em lote. As fotos podem ser enviadas para o Claude colocar.
+- **Entregue (v2.1):** tela Completar cadastros (`#/completar`) com edição ali mesmo e aviso no Hoje. Situação em 11/11: 10 clientes sem WhatsApp, 19 pets sem foto, 6 sem raça, 6 sem nome, 8 orçamentos sem data, 4 sem cliente. As fotos dependem do material (mandar para o Claude ou a Lari pôr pela tela).
 
 ### C-03 · Proteção de senha vazada no login ⏸️ (decidido: não ligar agora)
 - **Origem:** Claude, aviso do Supabase.
@@ -78,9 +79,10 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Ideia:** uma view sem colunas de valor para a assistente.
 - **Decisão (Bruno, 10/11/2026):** hoje só Bruno e Larissa usam o painel, então não há login de assistente. O nível continua pronto no sistema para quando precisar.
 
-### C-05 · Pets diferentes em cada opção 🟡
+### C-05 · Pets diferentes em cada opção ✅ (v2.1)
 - **Origem:** Claude. Caso da Karina: opção 1 com os 2 gatos (visitas), opção 2 só com 1 gato (hospedagem).
 - **Ideia:** na opção 2, marcar quais pets participam.
+- **Entregue (v2.1):** "Pets nesta opção" no editor; preço, PDF, resumo e aceite (painel e área do tutor) usam só os pets da opção.
 
 ## Novas funcionalidades (futuro)
 
@@ -100,6 +102,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Orçamentos com aceite por opção e Pix do sinal; diário de hoje e dos últimos 60 dias; galeria; ficha e foto do pet; avaliação de 1 a 5.
   - No painel: caixa Área do tutor na ficha do cliente (criar, mandar no WhatsApp, copiar, ver como o tutor vê, trocar, desativar).
   - Testes: `tests/test_portal.py` (62 verificações, iPhone e computador).
+- **v2.1 (11/11/2026):** refeita como aplicativo com barra de abas (Início, Diário, Fotos, Pets, Mais) e visual próprio (pet em destaque na "casa" sálvia com arco terracota, o dia do pet com marcações, visor de fotos em tela cheia, ficha editada item por item). Pedido do Bruno: o formato de página única e o visual não estavam bons.
 - **Fica para depois:** aviso no celular quando entra foto nova (notificação), validade automática do link, vídeos.
 - **O que mais pode entrar:**
   - O tutor completa a ficha do pet: alimentação, remédios, veterinário, acesso à casa. Isso substitui a anamnese longa.
@@ -130,6 +133,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ## Histórico
 | Data | O quê |
 |---|---|
+| 11/11/2026 | A-04, C-02 e C-05 entregues (v2.1). Área do tutor refeita em abas |
 | 10/11/2026 | F-01 entregue (v2.0). Identidade visual aplicada no painel. Corrigido: nome do tutor salvo pela metade |
 | 10/11/2026 | Entrou A-04 (trocar senha de usuários). F-01 com acesso por link pessoal (sem SMS). C-03 e C-04 decididos: não fazer agora |
 | 10/11/2026 | C-01 entregue (v1.2). C-03 pausado (só no plano Pro). Entraram C-05, F-01 (área do tutor) e F-02 (diário do pet) |

@@ -92,75 +92,103 @@ with sync_playwright() as p:
     check(f"[{tam}] sem link: pede para usar o link do WhatsApp", "link que a Lari mandou" in pg.inner_text("#pt"))
 
     # aviso de privacidade
-    pg.goto(URL + "#" + TOKEN); pg.wait_for_timeout(1000)
+    pg.goto(URL + "#" + TOKEN); pg.wait_for_timeout(1600)
     check(f"[{tam}] primeira vez: aviso de privacidade com o nome", "Oi, Sabrina!" in pg.inner_text("#pt") and "Sobre os seus dados" in pg.inner_text("#pt"))
+    check(f"[{tam}] aviso sem barra de abas", pg.locator("#tabs").is_hidden())
     if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-boasvindas.png"), full_page=True)
     sem_rolagem("aviso")
     tap("#ptOk"); pg.wait_for_timeout(900)
-    check(f"[{tam}] entrou: saudação e atalhos", "Sabrina!" in pg.inner_text(".pt-ola") and pg.locator(".pt-atalhos a").count() == 4)
-    check(f"[{tam}] orçamento com duas opções", pg.locator(".pt-op").count() == 2 and "R$ 420" in pg.inner_text(".pt-ops"))
-    check(f"[{tam}] agora com a Lari: Bento", "Agora com a Lari".upper() in pg.inner_text(".pt-agora").upper() and "Bento" in pg.inner_text(".pt-agora"))
-    check(f"[{tam}] diário de hoje com 3 registros e foto", pg.locator("#diario > .pt-card .pt-tl-i").count() == 3 and pg.locator("#diario > .pt-card .pt-foto img").count() == 1)
-    check(f"[{tam}] dias anteriores guardados", pg.locator(".pt-dias summary").count() == 1)
-    check(f"[{tam}] galeria com as 2 fotos", pg.locator(".pt-galeria .pt-foto").count() == 2)
-    check(f"[{tam}] meus pets: Bento e Nina", pg.locator(".pt-pet").count() == 2)
-    check(f"[{tam}] serviço anterior com botão Avaliar", pg.locator("[data-avaliar]").count() == 1)
-    check(f"[{tam}] botão falar com a Lari (WhatsApp)", "wa.me" in (pg.get_attribute(".pt-contato a.btn", "href") or ""))
+
+    # Início
+    check(f"[{tam}] Início: barra com 5 abas", pg.locator("#tabs button").count() == 5 and pg.locator("#tabs button.on").inner_text().strip() == "Início")
+    check(f"[{tam}] Início: pet em destaque (Bento, com a Lari agora)", pg.inner_text(".pt-heroi h1") == "Bento" and "Com a Lari agora" in pg.inner_text(".pt-status"))
+    check(f"[{tam}] Início: escolher entre Bento e Nina", pg.locator(".pt-troca button").count() == 2)
+    check(f"[{tam}] Início: o dia do Bento marca comeu e passeio", pg.locator(".pt-rotina li.feito").count() == 2 and "O dia do Bento" in pg.inner_text(".pt-bloco h2"))
+    check(f"[{tam}] Início: aviso de orçamento esperando resposta", pg.locator(".pt-aviso[data-orc]").count() == 1)
+    check(f"[{tam}] Início: foto mais recente", pg.locator(".pt-ultfoto img").count() == 1)
+    check(f"[{tam}] Início: ponto na aba Mais (orçamento aberto)", pg.locator("#tabs .pt-ponto").count() == 1)
     check(f"[{tam}] o código do link não aparece na tela", TOKEN not in pg.inner_text("body"))
-    sem_rolagem("início")
+    sem_rolagem("Início")
     pg.screenshot(path=str(OUT / f"{tam}-portal.png"), full_page=True)
+    pg.click(".pt-troca [data-petsel='p2']"); pg.wait_for_timeout(300)
+    check(f"[{tam}] trocar para a Nina", pg.inner_text(".pt-heroi h1") == "Nina")
+    pg.click(".pt-troca [data-petsel='p1']"); pg.wait_for_timeout(200)
 
-    # atalho não troca o # (o código do link fica no endereço)
-    pg.click(".pt-atalhos a[href='#pets']"); pg.wait_for_timeout(500)
-    check(f"[{tam}] atalho rola a página sem perder o código do link", TOKEN in pg.evaluate("location.hash"))
+    # Diário
+    pg.click("#tabs [data-ir=diario]"); pg.wait_for_timeout(400)
+    check(f"[{tam}] Diário: dias e registros de hoje", pg.locator(".pt-dias button").count() == 2 and pg.locator(".pt-tl-i").count() == 3)
+    check(f"[{tam}] aba no endereço sem perder o código", "aba=diario" in pg.evaluate("location.search") and TOKEN in pg.evaluate("location.hash"))
+    pg.locator(".pt-dias button").nth(1).click(); pg.wait_for_timeout(300)
+    check(f"[{tam}] Diário: dia anterior", pg.locator(".pt-tl-i").count() == 2)
+    if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-diario.png"), full_page=True)
+    sem_rolagem("Diário")
 
-    # foto em tela cheia
-    pg.locator(".pt-galeria .pt-foto").first.click(); pg.wait_for_timeout(400)
-    check(f"[{tam}] foto abre grande", pg.locator(".modal .pt-foto-g").count() == 1)
-    pg.click(".modal [data-close]"); pg.wait_for_timeout(300)
+    # Fotos + visor
+    pg.click("#tabs [data-ir=fotos]"); pg.wait_for_timeout(400)
+    check(f"[{tam}] Fotos: grade com 2 fotos", pg.locator(".pt-grade button").count() == 2)
+    pg.locator(".pt-grade button").first.click(); pg.wait_for_timeout(300)
+    check(f"[{tam}] foto abre em tela cheia (1 de 2)", pg.locator(".pt-visor").count() == 1 and "1 de 2" in pg.inner_text(".pt-visor-top"))
+    pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(200)
+    check(f"[{tam}] passa para a próxima foto", "2 de 2" in pg.inner_text(".pt-visor-top"))
+    if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-visor.png"))
+    pg.click(".pt-visor [data-v=x]"); pg.wait_for_timeout(200)
+    check(f"[{tam}] fecha o visor", pg.locator(".pt-visor").count() == 0)
 
-    # aceitar a opção 2 + Pix
+    # voltar do navegador
+    pg.go_back(); pg.wait_for_timeout(400)
+    check(f"[{tam}] botão voltar do celular volta de aba", pg.locator("#tabs button.on").inner_text().strip() == "Diário")
+
+    # Pets + ficha
+    pg.click("#tabs [data-ir=pets]"); pg.wait_for_timeout(300)
+    check(f"[{tam}] Pets: Bento e Nina com o que falta na ficha", pg.locator(".pt-petcard").count() == 2 and "Falta preencher" in pg.inner_text(".pt-pets"))
+    pg.click(".pt-petcard[data-pet='p2']"); pg.wait_for_timeout(300)
+    check(f"[{tam}] ficha da Nina abre", pg.inner_text(".pt-tit h1") == "Nina" and pg.locator(".pt-campo").count() == 6)
+    pg.click("[data-editar=alimentacao]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=alimentacao] textarea", "Sachê 2x ao dia"); pg.click("[data-salvar=alimentacao] [type=submit]"); pg.wait_for_timeout(700)
+    ult = st["chamadas"][-1]
+    check(f"[{tam}] ficha: salva um campo por vez", ult.get("acao") == "ficha" and ult.get("pet_id") == "p2" and ult["campos"] == {"alimentacao": "Sachê 2x ao dia"} and "Sachê 2x ao dia" in pg.inner_text("[data-campo=alimentacao]"))
+    with pg.expect_file_chooser() as fc: pg.click("[data-trocafoto='p2']")
+    fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1500)
+    ult = st["chamadas"][-1]
+    check(f"[{tam}] foto nova do pet enviada (reduzida, JPEG)", ult.get("acao") == "foto" and ult.get("imagem", "").startswith("data:image/jpeg") and len(ult["imagem"]) < 1_500_000)
+    check(f"[{tam}] foto nova aparece na ficha", pg.locator(".pt-ficha-foto img").count() == 1)
+    if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-ficha.png"), full_page=True)
+    sem_rolagem("Ficha")
+    pg.click(".pt-volta"); pg.wait_for_timeout(300)
+    check(f"[{tam}] voltar da ficha para a lista", pg.locator(".pt-petcard").count() == 2)
+
+    # Mais + orçamento com duas opções
+    pg.click("#tabs [data-ir=mais]"); pg.wait_for_timeout(300)
+    check(f"[{tam}] Mais: orçamento, confirmados, pagamentos e anteriores", all(x in pg.inner_text("#pt") for x in ["Orçamentos para responder", "Cuidados confirmados", "Pagamentos", "Cuidados anteriores"]))
+    if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-mais.png"), full_page=True)
+    pg.click("[data-orc='q3']"); pg.wait_for_timeout(300)
+    check(f"[{tam}] orçamento: duas opções com preço", pg.locator(".pt-op").count() == 2 and "R$ 420" in pg.inner_text(".pt-ops"))
+    if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-orcamento.png"), full_page=True)
     pg.locator("[data-op='2']").click(); pg.wait_for_timeout(400)
     check(f"[{tam}] confirmação mostra opção e sinal", "opção 2" in pg.inner_text(".modal") and "R$ 210" in pg.inner_text(".modal"))
     pg.click(".modal [data-ok]"); pg.wait_for_timeout(1500)
     ult = st["chamadas"][-1]
     check(f"[{tam}] aceite enviado com a opção 2", ult.get("acao") == "aceitar" and ult.get("opcao") == 2 and ult.get("proposta_id") == "q3")
-    check(f"[{tam}] abre o Pix do sinal com QR e copia e cola", "Pix do sinal" in pg.inner_text(".modal") and pg.locator(".modal .pt-qr").count() == 1)
+    check(f"[{tam}] abre o Pix do sinal com QR", "Pix do sinal" in pg.inner_text(".modal") and pg.locator(".modal .pt-qr").count() == 1)
     if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-pix.png"))
-    pg.click(".modal [data-copiar]"); pg.wait_for_timeout(400)
+    pg.click(".modal [data-copiar]"); pg.wait_for_timeout(300)
     check(f"[{tam}] copiar código Pix avisa", pg.locator(".toast").count() >= 1)
-    pg.click(".modal [data-close]"); pg.wait_for_timeout(400)
-    check(f"[{tam}] orçamento saiu de 'para responder' e foi para próximos com Pix pendente", pg.locator(".pt-op").count() == 0 and pg.locator(".pt-prox [data-verpix]").count() == 1)
-
-    # ficha
-    pg.locator(".pt-pet[data-pet='p2'] .pt-ficha summary").click(); pg.wait_for_timeout(300)
-    pg.fill(".pt-pet[data-pet='p2'] [name=alimentacao]", "Sachê 2x ao dia"); pg.fill(".pt-pet[data-pet='p2'] [name=veterinario]", "Dra. Paula (47) 3333-0000")
-    pg.click(".pt-pet[data-pet='p2'] button[type=submit]"); pg.wait_for_timeout(800)
-    ult = st["chamadas"][-1]
-    check(f"[{tam}] ficha da Nina enviada", ult.get("acao") == "ficha" and ult.get("pet_id") == "p2" and ult["campos"].get("alimentacao") == "Sachê 2x ao dia")
-
-    # foto do pet
-    with pg.expect_file_chooser() as fc: pg.click(".pt-pet[data-pet='p2'] [data-trocafoto]")
-    fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1500)
-    ult = st["chamadas"][-1]
-    check(f"[{tam}] foto nova do pet enviada (reduzida, JPEG)", ult.get("acao") == "foto" and ult.get("imagem", "").startswith("data:image/jpeg") and len(ult["imagem"]) < 1_500_000)
-    check(f"[{tam}] foto nova aparece", pg.locator(".pt-pet[data-pet='p2'] .pt-pet-foto img").count() == 1)
+    pg.click(".modal [data-close]"); pg.wait_for_timeout(300)
+    check(f"[{tam}] volta ao Início com aviso do sinal e sem orçamento pendente", pg.locator(".pt-aviso[data-orc]").count() == 0 and pg.locator(".pt-aviso.pix").count() == 1)
 
     # avaliação
-    pg.click("[data-avaliar]"); pg.wait_for_timeout(400)
-    pg.click(".pt-escolher [data-n='5']"); pg.fill(".modal textarea", "Amamos!"); pg.click(".modal [data-env]"); pg.wait_for_timeout(800)
+    pg.click("#tabs [data-ir=mais]"); pg.wait_for_timeout(300)
+    pg.click("[data-avaliar]"); pg.wait_for_timeout(300)
+    pg.click(".pt-escolher [data-n='5']"); pg.fill(".modal textarea", "Amamos!"); pg.click(".modal [data-env]"); pg.wait_for_timeout(700)
     ult = st["chamadas"][-1]
     check(f"[{tam}] avaliação 5 estrelas enviada", ult.get("acao") == "avaliar" and ult.get("nota") == 5 and ult.get("comentario") == "Amamos!")
-    check(f"[{tam}] estrelas aparecem no lugar do botão", pg.locator("[data-avaliar]").count() == 0 and pg.locator(".pt-estrelas.on").count() == 1)
-
-    # como salvar na tela do celular
+    check(f"[{tam}] estrelas aparecem no lugar do botão", pg.locator("[data-avaliar]").count() == 0 and pg.locator(".pt-hist .pt-estrelas").count() == 1)
     pg.click("#ptSalvar"); pg.wait_for_timeout(300)
     check(f"[{tam}] explica como salvar na tela do celular", "Adicionar" in pg.inner_text(".modal"))
-    pg.click(".modal [data-close]")
+    pg.click(".modal [data-close]"); pg.wait_for_timeout(200)
 
-    # volta sem o # (ícone na tela de início): usa o código guardado
+    # reabrir sem o # (ícone na tela de início): usa o código guardado
     pg.goto(URL); pg.wait_for_timeout(1000)
-    check(f"[{tam}] reabre sem o código no endereço (guardado no aparelho)", "Sabrina!" in pg.inner_text("#pt"))
+    check(f"[{tam}] reabre sem o código no endereço (guardado no aparelho)", pg.locator(".pt-heroi").count() == 1)
     sem_rolagem("depois das ações")
     check(f"[{tam}] sem erros de JavaScript", not errs, " | ".join(errs)[:300])
     ctx.close()
