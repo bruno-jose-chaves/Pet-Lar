@@ -230,7 +230,10 @@ export async function mount(root, ctx) {
   function travelDisc(days){ return days>=25?.15: days>=10?.10: days>=5?.05:0; }
   function hospDisc(n){ return n>=21?.15: n>=7?.10:0; }
 
-  function calc(){
+  // C-05: cada opção pode ter só alguns pets (S.petsFora = ids fora desta opção)
+  function petsDaOpcao(){ const f=S.petsFora||[]; const ps=S.pets.filter(p=>!f.includes(p.id)); return ps.length?ps:S.pets; }
+  function calc(){ if(!S.alt||!(S.petsFora||[]).length) return calcBase(); const all=S.pets; S.pets=petsDaOpcao(); try { return calcBase(); } finally { S.pets=all; } }
+  function calcBase(){
     const R = {ok:true, lines:[], disc:0, discAuto:0, discountable:0, fixed:0, desloc:0, deslocN:0,
                count:0, unitLabel:"", when:[], holidays:0, title:"", subtitle:"", inc:[], msg:""};
     const fora = S.cidade!=="BC";
@@ -343,17 +346,17 @@ export async function mount(root, ctx) {
 
   /* ================= DUAS OPÇÕES =================
      S guarda a opção que está sendo editada; S.alt guarda a outra (só os campos do serviço). */
-  const SVC_KEYS = ["servico","v_ini","v_fim","v_dia","v_combo","p_plano","p_outro","p_ini","e_qtd","e_data","h_in","h_out","h_leva","b_plano","b_data","descManual","valorFechado","adds"];
-  function pick(src){ const o={}; for(const k of SVC_KEYS) o[k]=src[k]; return JSON.parse(JSON.stringify(o)); }
+  const SVC_KEYS = ["servico","v_ini","v_fim","v_dia","v_combo","p_plano","p_outro","p_ini","e_qtd","e_data","h_in","h_out","h_leva","b_plano","b_data","descManual","valorFechado","adds","petsFora"];
+  function pick(src){ const o={}; for(const k of SVC_KEYS) o[k]=src[k]; o.petsFora=src.petsFora||[]; return JSON.parse(JSON.stringify(o)); }
   function edit(){ return S.editando===2 ? 2 : 1; }
   function principal(){ return S.alt ? (S.escolhida || S.recomendada || 1) : 1; }
   function withOpt(n, fn){
     if(!S.alt || edit()===n) return fn();
-    const old=S; S=Object.assign({}, S, JSON.parse(JSON.stringify(S.alt)));
+    const old=S; S=Object.assign({}, S, {petsFora:[]}, JSON.parse(JSON.stringify(S.alt)));
     try { return fn(); } finally { S=old; }
   }
   function trocarOpcao(){
-    const cur=pick(S); Object.assign(S, JSON.parse(JSON.stringify(S.alt))); S.alt=cur; S.editando=3-edit();
+    const cur=pick(S); Object.assign(S, {petsFora:[]}, JSON.parse(JSON.stringify(S.alt))); S.alt=cur; S.editando=3-edit();
     bindValues(); renderAdds(); update();
   }
   function renderOptTabs(){
@@ -363,15 +366,19 @@ export async function mount(root, ctx) {
     const Rs={1:withOpt(1,calc),2:withOpt(2,calc)}; const pr=principal();
     box.innerHTML=`<div class="chips">${[1,2].map(n=>`<button class="chip ${e===n?"on":""}" data-opt="${n}">Opção ${n}${Rs[n].ok?" · "+brl(Rs[n].final):""}${pr===n?" "+ic("estrela","sm"):""}</button>`).join("")}</div>
       <div class="row-actions" style="margin:6px 0 2px">${pr!==e?`<button class="btn soft small" data-opt="rec">${ic("estrela")} Recomendar a opção ${e}</button>`:`<span class="hint">${ic("estrela","sm")} Opção ${e} ${S.escolhida?"escolhida pelo cliente":"recomendada (fica em destaque no PDF)"}</span>`}<button class="x" data-opt="rm">remover opção ${e}</button></div>
-      <p class="hint" style="margin:0 0 8px">Editando a <b>opção ${e}</b>: serviço, datas e o passo 4 valem só para ela. Cliente, pets e recado valem para as duas.</p>`;
+      ${S.pets.length>1?`<div class="opt-pets"><span class="hint">Pets nesta opção:</span>${S.pets.map(p=>{ const on=!(S.petsFora||[]).includes(p.id); return `<button class="chip ${on?"on":""}" data-optpet="${p.id}">${ic(on?"marcado":"vazio")} ${esc(petName(p))}</button>`; }).join("")}</div>`:""}
+      <p class="hint" style="margin:0 0 8px">Editando a <b>opção ${e}</b>: serviço, datas, pets e o passo 4 valem só para ela. Cliente e recado valem para as duas.</p>`;
   }
   $("#optTabs").addEventListener("click", async ev=>{
+    const bp=ev.target.closest("[data-optpet]"); if(bp){ ev.preventDefault(); const id=bp.dataset.optpet; const f=new Set(S.petsFora||[]);
+      if(f.has(id)) f.delete(id); else { if(S.pets.filter(p=>!f.has(p.id)).length<=1){ toast("Cada opção precisa de pelo menos 1 pet."); return; } f.add(id); }
+      S.petsFora=[...f]; update(true); return; }
     const b=ev.target.closest("[data-opt]"); if(!b) return; ev.preventDefault(); const o=b.dataset.opt;
     if(o==="add"){ S.alt=pick(S); S.recomendada=1; S.escolhida=null; trocarOpcao(); toast("Opção 2 criada. Troque o serviço, as datas ou o valor."); }
     else if(o==="rec"){ S.recomendada=edit(); S.escolhida=null; update(); }
     else if(o==="rm"){
       if(!(await U.confirmDialog(`Remover a opção ${edit()}? A outra opção fica como a proposta.`,{ok:"Remover",danger:true}))) return;
-      Object.assign(S, JSON.parse(JSON.stringify(S.alt))); S.alt=null; S.editando=1; S.recomendada=1; S.escolhida=null;
+      Object.assign(S, {petsFora:[]}, JSON.parse(JSON.stringify(S.alt))); S.alt=null; S.editando=1; S.recomendada=1; S.escolhida=null;
       bindValues(); renderAdds(); update();
     }
     else if(Number(o)!==edit()) trocarOpcao();
@@ -480,7 +487,7 @@ export async function mount(root, ctx) {
     const card=e.target.closest(".pet"); if(!card) return; const p=S.pets.find(x=>x.id===card.dataset.id);
     const chip=e.target.closest("[data-pc]"); if(chip){ e.preventDefault(); p[chip.dataset.pc]=chip.dataset.v; update(true); return; }
     if(e.target.closest("[data-photo]")){ e.preventDefault(); photoTarget=p.id; $("#petFile").value=""; $("#petFile").click(); return; }
-    if(e.target.dataset.rm){ S.pets=S.pets.filter(x=>x.id!==p.id); update(true); renderTutorPets(); return; }
+    if(e.target.dataset.rm){ S.pets=S.pets.filter(x=>x.id!==p.id); if(S.petsFora) S.petsFora=S.petsFora.filter(x=>x!==p.id); if(S.alt&&S.alt.petsFora) S.alt.petsFora=S.alt.petsFora.filter(x=>x!==p.id); update(true); renderTutorPets(); return; }
     if(e.target.closest("[data-rmfoto]")){ p.foto=""; p._fotoNova=false; if(p.foto_path) p._fotoRemover=true; update(true); return; }
   });
   $("#addPet").addEventListener("click",()=>{ if(S.pets.length>=4){ toast("Até 4 pets por proposta."); return; } S.pets.push(newPet()); update(true); renderTutorPets(); });
@@ -567,10 +574,10 @@ export async function mount(root, ctx) {
     }
     return detail; }
     const pr=principal(); const Rp=withOpt(pr,calc);
-    const ops = S.alt ? [1,2].map(n=>withOpt(n,()=>{ const r=calc(); return {n, R:r, det:r.ok?detailOf(r):"", when:(r.ok?r.when.join("<br>"):"<i>Preencha as datas</i>"), mes:S.servico==="pacote"}; })) : null;
+    const ops = S.alt ? [1,2].map(n=>withOpt(n,()=>{ const r=calc(); const ps=petsDaOpcao(); return {n, R:r, det:r.ok?detailOf(r):"", when:(r.ok?r.when.join("<br>"):"<i>Preencha as datas</i>"), mes:S.servico==="pacote", pets: ps.length<S.pets.length ? namesList(ps) : ""}; })) : null;
     const optsHTML = ops ? `<div class="opts">${ops.map(o=>`<div class="opt ${o.n===pr?"rec":""}">
         <div class="opt-k">Opção ${o.n}${o.n===pr?(S.escolhida?" · Escolhida":" · Recomendada"):""}</div>
-        <h3>${esc(o.R.title)}</h3><div class="when">${o.when}</div>
+        <h3>${esc(o.R.title)}</h3>${o.pets?`<div class="opt-quem">Para ${esc(o.pets)}</div>`:""}<div class="when">${o.when}</div>
         <ul class="opt-inc">${(o.R.inc||[]).slice(0,4).map(([,t])=>`<li>${t}</li>`).join("")}</ul>
         ${o.det?`<div class="opt-det">${o.det}</div>`:""}
         <div class="opt-price">${o.R.ok&&o.R.save>=1?`<div class="from">de ${brl(o.R.full)}</div>`:""}<div class="val">${o.R.ok?brl(o.R.final):"—"}</div>${o.mes?`<div class="per">por mês</div>`:""}</div>
@@ -748,7 +755,9 @@ export async function mount(root, ctx) {
     delete c._tutorWhatsDirty; delete c._tutorNomeDirty;
     // resumo de cada opção, para aceitar direto da lista sem abrir o editor
     c.opcoes = S.alt ? [1, 2].map(n => withOpt(n, () => { const r = calc(); const pe = periodoDe(); const vf = Number(S.valorFechado) || 0;
-      return { n, servico: S.servico, titulo: r.title, valor_total: r.ok ? r.final : vf, valor_cheio: r.ok ? r.full : vf, data_inicio: pe.data_inicio, data_fim: pe.data_fim }; })) : null;
+      const ps = petsDaOpcao(); const todos = ps.length === S.pets.length;
+      return { n, servico: S.servico, titulo: r.title, valor_total: r.ok ? r.final : vf, valor_cheio: r.ok ? r.full : vf, data_inicio: pe.data_inicio, data_fim: pe.data_fim,
+        pets: todos ? null : ps.map(p => p.nome.trim()).filter(Boolean), pet_ids: todos ? null : ps.map(p => p.pet_id).filter(Boolean) }; })) : null;
     return c;
   }
   function podeSalvar() { return !!(S.tutor.trim() || S.pets.some(p => p.nome.trim())); }
@@ -798,7 +807,8 @@ export async function mount(root, ctx) {
       valor_total: R.ok ? R.final : vf, valor_cheio: R.ok ? R.full : vf, resumo: resumoDe(R), payload: payloadDe(), validade_ate: S.data ? U.addDays(S.data, valDays) : null };
     if (!META.id) { const r = await db.insertProposta(row); Object.assign(META, { id: r.id, numero: r.numero, status: r.status }); if (alive) replaceHash("#/proposta/" + r.id); }
     else await db.updateProposta(META.id, row);
-    await db.setPropostaPets(META.id, [...new Set(S.pets.map(p => p.pet_id).filter(Boolean))]);
+    const petsSalvar = S.alt && S.escolhida ? withOpt(Number(S.escolhida), petsDaOpcao) : S.pets; // aceita com uma opção: só os pets dela
+    await db.setPropostaPets(META.id, [...new Set(petsSalvar.map(p => p.pet_id).filter(Boolean))]);
     db.invalidate("lista");
   }
   async function save(opts = {}) {

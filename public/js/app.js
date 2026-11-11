@@ -20,9 +20,10 @@ const ROUTES = [
   { re: /^#\/ajuda$/, mod: "ajuda", nav: "mais", title: "Como usar" },
   { re: /^#\/cobrar$/, mod: "cobrar", nav: "cobrar", title: "Cobrar resposta" },
   { re: /^#\/diario\/([\w-]+)$/, mod: "diario", nav: "hoje", title: "Diário" },
+  { re: /^#\/completar$/, mod: "completar", nav: "mais", title: "Completar cadastros" },
 ];
 // telas só da gestão (admin e gestora); o banco também bloqueia
-const SO_GESTAO = new Set(["propostas", "financeiro", "cobrar"]);
+const SO_GESTAO = new Set(["propostas", "financeiro", "cobrar", "completar"]);
 
 let current = null; // {destroy}
 let session = null;
@@ -51,7 +52,7 @@ function shell() {
   $("#navMais").addEventListener("click", e => {
     e.preventDefault();
     const m = modal(`<h3>Mais</h3><div class="acts">
-      ${g ? `<a class="btn soft" href="#/tutores" data-close>${ic("tutores")} Tutores</a>
+      ${g ? `<a class="btn soft" href="#/tutores" data-close>${ic("tutores")} Tutores</a><a class="btn soft" href="#/completar" data-close>${ic("marcado")} Completar cadastros</a>
       <a class="btn soft" href="#/financeiro" data-close>${ic("financeiro")} Financeiro</a>` : ""}
       <a class="btn soft" href="#/config" data-close>${ic("config")} Configurações</a>
       <a class="btn soft" href="#/ajuda" data-close>${ic("ajuda")} Como usar</a>
@@ -161,6 +162,24 @@ async function entrar(s) {
     $("#bSairX").onclick = sair; return;
   }
   shell(); route();
+  if (s.user?.user_metadata?.trocar_senha) trocarProvisoria();
+}
+// A-04: entrou com senha provisória → precisa criar a própria senha antes de usar o painel
+function trocarProvisoria() {
+  const m = modal(`<h3>Crie a sua senha</h3><p class="muted" style="margin-top:0">Você entrou com uma senha provisória. Escolha uma senha só sua para continuar.</p>
+    <form id="fTroca"><label class="f">Nova senha<input type="password" name="s" minlength="8" required autocomplete="new-password"></label>
+    <label class="f">Repita a senha<input type="password" name="r" minlength="8" required autocomplete="new-password"></label>
+    <div class="acts"><button class="btn primary">Salvar minha senha</button></div></form>`, { onClose: () => setTimeout(() => { if (!trocou) trocarProvisoria(); }, 0) });
+  let trocou = false;
+  m.el.querySelector("form").addEventListener("submit", async e => {
+    e.preventDefault(); const p = e.target.s.value;
+    if (p.length < 8) return toast("Mínimo 8 caracteres.");
+    if (p !== e.target.r.value) return toast("As duas senhas não são iguais.");
+    const { sb } = await import("./db.js");
+    const { error } = await sb.auth.updateUser({ password: p, data: { trocar_senha: false } });
+    if (error) return toast(error.message.includes("different") ? "Use uma senha diferente da provisória." : error.message);
+    trocou = true; toast("Senha criada"); m.close();
+  });
 }
 async function start() {
   const { sb } = await import("./db.js");

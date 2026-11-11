@@ -242,3 +242,4 @@ input[type=date]::-webkit-date-and-time-value{text-align:left}
 .wc-ow{font-size:11px;opacity:.75;margin-top:2px}
 .wc-opt .wc-de{font-size:11px}
 .wc-ov{font-family:"Playfair Display",serif;font-weight:800;font-size:26px;line-height:1.1;margin-top:4px}
+.opt-quem{font-size:12px;font-weight:700;color:var(--terra);margin:-2px 0 4px}

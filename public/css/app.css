@@ -346,3 +346,12 @@ a.btn,.btn{text-decoration:none}
 .item .aval{font-size:12px;font-weight:700;color:var(--terra);display:inline-flex;align-items:center;gap:3px;margin-top:4px}
 .item .aval .ic{width:13px;height:13px;fill:currentColor}
 .tutor-atualizou{display:flex;gap:8px;align-items:center;background:var(--sage-t);color:var(--sage-d);border-radius:12px;padding:8px 12px;font-size:13.5px;margin:0 0 12px}
+.opt-pets{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 6px}
+.opt-pets .chip .ic{width:16px;height:16px}
+/* C-02 completar cadastros */
+.pend-card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid #E9CDBF;border-radius:16px;padding:12px 14px;margin:12px 0 4px;text-decoration:none;color:var(--char)}
+.pend-card > .ic:first-child{width:36px;height:36px;padding:8px;border-radius:50%;background:var(--terra-t);color:var(--terra)}
+.pend-card span{flex:1;display:flex;flex-direction:column}.pend-card small{color:var(--muted);font-size:13px}
+.pend-card > .ic:last-child{color:var(--muted)}
+.cp-f{gap:10px}.cp-f .main{display:flex;flex-direction:column;gap:6px}.cp-f input{width:100%;min-height:42px}
+.cp-f .t a,.cp-list .t a{color:inherit}

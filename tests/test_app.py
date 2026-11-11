@@ -245,6 +245,24 @@ with sync_playwright() as p:
     tap("#pMenu"); pg.wait_for_timeout(300); pg.click(".modal [data-del]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(800)
     pg.evaluate(f"() => {{ const T=window.__FAKE_DB; T.pagamentos=T.pagamentos.filter(g=>g.proposta_id!=='{dup}'); }}")
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
+    # C-05: pets diferentes em cada opção
+    n0 = pg.locator("#petList .pet").count()
+    tap("#addPet"); pg.wait_for_timeout(300); pg.locator("#petList .pet").last.locator("[data-pk=nome]").fill("Mel"); pg.wait_for_timeout(300)
+    tap("#optTabs .chip[data-opt='2']"); pg.wait_for_timeout(300)
+    v2a = pg.inner_text("#calcTot")
+    check("C-05: com 2 pets aparecem os pets da opção", pg.locator("#optTabs [data-optpet]").count() == n0 + 1)
+    pg.locator("#optTabs [data-optpet]").last.click(); pg.wait_for_timeout(400)
+    v2b = pg.inner_text("#calcTot")
+    check("C-05: tirar um pet da opção 2 muda só o preço dela", v2a != v2b and pg.evaluate("G.S.petsFora.length") == 1, f"{v2a} -> {v2b}")
+    check("C-05: PDF diz para quem é a opção 2", pg.locator("#page .opt .opt-quem").count() == 1 and "Para" in pg.inner_text("#page .opt-quem"))
+    tap("#optTabs .chip[data-opt='1']"); pg.wait_for_timeout(300)
+    check("C-05: opção 1 continua com todos os pets", all("on" in (c or "") for c in pg.eval_on_selector_all("#optTabs [data-optpet]", "els => els.map(e => e.className)")))
+    tap("#optTabs .chip[data-opt='2']"); pg.wait_for_timeout(300)
+    pg.locator("#optTabs [data-optpet].on").first.click(); pg.wait_for_timeout(300)
+    check("C-05: não deixa a opção sem nenhum pet", pg.evaluate("G.S.petsFora.length") == 1)
+    pg.wait_for_timeout(3300)
+    check("C-05: resumo da opção 2 guarda os pets dela", DB("(()=>{const o=T.propostas[0].payload.opcoes; return o && o[1].pets && o[1].pets.length===1 && !o[0].pets})()"))
+    pg.locator("#petList .pet").last.locator("[data-rm]").click(); pg.wait_for_timeout(400)
     tap("#optTabs .chip[data-opt='2']"); pg.wait_for_timeout(300); tap("#optTabs [data-opt=rm]"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(3400)
     check("2 opções: remover a opção 2 volta a ser proposta simples de hospedagem R$ 300", DB("!T.propostas[0].payload.alt && T.propostas[0].valor_total===300 && T.propostas[0].servico==='hosp'") and pg.locator("#page .opts").count() == 0)
     no_hscroll("Editor com 2 opções")
@@ -336,6 +354,14 @@ with sync_playwright() as p:
     go("#/config"); pg.wait_for_timeout(800)
     pg.click("#adm [data-senha='larissa@exemplo.com']"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(600)
     check("Config: manda link de nova senha para outra pessoa", "Link enviado" in pg.inner_text("body"))
+    pg.wait_for_timeout(300); pg.click("#adm [data-provisoria='larissa@exemplo.com']"); pg.wait_for_timeout(300)
+    prov = pg.input_value(".modal [name=s]")
+    check("A-04: sugere senha provisória fácil de ditar", len(prov) == 11 and "-" in prov, prov)
+    pg.click(".modal [type=submit]"); pg.wait_for_timeout(600)
+    fn = DB("(window.__FAKE_FN||[]).at(-1)") or {}
+    check("A-04: chama a função do servidor com e-mail e senha", fn.get("name") == "admin-senha" and fn.get("body", {}).get("email") == "larissa@exemplo.com" and fn["body"].get("senha") == prov)
+    check("A-04: mostra a senha e a mensagem pronta", prov in pg.inner_text(".modal") and pg.locator(".modal a[href*='wa.me']").count() == 1)
+    pg.click(".modal [data-close]"); pg.wait_for_timeout(200)
 
     # ---------- v1.4: filtros ----------
     pg.evaluate("""() => { const T=window.__FAKE_DB; const d=n=>new Date(Date.now()-n*86400000).toISOString();
@@ -449,6 +475,35 @@ with sync_playwright() as p:
         c = br.new_context(**opts); c.route("**/vendor/supabase.js", lambda r: r.fulfill(body=FAKE, content_type="application/javascript"))
         c.add_init_script(f"window.__FAKE_PAPEL = '{papel}';")
         q = c.new_page(); q.on("pageerror", lambda e: errs.append(papel + ": " + str(e))); q.goto(URL); q.wait_for_timeout(1500); return c, q
+    # ---------- C-02: completar cadastros ----------
+    pg.evaluate("() => window.__FAKE_DB.tutores.push({id:'tSemZap',nome:'Cliente Sem Zap',whatsapp:null,created_at:new Date().toISOString()})")
+    go("#/hoje"); pg.wait_for_timeout(1500)
+    check("C-02: Hoje avisa os cadastros para completar", pg.locator(".pend-card").count() == 1)
+    go("#/completar"); pg.wait_for_timeout(1200)
+    check("C-02: lista clientes sem WhatsApp e pets sem foto", pg.locator("[data-sec=semWhats] .cp-f").count() >= 1 and pg.locator("[data-sec=semFoto] [data-foto]").count() >= 1)
+    f = pg.locator("[data-sec=semWhats] .cp-f").first; tid = f.get_attribute("data-tutor"); n1 = pg.locator("[data-sec=semWhats] .cp-f").count()
+    f.locator("input").fill("(47) 98888-1234"); f.locator("button").click(); pg.wait_for_timeout(700)
+    check("C-02: salva o WhatsApp ali mesmo e tira da lista", DB(f"T.tutores.find(t=>t.id==='{tid}').whatsapp") == "(47) 98888-1234" and pg.locator(f"[data-tutor='{tid}']").count() == 0)
+    b = pg.locator("[data-sec=semFoto] [data-foto]").first; pidf = b.get_attribute("data-foto")
+    with pg.expect_file_chooser() as fc: b.click()
+    fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1500)
+    check("C-02: põe a foto do pet sem sair da tela", bool(DB(f"T.pets.find(p=>p.id==='{pidf}').foto_path")) and pg.locator(f"[data-foto='{pidf}']").count() == 0)
+    no_hscroll("Completar cadastros")
+    # A-04: quem entra com senha provisória precisa criar a própria senha
+    c3 = br.new_context(**opts); c3.route("**/vendor/supabase.js", lambda r: r.fulfill(body=FAKE, content_type="application/javascript"))
+    c3.add_init_script("window.__FAKE_META = { trocar_senha: true };")
+    q3 = c3.new_page(); q3.goto(URL); q3.wait_for_timeout(600)
+    if q3.locator("#fLogin").count():
+        q3.fill("#fLogin [name=email]", "teste@petlar.app"); q3.fill("#fLogin [name=senha]", "senha123"); q3.click("#fLogin button[type=submit]"); q3.wait_for_timeout(1500)
+    check("A-04: senha provisória abre 'Crie a sua senha'", "Crie a sua senha" in q3.inner_text("body"))
+    q3.keyboard.press("Escape"); q3.wait_for_timeout(300)
+    check("A-04: não dá para fechar sem trocar", q3.locator("#fTroca").count() == 1)
+    q3.fill("#fTroca [name=s]", "minhasenha9"); q3.fill("#fTroca [name=r]", "outrasenha9"); q3.click("#fTroca button"); q3.wait_for_timeout(300)
+    check("A-04: confere se as duas senhas são iguais", q3.locator("#fTroca").count() == 1)
+    q3.fill("#fTroca [name=r]", "minhasenha9"); q3.click("#fTroca button"); q3.wait_for_timeout(500)
+    up = q3.evaluate("(window.__FAKE_UPDATES||[]).at(-1)") or {}
+    check("A-04: salva a senha nova e tira a marca de provisória", up.get("password") == "minhasenha9" and up.get("data", {}).get("trocar_senha") is False and q3.locator("#fTroca").count() == 0)
+    c3.close()
     c2, q = sessao("assistente")
     q.evaluate("""() => { const T=window.__FAKE_DB; const h=new Date().toISOString().slice(0,10);
       T.tutores.push({id:'tA',nome:'Milena',whatsapp:'(47) 90000-0000',endereco:'Rua 1',bairro:'Centro',cidade:'BC'});

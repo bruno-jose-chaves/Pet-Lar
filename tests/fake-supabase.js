@@ -112,7 +112,7 @@
       return { data, count: this.count ? count : null, error: null };
     }
   }
-  const session = { access_token: "fake", user: { id: "u1", email: "teste@petlar.app" } };
+  const session = { access_token: "fake", user: { id: "u1", email: "teste@petlar.app", user_metadata: window.__FAKE_META || {} } };
   let logged = !window.__FAKE_LOGGED_OUT;
   const subs = [];
   function rpc(fn, args) {
@@ -147,7 +147,8 @@
     signOut: async () => { logged = false; subs.forEach(c => c("SIGNED_OUT", null)); return { error: null }; },
     signUp: async () => ({ data: { session: null, user: {} }, error: null }),
     resetPasswordForEmail: async () => ({ error: null }),
-    updateUser: async () => ({ data: {}, error: null }),
+    updateUser: async (u) => { (window.__FAKE_UPDATES = window.__FAKE_UPDATES || []).push(u); if (u && u.data) session.user.user_metadata = { ...(session.user.user_metadata || {}), ...u.data }; return { data: { user: session.user }, error: null }; },
   };
-  window.supabase = { createClient: () => ({ from: t => new Q(t), rpc, storage, auth }) };
+  const functions = { invoke: async (name, { body } = {}) => { (window.__FAKE_FN = window.__FAKE_FN || []).push({ name, body }); return { data: { ok: true, criada: false }, error: null }; } };
+  window.supabase = { createClient: () => ({ from: t => new Q(t), rpc, storage, auth, functions }) };
 })();

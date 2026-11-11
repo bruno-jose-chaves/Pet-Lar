@@ -29,7 +29,7 @@ export async function mount(root) {
         ${A ? `<div class="panel"><h3>Quem tem acesso</h3>
           <div class="list" id="adm">${admins.map(a => `<div class="item" style="background:#fff;flex-wrap:wrap"><div class="main"><div class="t">${U.esc(a.nome || a.email)}${a.email === user?.email ? ' <span class="muted">(você)</span>' : ""}</div><div class="s">${U.esc(a.email)}</div></div>
             <select data-papel="${U.esc(a.email)}" aria-label="Nível de acesso" style="min-height:36px;border-radius:10px;border:1px solid var(--line);padding:4px 8px">${optPapel(a.papel || "gestora")}</select>
-            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">${ic("chave")} link de senha</button><button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
+            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">${ic("chave")} link de senha</button><button class="x" data-provisoria="${U.esc(a.email)}">${ic("chave")} senha provisória</button><button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
           <p class="muted" style="margin:6px 0 0">O link de senha manda para a pessoa um e-mail com link para criar uma senha nova (serve para quem esqueceu a senha ou ainda não fez o primeiro acesso).</p>
           <form id="fA" style="margin-top:12px"><div class="row"><label class="f">Nome<input type="text" name="nome" placeholder="Larissa"></label><label class="f">E-mail<input type="text" name="email" inputmode="email" placeholder="email@exemplo.com"></label></div>
           <label class="f">Nível<select name="papel">${optPapel("gestora")}</select></label>
@@ -79,6 +79,26 @@ export async function mount(root) {
     try { await db.linkNovaSenha(email); U.toast(`Link enviado para ${email} . Ele vale por 1 hora.`, 4500); }
     catch (err) { U.toast(/rate|limit|seconds/i.test(err.message || "") ? "Muitos e-mails em pouco tempo. Espere alguns minutos e tente de novo." : "Não consegui mandar: " + err.message, 4500); }
     finally { b.disabled = false; }
+  });
+  U.$("#adm", root).addEventListener("click", e => {
+    const b = e.target.closest("[data-provisoria]"); if (!b) return;
+    const email = b.dataset.provisoria;
+    const m = U.modal(`<h3>Senha provisória</h3><p class="muted" style="margin-top:0">Para <b>${U.esc(email)}</b>. A pessoa entra com esta senha e o painel pede para ela criar uma nova na hora.</p>
+      <form id="fProv"><label class="f">Senha provisória<input name="s" value="${db.gerarSenha()}" minlength="8" maxlength="72" autocomplete="off" spellcheck="false" required></label>
+      <div class="acts"><button class="btn primary" type="submit">${ic("chave")} Definir senha</button><button class="btn soft" type="button" data-nova>Gerar outra</button><button class="btn soft" type="button" data-close>Cancelar</button></div></form>`);
+    m.el.querySelector("[data-nova]").onclick = () => { m.el.querySelector("[name=s]").value = db.gerarSenha(); };
+    m.el.querySelector("form").addEventListener("submit", async ev => {
+      ev.preventDefault(); const senha = ev.target.s.value.trim(); if (senha.length < 8) { U.toast("Mínimo 8 caracteres."); return; }
+      const bt = ev.target.querySelector("[type=submit]"); bt.disabled = true;
+      try {
+        const r = await db.senhaProvisoria(email, senha);
+        const txt = `Seu acesso ao painel da Pet Lar:\n${location.origin}\nE-mail: ${email}\nSenha provisória: ${senha}\nAo entrar, o painel pede para você criar sua senha.`;
+        m.el.innerHTML = `<h3>Pronto</h3><p>${r.criada ? "Conta criada" : "Senha trocada"} para <b>${U.esc(email)}</b>. Passe para a pessoa:</p>
+          <div class="kv"><span>Endereço</span><b>${U.esc(location.origin)}</b><span>Senha provisória</span><b class="senha-prov">${U.esc(senha)}</b></div>
+          <div class="acts"><button class="btn primary" data-cp>${ic("copiar")} Copiar mensagem</button><a class="btn soft" href="${U.waLink("", txt)}" target="_blank" rel="noopener">${ic("conversa")} Mandar no WhatsApp</a><button class="btn soft" data-close>Fechar</button></div>`;
+        m.el.querySelector("[data-cp]").onclick = async () => { await U.copyText(txt); U.toast("Mensagem copiada"); };
+      } catch (err) { bt.disabled = false; U.toast(err.message, 4500); }
+    });
   });
   U.$("#adm", root).addEventListener("change", async e => {
     const sel = e.target.closest("[data-papel]"); if (!sel) return;

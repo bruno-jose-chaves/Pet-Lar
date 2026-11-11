@@ -240,3 +240,34 @@ export async function criarAcessoTutor(tutorId) {
 }
 export async function revogarAcessoTutor(id) { return chk(await sb.from("tutor_acessos").update({ revogado_em: new Date().toISOString() }).eq("id", id)); }
 export async function avaliacoesDoTutor(tutorId) { return chk(await sb.from("avaliacoes").select("proposta_id,nota,comentario,criado_em").eq("tutor_id", tutorId)); }
+
+// ---------- A-04: senha provisória (só administrador; Edge Function admin-senha) ----------
+export async function senhaProvisoria(email, senha) {
+  const { data, error } = await sb.functions.invoke("admin-senha", { body: { email, senha } });
+  if (error) { let m = error.message; try { m = (await error.context.json()).erro || m; } catch {} throw new Error(m); }
+  if (data?.erro) throw new Error(data.erro);
+  return data;
+}
+export function gerarSenha() { // fácil de ditar: sem letras parecidas (l, I, O, 0)
+  const L = "abcdefghjkmnpqrstuvwxyz", N = "23456789", r = n => crypto.getRandomValues(new Uint32Array(1))[0] % n;
+  let s = ""; for (let i = 0; i < 6; i++) s += L[r(L.length)]; for (let i = 0; i < 4; i++) s += N[r(N.length)]; return s.slice(0, 4) + "-" + s.slice(4);
+}
+
+// ---------- C-02: cadastros para completar ----------
+export async function pendencias() {
+  const [tutores, pets, props] = await Promise.all([
+    sb.from("tutores").select("id,nome,whatsapp").order("nome").then(chk),
+    sb.from("pets").select("id,nome,especie,raca,porte,foto_path,ativo,tutor_id,tutores(nome)").order("nome").then(chk),
+    sb.from("propostas").select("id,numero,status,servico,tutor_id,tutor_nome,data_inicio,valor_total").in("status", ["rascunho", "enviada", "aceita"]).order("created_at").then(chk),
+  ]);
+  const P = pets.filter(p => p.ativo !== false);
+  return {
+    semWhats: tutores.filter(t => !String(t.whatsapp || "").replace(/\D/g, "")),
+    semNome: P.filter(p => !String(p.nome || "").trim()),
+    semRaca: P.filter(p => String(p.nome || "").trim() && !String(p.raca || "").trim()),
+    semFoto: P.filter(p => !p.foto_path),
+    semCliente: props.filter(p => !p.tutor_id),
+    semData: props.filter(p => p.tutor_id && !p.data_inicio && p.status !== "rascunho"),
+  };
+}
+export function totalPendencias(x) { return Object.values(x).reduce((a, l) => a + l.length, 0); }

@@ -97,3 +97,14 @@ export async function shareOrDownload(blob, name, type) {
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
   return "downloaded";
 }
+
+// foto quadrada (recorte central) em JPEG, para fotos de pet
+export function squareBlob(file, size = 900) {
+  return new Promise((res, rej) => {
+    const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => {
+      const s = Math.min(img.width, img.height); const c = document.createElement("canvas"); c.width = c.height = size; const x = c.getContext("2d");
+      x.imageSmoothingQuality = "high"; x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      c.toBlob(b => res(b), "image/jpeg", .9);
+    }; img.onerror = rej; img.src = r.result; }; r.readAsDataURL(file);
+  });
+}

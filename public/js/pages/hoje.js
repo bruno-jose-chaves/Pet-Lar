@@ -22,6 +22,7 @@ export async function mount(root) {
   const h = new Date().getHours(); const saud = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
   root.innerHTML = `<h1 class="pg">${saud}!</h1>
     <div class="kpis" id="kpis">${'<div class="sk sk-kpi"></div>'.repeat(4)}</div>
+    ${g ? `<div id="pend"></div>` : ""}
     <h2 class="sec">Hoje · ${U.fmtY(hoje)} <span class="count" id="cHoje"></span></h2><div id="hoje">${U.skeleton(2)}</div>
     <h2 class="sec">Próximos 7 dias <span class="count" id="cProx"></span></h2><div id="prox">${U.skeleton(2)}</div>
     ${g ? `<h2 class="sec">Cobrar resposta <span class="count" id="cFu"></span></h2><div id="fu">${U.skeleton(1)}</div>
@@ -61,4 +62,6 @@ export async function mount(root) {
   };
   pintar();
   A.ligar(U.$("#fu", root), id => cob.find(x => x.id === id), () => pintar());
+  if (g) db.pendencias().then(x => { const n = db.totalPendencias(x); const el = U.$("#pend", root);
+    if (el && n) el.innerHTML = `<a class="pend-card" href="#/completar">${ic("marcado")}<span><b>Completar cadastros</b><small>${n} informaç${n === 1 ? "ão" : "ões"} faltando (WhatsApp, fotos, raças, datas)</small></span>${ic("seta")}</a>`; }).catch(() => {});
 }

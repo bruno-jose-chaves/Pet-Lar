@@ -427,3 +427,6 @@ enabled = true
 
 [functions.portal]
 verify_jwt = false
+
+[functions.admin-senha]
+verify_jwt = true

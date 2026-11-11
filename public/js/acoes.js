@@ -64,19 +64,19 @@ function escolherOpcao(p, ops) {
 
 // Aceitar: confirma, escolhe a opção (se houver duas) e grava valores + status numa atualização só
 export async function aceitar(p) {
-  let row = { status: "aceita" };
+  let row = { status: "aceita" }, petIds = null;
   const ops = opcoesDe(p);
   if (ops) {
     const o = await escolherOpcao(p, ops); if (!o) return false;
     const payload = await db.getPayload(p.id); payload.escolhida = o.n;
     row = { status: "aceita", servico: o.servico, valor_total: o.valor_total, valor_cheio: Math.max(o.valor_cheio || 0, o.valor_total), payload };
     if (o.data_inicio) Object.assign(row, { data_inicio: o.data_inicio, data_fim: o.data_fim || o.data_inicio });
-    p.valor_total = o.valor_total;
+    p.valor_total = o.valor_total; if (o.pet_ids?.length) petIds = o.pet_ids; // C-05: só os pets da opção escolhida
   } else {
     const ok = await U.confirmDialog(`${p.tutor_nome || "Cliente"} aceitou a proposta ${p.numero || ""} de ${U.brl(p.valor_total)}? O sinal e o saldo (50/50) vão para o Financeiro.`, { ok: "Sim, aceitou" });
     if (!ok) return false;
   }
-  await db.atualizarProposta(p.id, row); db.invalidate("lista");
+  await db.atualizarProposta(p.id, row); if (petIds) await db.setPropostaPets(p.id, petIds); db.invalidate("lista");
   U.toast(`Aceita! Sinal de ${U.brl(Number(p.valor_total) / 2)} lançado no Financeiro.`, 4000);
   return true;
 }

@@ -4,15 +4,7 @@ import * as db from "../db.js";
 import { gestao } from "../perfil.js";
 import { ic } from "../icones.js";
 
-function squareBlob(file, size = 900) {
-  return new Promise((res, rej) => {
-    const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => {
-      const s = Math.min(img.width, img.height); const c = document.createElement("canvas"); c.width = c.height = size; const x = c.getContext("2d");
-      x.imageSmoothingQuality = "high"; x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-      c.toBlob(b => res(b), "image/jpeg", .9);
-    }; img.onerror = rej; img.src = r.result; }; r.readAsDataURL(file);
-  });
-}
+const squareBlob = U.squareBlob;
 
 export async function mount(root, { params }) {
   const id = params[0] === "novo" ? null : params[0];
