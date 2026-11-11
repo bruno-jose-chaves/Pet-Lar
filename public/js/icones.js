@@ -34,6 +34,8 @@ const P = {
   banho: '<path d="M4 12h16v2a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M6 12V6a2 2 0 0 1 4 0"/><path d="M7 19l-1 2M17 19l1 2"/>',
   chegou: '<path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M12 17l-2.5-2.5a1.6 1.6 0 0 1 2.5-2 1.6 1.6 0 0 1 2.5 2z"/>',
   saiu: '<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M14 8l4 4-4 4M18 12H9"/>',
+  video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5l5-3v9l-5-3"/>',
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
   foto: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M20.5 15l-4.5-4.5L7 19"/>',
   nota: '<path d="M5 5h14v10l-4 4H5z"/><path d="M15 19v-4h4"/><path d="M8.5 9h7M8.5 12h4"/>',
   enviar: '<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>',

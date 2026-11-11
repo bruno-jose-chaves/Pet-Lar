@@ -37,10 +37,11 @@ export async function mount(root) {
           <p class="muted">Depois, a pessoa abre o site, digita o e-mail, cria uma senha e toca em “Primeiro acesso”.</p></form>
           <div class="niveis">${Object.values(PAPEIS).map(v => `<p><b>${v.nome}:</b> ${v.desc}</p>`).join("")}</div>
         </div>` : G ? `<div class="panel"><h3>Seu acesso: ${U.esc(PAPEIS[perfil.papel]?.nome || "")}</h3><p class="muted" style="margin:0">${U.esc(PAPEIS[perfil.papel]?.desc || "")} Para dar acesso a alguém, fale com o administrador.</p></div>` : ""}
+        ${G ? `<div class="panel" style="margin-top:12px" id="armz"><h3>Fotos e vídeos guardados</h3><div class="sk" style="height:40px"></div></div>` : ""}
         <div class="panel" style="margin-top:12px"><h3>Minha conta</h3><p class="muted" style="margin-top:0">${U.esc(user?.email || "")}</p>
           <form id="fP"><label class="f">Nova senha<input type="password" name="s" minlength="6" autocomplete="new-password"></label><div class="row-actions"><button class="btn soft" type="submit">Trocar senha</button><button class="btn danger" type="button" id="bSair">Sair</button></div></form>
         </div>
-        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v2.1 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
+        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v2.2 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
       </div>
     </div>`;
   async function testePix() {
@@ -111,4 +112,24 @@ export async function mount(root) {
     const { error } = await db.sb.auth.updateUser({ password: p }); U.toast(error ? error.message : "Senha alterada"); e.target.reset();
   });
   U.$("#bSair", root).onclick = sair;
+  if (G) armazenamento();
+  async function armazenamento() {
+    const box = U.$("#armz", root); if (!box) return;
+    const LIM = 1024 ** 3; // plano grátis do Supabase: 1 GB
+    let uso = []; try { uso = await db.usoArmazenamento(); } catch { box.innerHTML = `<h3>Fotos e vídeos guardados</h3><p class="muted">Não consegui medir agora.</p>`; return; }
+    const de = t => uso.find(u => u.tipo === t) || { arquivos: 0, bytes: 0 };
+    const f = de("foto"), v = de("video"), tot = Number(f.bytes) + Number(v.bytes), pct = Math.min(100, tot / LIM * 100);
+    const mb = b => (Number(b) / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: b > 1e8 ? 0 : 1 }) + " MB";
+    const antigos = await db.videosAntigos(90).catch(() => []);
+    box.innerHTML = `<h3>Fotos e vídeos guardados</h3>
+      <div class="armz-barra" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct.toFixed(0)}" aria-label="Espaço usado"><i style="width:${pct.toFixed(1)}%" class="${pct > 80 ? "alto" : ""}"></i></div>
+      <p style="margin:6px 0 0"><b>${mb(tot)}</b> de 1 GB (${pct.toFixed(1).replace(".", ",")}%)</p>
+      <p class="muted" style="margin:2px 0 0">${f.arquivos} foto${f.arquivos == 1 ? "" : "s"} · ${mb(f.bytes)} &nbsp; ${v.arquivos} vídeo${v.arquivos == 1 ? "" : "s"} · ${mb(v.bytes)}</p>
+      ${pct > 80 ? `<p class="warn" style="margin-top:8px">${ic("alerta")} Espaço quase cheio. Apague vídeos antigos ou fale com o Bruno para aumentar o plano.</p>` : ""}
+      ${antigos.length ? `<button class="btn soft small" id="bVidAnt" style="margin-top:10px">${ic("lixo")} Apagar ${antigos.length} vídeo${antigos.length > 1 ? "s" : ""} com mais de 90 dias</button>` : ""}`;
+    U.$("#bVidAnt", box)?.addEventListener("click", async () => {
+      if (!(await U.confirmDialog(`Apagar ${antigos.length} vídeo(s) com mais de 90 dias? Eles somem do diário e da área do tutor. As fotos ficam.`, { ok: "Apagar vídeos", danger: true }))) return;
+      try { const n = await db.apagarVideos(antigos); U.toast(`${n} vídeo(s) apagado(s)`); armazenamento(); } catch (err) { U.toast("Não consegui apagar: " + err.message); }
+    });
+  }
 }

@@ -3,11 +3,12 @@
 import * as U from "../ui.js";
 import * as db from "../db.js";
 import { ic } from "../icones.js";
+import { prepararVideo } from "../video.js";
 
 export const TIPOS = {
   comeu: [ic("comeu"), "Comeu", "🍽️"], agua: [ic("agua"), "Bebeu água", "💧"], passeio: [ic("passeio"), "Passeou", "🦮"], xixi: [ic("xixi"), "Fez xixi", "✅"], coco: [ic("coco"), "Fez cocô", "✅"],
   remedio: [ic("remedio"), "Tomou remédio", "💊"], dormiu: [ic("dormiu"), "Dormiu", "😴"], brincou: [ic("brincou"), "Brincou", "🎾"], banho: [ic("banho"), "Banho", "🛁"],
-  chegou: [ic("chegou"), "Chegou", "🏠"], saiu: [ic("saiu"), "Foi para casa", "👋"], foto: [ic("foto"), "Foto", "📸"], nota: [ic("nota"), "Recado", "📝"],
+  chegou: [ic("chegou"), "Chegou", "🏠"], saiu: [ic("saiu"), "Foi para casa", "👋"], foto: [ic("foto"), "Foto", "📸"], video: [ic("video"), "Vídeo", "🎥"], nota: [ic("nota"), "Recado", "📝"],
 };
 const BOTOES = ["comeu", "agua", "passeio", "xixi", "coco", "remedio", "dormiu", "brincou", "foto", "nota"];
 const hora = iso => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -67,8 +68,8 @@ export async function mount(root, { params }) {
       <div class="muted">${U.svcPill(serv.servico)} ${U.esc(U.periodo(serv.data_inicio, serv.data_fim))}${serv.tutor_nome ? " · " + U.esc(serv.tutor_nome) : ""}</div></div></div>
     <div class="cal-head" style="margin:12px 0 6px"><button class="btn soft small" id="dPrev" aria-label="Dia anterior">‹</button><b id="dNome"></b><button class="btn soft small" id="dNext" aria-label="Próximo dia">›</button></div>
     ${pets.length > 1 ? `<div class="chips" id="dPets"><span class="muted" style="align-self:center">Registrar para:</span>${pets.map(p => `<button class="chip on" data-pet="${p.id}">${U.esc(p.nome || "pet")}</button>`).join("")}</div>` : ""}
-    <div class="dbtns" id="dBtns">${BOTOES.map(t => `<button class="dbtn" data-t="${t}"><span>${TIPOS[t][0]}</span>${TIPOS[t][1]}</button>`).join("")}</div>
-    <input type="file" accept="image/*" id="dFoto" class="hide">
+    <div class="dbtns" id="dBtns">${BOTOES.map(t => `<button class="dbtn" data-t="${t}"><span>${TIPOS[t][0]}</span>${t === "foto" ? "Foto ou vídeo" : TIPOS[t][1]}</button>`).join("")}</div>
+    <input type="file" accept="image/*,video/*" id="dFoto" class="hide">
     <h2 class="sec">Linha do tempo <span class="count" id="dCount"></span></h2>
     <div id="dLista">${U.skeleton(3)}</div>
     <div class="row-actions" style="margin-top:14px"><button class="btn primary" id="dRel">${ic("enviar")} Mandar resumo do dia</button></div>`;
@@ -91,9 +92,10 @@ export async function mount(root, { params }) {
     const gs = agrupar(regs, petsById);
     U.$("#dCount", root).textContent = gs.length;
     U.$("#dLista", root).innerHTML = gs.length ? `<div class="tl">${gs.map(g => { const [ic, txt] = TIPOS[g.tipo] || ["", g.tipo];
-      return `<button class="tl-i" data-ids="${g.ids.join(",")}"><span class="tl-h">${hora(g.criado_em)}</span><span class="tl-ic">${ic}</span>
+      const tag = g.tipo === "video" ? "div" : "button"; // vídeo tem controles próprios: não pode ficar dentro de um botão
+      return `<${tag} class="tl-i" data-ids="${g.ids.join(",")}"${tag === "div" ? ' role="button" tabindex="0"' : ""}><span class="tl-h">${hora(g.criado_em)}</span><span class="tl-ic">${ic}</span>
         <span class="tl-t"><b>${g.tipo === "nota" ? "Recado" : txt}</b>${pets.length > 1 ? ` <span class="muted">· ${U.esc(juntar(g.pets.map(p => p?.nome || "pet")))}</span>` : ""}${g.nota ? `<br><span>${U.esc(g.nota)}</span>` : ""}
-        ${g.foto_path && fotos[g.foto_path] ? `<img src="${fotos[g.foto_path]}" alt="" loading="lazy">` : ""}</span></button>`; }).join("")}</div>`
+        ${g.foto_path && fotos[g.foto_path] ? (g.tipo === "video" ? `<video src="${fotos[g.foto_path]}#t=0.1" controls playsinline preload="metadata"></video>` : `<img src="${fotos[g.foto_path]}" alt="" loading="lazy">`) : ""}</span></${tag}>`; }).join("")}</div>`
       : `<div class="empty">Nada registrado ${dia === hoje ? "hoje" : "neste dia"} ainda. Toque nos botões acima conforme as coisas acontecem.</div>`;
   }
   async function registrar(tipo, extra = {}) {
@@ -126,6 +128,7 @@ export async function mount(root, { params }) {
   });
   U.$("#dFoto", root).addEventListener("change", async e => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    if (/^video\//.test(f.type) || /\.(mov|mp4|m4v|webm)$/i.test(f.name)) return enviarVideo(f);
     U.toast("Enviando foto…", 8000);
     try {
       const blob = await reduzir(f); const alvo = [...selPets][0] || pets[0]?.id;
@@ -134,7 +137,19 @@ export async function mount(root, { params }) {
       const sel = selPets; selPets = new Set([alvo]); await registrar("foto", { foto_path: path, nota: nota || null }); selPets = sel;
     } catch { U.toast("Não consegui enviar a foto."); }
   });
+  async function enviarVideo(f) {
+    const alvo = [...selPets][0] || pets[0]?.id;
+    U.toast("Preparando o vídeo… deixe a tela ligada", 60000);
+    try {
+      const v = await prepararVideo(f, pct => { const t = document.querySelector(".toast"); if (t) t.textContent = `Diminuindo o vídeo… ${pct}% (deixe a tela ligada)`; });
+      U.toast(`Enviando o vídeo (${(v.blob.size / 1048576).toFixed(1)} MB)…`, 60000);
+      const path = await db.uploadVideoDiario(alvo, v.blob, v.tipo, v.ext);
+      const nota = await pedirTexto("Legenda do vídeo (opcional)", "Ex.: Correndo na praia");
+      const sel = selPets; selPets = new Set([alvo]); await registrar("video", { foto_path: path, nota: nota || null }); selPets = sel;
+    } catch (err) { U.toast(err.message && !/^(video|Failed)/.test(err.message) ? err.message : "Não consegui enviar o vídeo.", 6000); }
+  }
   U.$("#dLista", root).addEventListener("click", async e => {
+    if (e.target.closest("video")) return;
     const it = e.target.closest("[data-ids]"); if (!it) return; const ids = it.dataset.ids.split(",");
     const r = regs.find(x => x.id === ids[0]); if (!r) return;
     const hh = hora(r.criado_em);

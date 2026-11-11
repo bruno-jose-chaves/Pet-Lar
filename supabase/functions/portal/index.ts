@@ -19,7 +19,9 @@ class Erro extends Error { constructor(msg: string, public status = 400) { super
 
 const hojeBR = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
 const texto = (v: unknown, max = 1000) => (v == null ? null : String(v).trim().slice(0, max) || null);
-const FICHA = ["alimentacao", "medicacao", "comportamento", "limitacoes", "veterinario", "observacoes"] as const;
+const FICHA = ["alimentacao", "medicacao", "comportamento", "limitacoes", "veterinario", "observacoes", "raca", "idade"] as const;
+const TUTOR = ["whatsapp", "email", "endereco", "bairro", "cidade"] as const;
+const PORTES = ["P", "M", "G", "GG"];
 
 async function chk<T>(p: PromiseLike<{ data: T; error: unknown }>): Promise<T> {
   const { data, error } = await p; if (error) { console.error(error); throw new Erro("Erro no banco", 500); } return data;
@@ -51,7 +53,7 @@ async function propostaDoTutor(id: unknown, tutorId: string) {
 }
 
 async function dados(a: { id: string; tutor_id: string; aceite_em: string | null; acessos: number }) {
-  const tutor = await chk(sb.from("tutores").select("id,nome").eq("id", a.tutor_id).single()) as any;
+  const tutor = await chk(sb.from("tutores").select("id,nome,whatsapp,email,endereco,bairro,cidade").eq("id", a.tutor_id).single()) as any;
   const cfg = await chk(sb.from("settings").select("whatsapp,instagram,pix_chave,pix_nome,pix_cidade").eq("id", 1).maybeSingle()) as any;
   if (!a.aceite_em) return { precisa_aceite: true, tutor: { nome: tutor.nome }, contato: { whatsapp: cfg?.whatsapp, instagram: cfg?.instagram } };
 
@@ -69,7 +71,7 @@ async function dados(a: { id: string; tutor_id: string; aceite_em: string | null
   ]) as any[];
   const u = await urls([...pets.map(p => p.foto_path), ...diario.map((d: any) => d.foto_path)]);
   return {
-    tutor: { nome: tutor.nome }, hoje: hojeBR(),
+    tutor: { nome: tutor.nome, whatsapp: tutor.whatsapp, email: tutor.email, endereco: tutor.endereco, bairro: tutor.bairro, cidade: tutor.cidade }, hoje: hojeBR(),
     contato: { whatsapp: cfg?.whatsapp, instagram: cfg?.instagram },
     pix: cfg?.pix_chave ? { chave: cfg.pix_chave, nome: cfg.pix_nome, cidade: cfg.pix_cidade } : null,
     pets: pets.map(({ foto_path, ...p }) => ({ ...p, foto: foto_path ? u[foto_path] || null : null })),
@@ -103,8 +105,23 @@ Deno.serve(async req => {
       const pets = await petsDoTutor(a.tutor_id);
       if (!pets.some(p => p.id === body.pet_id)) throw new Erro("Pet não encontrado", 404);
       const row: Record<string, unknown> = { atualizado_tutor_em: new Date().toISOString() };
-      for (const k of FICHA) if (k in (body.campos || {})) row[k] = texto(body.campos[k]);
+      const c = body.campos || {};
+      for (const k of FICHA) if (k in c) row[k] = texto(c[k], k === "raca" || k === "idade" ? 60 : 1000);
+      if ("porte" in c) { if (!PORTES.includes(String(c.porte))) throw new Erro("Porte inválido"); row.porte = c.porte; }
+      if ("nome" in c) { // o nome só pode ser preenchido pelo tutor quando está vazio
+        const atual = pets.find(p => p.id === body.pet_id)?.nome; const novo = texto(c.nome, 40);
+        if (String(atual || "").trim() || !novo) throw new Erro("O nome já está preenchido. Para mudar, fale com a Lari."); row.nome = novo;
+      }
       await chk(sb.from("pets").update(row).eq("id", body.pet_id));
+      return json({ ok: true });
+    }
+    if (acao === "tutor") {
+      const c = body.campos || {}; const row: Record<string, unknown> = {};
+      for (const k of TUTOR) if (k in c) row[k] = texto(c[k], k === "endereco" ? 200 : 100);
+      if (row.whatsapp && String(row.whatsapp).replace(/\D/g, "").length < 10) throw new Erro("Confira o WhatsApp com DDD.");
+      if (row.email && !/^\S+@\S+\.\S+$/.test(String(row.email))) throw new Erro("Confira o e-mail.");
+      if (!Object.keys(row).length) throw new Erro("Nada para salvar");
+      await chk(sb.from("tutores").update(row).eq("id", a.tutor_id));
       return json({ ok: true });
     }
     if (acao === "foto") {

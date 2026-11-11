@@ -350,6 +350,9 @@ with sync_playwright() as p:
     check("Hoje: seção Cobrar resposta com link para a aba", "Cobrar resposta" in pg.inner_text("#view") and pg.locator("a[href='#/cobrar']").count() >= 1)
     check("Menu: Cobrar no menu de baixo", pg.locator(".bottomnav [data-nav=cobrar]").count() == 1)
     pg.evaluate("""() => { const T=window.__FAKE_DB; const ids=['c1','c2','c3','c4','c5']; T.propostas=T.propostas.filter(p=>!ids.includes(p.id)); T.proposta_pets=T.proposta_pets.filter(x=>!ids.includes(x.proposta_id)); T.pagamentos=T.pagamentos.filter(g=>!ids.includes(g.proposta_id)); T.pets=T.pets.filter(p=>p.id!=='pc'); T.tutores=T.tutores.filter(t=>t.id!=='tc'); }""")
+    # armazenamento
+    go("#/config"); pg.wait_for_timeout(1200)
+    check("Config: mostra o espaço usado de fotos e vídeos", "de 1 GB" in pg.inner_text("#armz") and pg.locator("#armz .armz-barra").count() == 1)
     # A-04: link de nova senha
     go("#/config"); pg.wait_for_timeout(800)
     pg.click("#adm [data-senha='larissa@exemplo.com']"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(600)
@@ -441,6 +444,12 @@ with sync_playwright() as p:
     fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1200)
     pg.fill("#dTxt", "Passeio na praia"); pg.click(".modal [data-ok]"); pg.wait_for_timeout(1000)
     check("Diário: foto enviada (armazenamento privado) e aparece na linha do tempo", DB("(()=>{const r=T.diario.find(x=>x.tipo==='foto'); return !!r && !!window.__FAKE_STORE[r.foto_path] && r.foto_path.startsWith('diario/')})()") and pg.locator("#dLista img").count() == 1)
+    with pg.expect_file_chooser() as fc: pg.click("[data-t=foto]")
+    fc.value.set_files(str(ROOT / "tests" / "video_teste.mp4")); pg.wait_for_timeout(2500)
+    pg.fill("#dTxt", "Correndo no quintal"); pg.click(".modal [data-ok]"); pg.wait_for_timeout(1000)
+    check("Diário: vídeo enviado e aparece na linha do tempo com play", DB("(()=>{const r=T.diario.find(x=>x.tipo==='video'); return !!r && r.foto_path.endsWith('.mp4') && !!window.__FAKE_STORE[r.foto_path]})()") and pg.locator("#dLista video").count() == 1)
+    pg.evaluate("() => { const T=window.__FAKE_DB; const ids=T.diario.filter(r=>r.tipo==='video').map(r=>r.id); T.diario=T.diario.filter(r=>!ids.includes(r.id)); }")
+    go("#/diario/d1"); pg.wait_for_timeout(1000)
     pg.locator(".tl-i").first.click(); pg.wait_for_timeout(300); pg.fill("#eHora", "07:30"); pg.click(".modal [data-salvar]"); pg.wait_for_timeout(700)
     check("Diário: ajustar a hora de um registro", "07:30" in pg.inner_text("#dLista") and DB("T.diario.filter(r=>r.tipo==='comeu').every(r=>new Date(r.criado_em).getHours()===7)"))
     pg.click("#dRel"); pg.wait_for_timeout(400); rel = pg.inner_text(".modal pre")

@@ -131,6 +131,9 @@
         recebido_mes: T.pagamentos.filter(g => g.pago_em && g.pago_em.slice(0, 7) === mes).reduce((a, g) => a + Number(g.valor), 0),
         follow_up: env.filter(p => p.enviada_em && Date.now() - new Date(p.enviada_em) > 2 * 86400000).length } });
     }
+    if (fn === "uso_armazenamento") { const r = { foto: { tipo: "foto", arquivos: 0, bytes: 0 }, video: { tipo: "video", arquivos: 0, bytes: 0 } };
+      for (const [k, v] of Object.entries(STORE)) { const t = /^data:video|\.(mp4|mov|webm)$/.test(String(v).slice(0, 12)) || /\.(mp4|mov|webm)$/.test(k) ? "video" : "foto"; r[t].arquivos++; r[t].bytes += Math.round(String(v).length * .75); }
+      return Promise.resolve({ data: Object.values(r).filter(x => x.arquivos), error: null }); }
     return Promise.resolve({ data: null, error: { message: "rpc " + fn } });
   }
   const storage = { from: () => ({

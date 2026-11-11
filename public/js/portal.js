@@ -13,13 +13,18 @@ const tela = $("#pt"), barra = $("#tabs");
 const TIPOS = {
   comeu: ["comeu", "Comeu"], agua: ["agua", "Bebeu água"], passeio: ["passeio", "Passeou"], xixi: ["xixi", "Fez xixi"], coco: ["coco", "Fez cocô"],
   remedio: ["remedio", "Tomou o remédio"], dormiu: ["dormiu", "Dormiu"], brincou: ["brincou", "Brincou"], banho: ["banho", "Tomou banho"],
-  chegou: ["chegou", "Chegou"], saiu: ["saiu", "Foi para casa"], foto: ["foto", "Foto"], nota: ["nota", "Recado da Lari"],
+  chegou: ["chegou", "Chegou"], saiu: ["saiu", "Foi para casa"], foto: ["foto", "Foto"], video: ["video", "Vídeo"], nota: ["nota", "Recado da Lari"],
 };
 // o "dia do pet" na tela inicial: o básico que todo tutor quer saber
 const ROTINA = [["comeu", "Comeu"], ["agua", "Água"], ["passeio", "Passeio"], ["xixi", "Xixi"], ["coco", "Cocô"], ["remedio", "Remédio"]];
 const FICHA = [["alimentacao", "Alimentação", "Ração, quantidade e horários"], ["medicacao", "Remédios", "Nome, dose e horário"],
   ["comportamento", "Jeitinho", "Medos, manias, como se dá com outros pets"], ["limitacoes", "Saúde e cuidados", "Alergias, limitações, cirurgias"],
   ["veterinario", "Veterinário", "Nome e telefone"], ["observacoes", "Casa e outras informações", "Chaves, portaria, onde ficam as coisas"]];
+// dados básicos do pet que o tutor pode completar (o nome só se estiver vazio)
+const BASICO = [["nome", "Nome", "Como ele se chama"], ["raca", "Raça", "Ex.: SRD, Shih-tzu, Siamês"], ["idade", "Idade", "Ex.: 3 anos, 8 meses"], ["porte", "Porte", ""]];
+// dados de contato do tutor
+const CONTATO = [["whatsapp", "WhatsApp", "(47) 9 9999-9999", "tel"], ["email", "E-mail", "seu@email.com", "email"], ["endereco", "Endereço", "Rua, número e complemento", "text"], ["bairro", "Bairro", "", "text"], ["cidade", "Cidade", "Ex.: Balneário Camboriú", "text"]];
+const PORTES = [["P", "Pequeno"], ["M", "Médio"], ["G", "Grande"], ["GG", "Gigante"]];
 const ABAS = [["inicio", "casa", "Início"], ["diario", "diario", "Diário"], ["fotos", "foto", "Fotos"], ["pets", "pets", "Pets"], ["mais", "mais", "Mais"]];
 
 // ---------- link (código) ----------
@@ -57,6 +62,8 @@ const diaNome = d => { if (d === D.hoje) return "Hoje"; if (d === U.addDays(D.ho
 const diaLongo = d => U.pd(d).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, c => c.toUpperCase());
 const zap = (txt = "") => U.waLink(D?.contato?.whatsapp || LARI_WHATS, txt);
 const fotoPet = p => p?.foto ? `<img src="${U.esc(p.foto)}" alt="">` : `<span class="pt-semfoto">${ic(p?.especie === "gato" ? "gato" : "cao")}</span>`;
+const ehVideo = r => r.tipo === "video";
+const midia = (r, cls = "") => ehVideo(r) ? `<video class="${cls}" src="${U.esc(r.foto)}#t=0.1" controls playsinline preload="metadata"></video>` : `<img class="${cls}" src="${U.esc(r.foto)}" alt="" loading="lazy">`;
 const sinalDe = p => (p.pagamentos || []).find(g => /sinal/i.test(g.descricao)) || (p.pagamentos || [])[0];
 const doDa = p => /a$/i.test(String(p?.nome || "").trim()) ? "da" : "do"; // "O dia do Bento", "O dia da Nina"
 
@@ -120,7 +127,7 @@ function linhaTempo(regs) {
     return `<li class="pt-tl-i${r.tipo === "nota" ? " recado" : ""}"><time>${hora(r.criado_em)}</time><span class="pt-tl-ic">${ic(i)}</span>
       <div class="pt-tl-t"><b>${t}</b>${mostrarPet && p ? `<span class="pt-tl-pet">${U.esc(p.nome)}</span>` : ""}
       ${r.nota ? `<p>${U.esc(r.nota)}</p>` : ""}
-      ${r.foto ? `<button class="pt-tl-foto" data-foto="${r.id}"><img src="${U.esc(r.foto)}" alt="Foto de ${U.esc(p?.nome || "seu pet")}" loading="lazy"></button>` : ""}</div></li>`; }).join("")}</ol>`;
+      ${r.foto ? (ehVideo(r) ? `<div class="pt-tl-foto">${midia(r)}</div>` : `<button class="pt-tl-foto" data-foto="${r.id}"><img src="${U.esc(r.foto)}" alt="Foto de ${U.esc(p?.nome || "seu pet")}" loading="lazy"></button>`) : ""}</div></li>`; }).join("")}</ol>`;
 }
 function cardServico(p) {
   const s = sinalDe(p); const falta = s && !s.pago_em; const d = U.pd(p.data_inicio);
@@ -158,18 +165,26 @@ function inicio() {
     </header>
     <div class="pt-corpo">
     ${g.abertas.map(o => `<button class="pt-aviso" data-orc="${o.id}">${ic("pdf")}<span><b>Orçamento esperando sua resposta</b><small>${U.esc(o.resumo || U.SERVICOS[o.servico] || "")}</small></span>${ic("seta")}</button>`).join("")}
-    ${g.pix.map(o => `<button class="pt-aviso pix" data-pix="${o.id}">${ic("pix")}<span><b>Falta o sinal de ${U.brl2(sinalDe(o).valor)}</b><small>${U.esc(U.SERVICOS[o.servico] || "")}, ${U.esc(U.periodo(o.data_inicio, o.data_fim))}</small></span>${ic("seta")}</button>`).join("")}
     ${servAgora || regsHoje.length ? `<section class="pt-bloco">
       <div class="pt-bloco-h"><h2>O dia ${doDa(p)} ${U.esc(p?.nome || "pet")}</h2><button class="pt-link-a" data-ir="diario">Ver o diário</button></div>
       <ul class="pt-rotina">${rotina}</ul>
       <p class="pt-ultimo">${ult ? `Último registro às ${hora(ult.criado_em)}: ${U.esc((TIPOS[ult.tipo] || ["", ult.tipo])[1].toLowerCase())}${ult.nota ? `. “${U.esc(ult.nota)}”` : "."}` : "A Lari ainda não registrou nada hoje. Aparece aqui assim que ela marcar."}</p>
     </section>` : ""}
-    ${ultFoto ? `<section class="pt-bloco pt-ultfoto"><div class="pt-bloco-h"><h2>Foto mais recente</h2><button class="pt-link-a" data-ir="fotos">Ver todas</button></div>
-      <button class="pt-foto-g" data-foto="${ultFoto.id}"><img src="${U.esc(ultFoto.foto)}" alt="" loading="lazy"></button>
+    ${ultFoto ? `<section class="pt-bloco pt-ultfoto"><div class="pt-bloco-h"><h2>${ehVideo(ultFoto) ? "Vídeo" : "Foto"} mais recente</h2><button class="pt-link-a" data-ir="fotos">Ver todas</button></div>
+      ${ehVideo(ultFoto) ? `<div class="pt-foto-g">${midia(ultFoto)}</div>` : `<button class="pt-foto-g" data-foto="${ultFoto.id}"><img src="${U.esc(ultFoto.foto)}" alt="" loading="lazy"></button>`}
       <p class="pt-legenda">${ultFoto.nota ? U.esc(ultFoto.nota) + ". " : ""}${diaNome(diaLocal(ultFoto.criado_em))}, ${hora(ultFoto.criado_em)}</p></section>` : ""}
     ${g.prox.length ? `<section class="pt-bloco"><div class="pt-bloco-h"><h2>Próximos cuidados</h2></div>${g.prox.slice(0, 3).map(cardServico).join("")}</section>` : ""}
     ${!g.agora.length && !g.prox.length && !g.abertas.length ? `<section class="pt-bloco pt-vazio"><p>Quando quiser marcar um cuidado, é só chamar a Lari.</p><a class="pt-btn" href="${zap("Oi, Lari! Queria ver uma data para ")}" target="_blank" rel="noopener">${ic("conversa")} Pedir um orçamento</a></section>` : ""}
+    ${(() => { const n = faltando(); return n.total ? `<button class="pt-aviso leve" data-ir="${n.contato && !n.pets ? "mais" : "pets"}">${ic("nota")}<span><b>Complete o cadastro</b><small>Falta${n.total > 1 ? "m" : ""} ${n.total} informaç${n.total > 1 ? "ões" : "ão"}${n.pets ? " dos pets" : ""}${n.pets && n.contato ? " e" : ""}${n.contato ? " de contato" : ""}</small></span>${ic("seta")}</button>` : ""; })()}
+    ${g.pix.map(o => `<button class="pt-aviso pix" data-pix="${o.id}">${ic("pix")}<span><b>Falta o sinal de ${U.brl2(sinalDe(o).valor)}</b><small>${U.esc(U.SERVICOS[o.servico] || "")}, ${U.esc(U.periodo(o.data_inicio, o.data_fim))}</small></span>${ic("seta")}</button>`).join("")}
     </div>`;
+}
+
+// o que ainda falta no cadastro (para o tutor completar)
+function faltando() {
+  const pets = D.pets.reduce((a, p) => a + BASICO.filter(([k]) => !p[k]).length + FICHA.filter(([k]) => !p[k]).length, 0);
+  const contato = CONTATO.filter(([k]) => !D.tutor[k]).length;
+  return { pets, contato, total: pets + contato };
 }
 
 // ---------- Diário ----------
@@ -186,8 +201,9 @@ function diario() {
 // ---------- Fotos ----------
 function fotos() {
   const fs = D.diario.filter(r => r.foto);
-  return `<header class="pt-tit"><h1>Fotos</h1>${fs.length ? `<p>${fs.length} foto${fs.length > 1 ? "s" : ""} dos últimos 60 dias</p>` : ""}</header>
-    <div class="pt-corpo">${fs.length ? `<div class="pt-grade">${fs.map(r => `<button data-foto="${r.id}" aria-label="Abrir foto"><img src="${U.esc(r.foto)}" alt="" loading="lazy"></button>`).join("")}</div>`
+  const nv = fs.filter(ehVideo).length, nf = fs.length - nv;
+  return `<header class="pt-tit"><h1>Fotos</h1>${fs.length ? `<p>${[nf ? `${nf} foto${nf > 1 ? "s" : ""}` : "", nv ? `${nv} vídeo${nv > 1 ? "s" : ""}` : ""].filter(Boolean).join(" e ")} dos últimos 60 dias</p>` : ""}</header>
+    <div class="pt-corpo">${fs.length ? `<div class="pt-grade">${fs.map(r => `<button data-foto="${r.id}" aria-label="Abrir ${ehVideo(r) ? "vídeo" : "foto"}">${ehVideo(r) ? `<video src="${U.esc(r.foto)}#t=0.1" muted playsinline preload="metadata"></video><span class="pt-play">${ic("play")}</span>` : `<img src="${U.esc(r.foto)}" alt="" loading="lazy">`}</button>`).join("")}</div>`
       : `<section class="pt-bloco pt-vazio"><p>As fotos que a Lari tirar dos seus pets aparecem aqui.</p></section>`}</div>`;
 }
 function verFoto(id) {
@@ -195,7 +211,7 @@ function verFoto(id) {
   const bg = document.createElement("div"); bg.className = "pt-visor"; bg.setAttribute("role", "dialog"); bg.setAttribute("aria-modal", "true");
   const pintarV = () => { const r = fs[i]; const p = pet(r.pet_id);
     bg.innerHTML = `<div class="pt-visor-top"><button data-v="x" aria-label="Fechar">${ic("x")}</button><span>${i + 1} de ${fs.length}</span><button data-v="share" aria-label="Salvar ou compartilhar">${ic("enviar")}</button></div>
-      <div class="pt-visor-img"><img src="${U.esc(r.foto)}" alt="Foto de ${U.esc(p?.nome || "seu pet")}"></div>
+      <div class="pt-visor-img">${ehVideo(r) ? `<video src="${U.esc(r.foto)}" controls autoplay playsinline></video>` : `<img src="${U.esc(r.foto)}" alt="Foto de ${U.esc(p?.nome || "seu pet")}">`}</div>
       <div class="pt-visor-leg"><b>${U.esc(p?.nome || "")}</b>${r.nota ? `<p>${U.esc(r.nota)}</p>` : ""}<span>${diaNome(diaLocal(r.criado_em))}, ${hora(r.criado_em)}</span></div>
       ${fs.length > 1 ? `<button class="pt-visor-ant" data-v="ant" aria-label="Foto anterior">${ic("setaE")}</button><button class="pt-visor-prox" data-v="prox" aria-label="Próxima foto">${ic("seta")}</button>` : ""}`; };
   const mover = n => { i = (i + n + fs.length) % fs.length; pintarV(); };
@@ -208,19 +224,19 @@ function verFoto(id) {
   document.addEventListener("keydown", tecla); pintarV(); document.body.appendChild(bg);
 }
 async function compartilharFoto(r) {
-  const nome = `PetLar-${pet(r.pet_id)?.nome || "foto"}-${diaLocal(r.criado_em)}.jpg`;
+  const nome = `PetLar-${pet(r.pet_id)?.nome || "foto"}-${diaLocal(r.criado_em)}.${ehVideo(r) ? "mp4" : "jpg"}`;
   try {
     const blob = await (await fetch(r.foto)).blob(); const file = new File([blob], nome, { type: blob.type || "image/jpeg" });
     if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); return; }
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: nome }); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  } catch (e) { if (e.name !== "AbortError") U.toast("Não consegui salvar. Toque e segure a foto para salvar."); }
+  } catch (e) { if (e.name !== "AbortError") U.toast(ehVideo(r) ? "Não consegui salvar o vídeo. Abra o vídeo e use o botão de compartilhar dele." : "Não consegui salvar. Toque e segure a foto para salvar."); }
 }
 
 // ---------- Pets ----------
 function pets() {
   if (V.sub && pet(V.sub)) return fichaPet(pet(V.sub));
   return `<header class="pt-tit"><h1>${D.pets.length > 1 ? "Seus pets" : "Seu pet"}</h1><p>A Lari consulta a ficha antes de cada cuidado. Mantenha em dia.</p></header>
-    <div class="pt-corpo">${D.pets.length ? `<div class="pt-pets">${D.pets.map(p => { const falta = FICHA.filter(([k]) => !p[k]).length;
+    <div class="pt-corpo">${D.pets.length ? `<div class="pt-pets">${D.pets.map(p => { const falta = BASICO.filter(([k]) => !p[k]).length + FICHA.filter(([k]) => !p[k]).length;
       return `<button class="pt-petcard" data-pet="${p.id}"><span class="pt-petcard-f">${fotoPet(p)}</span>
         <span class="pt-petcard-t"><b>${U.esc(p.nome)}</b><small>${[p.especie === "gato" ? "Gato" : "Cão", p.raca, p.idade].filter(Boolean).map(U.esc).join(", ")}</small>
         <em class="${falta ? "falta" : "ok"}">${falta ? `Falta preencher ${falta} ${falta > 1 ? "itens" : "item"} da ficha` : "Ficha completa"}</em></span>${ic("seta")}</button>`; }).join("")}</div>`
@@ -231,18 +247,25 @@ function fichaPet(p) {
     <div class="pt-corpo">
     <div class="pt-ficha-foto">${fotoPet(p)}<button class="pt-btn pt-btn-2 pt-btn-p" data-trocafoto="${p.id}">${ic("camera")} ${p.foto ? "Trocar a foto" : "Pôr uma foto"}</button></div>
     <p class="pt-ficha-sub">${[p.especie === "gato" ? "Gato" : "Cão", p.raca, p.idade, p.porte ? U.PORTE_TXT[p.porte] : ""].filter(Boolean).map(U.esc).join(", ")}</p>
-    <section class="pt-bloco pt-ficha">${FICHA.map(([k, l, ph]) => `<div class="pt-campo" data-campo="${k}">
-      <div class="pt-campo-h"><b>${l}</b><button class="pt-link-a" data-editar="${k}">${p[k] ? "Editar" : "Preencher"}</button></div>
+    <section class="pt-bloco pt-ficha"><h2>Sobre ${U.esc(p.nome || "o pet")}</h2>${BASICO.map(([k, l, ph]) => {
+      const v = k === "porte" ? (PORTES.find(x => x[0] === p.porte) || [])[1] : p[k]; const pode = k !== "nome" || !p.nome;
+      return `<div class="pt-campo" data-campo="${k}"><div class="pt-campo-h"><b>${l}</b>${pode ? `<button class="pt-link-a" data-editar="${k}" data-ent="pet">${v ? "Editar" : "Preencher"}</button>` : ""}</div>
+      <p class="${v ? "" : "vazio"}">${v ? U.esc(v) : (ph || "Toque em Preencher")}</p></div>`; }).join("")}</section>
+    <section class="pt-bloco pt-ficha"><h2>Rotina e cuidados</h2>${FICHA.map(([k, l, ph]) => `<div class="pt-campo" data-campo="${k}">
+      <div class="pt-campo-h"><b>${l}</b><button class="pt-link-a" data-editar="${k}" data-ent="pet">${p[k] ? "Editar" : "Preencher"}</button></div>
       <p class="${p[k] ? "" : "vazio"}">${p[k] ? U.esc(p[k]) : ph}</p></div>`).join("")}
       ${p.atualizado_tutor_em ? `<p class="pt-nota">Você atualizou em ${U.fmtY(p.atualizado_tutor_em.slice(0, 10))}.</p>` : ""}</section></div>`;
 }
-function editarCampo(petId, k) {
-  const p = pet(petId); const [, l, ph] = FICHA.find(f => f[0] === k);
+function editarCampo(ent, k) {
   const el = tela.querySelector(`[data-campo="${k}"]`);
-  el.innerHTML = `<form class="pt-edita" data-salvar="${k}"><label for="f_${k}"><b>${l}</b></label>
-    <textarea id="f_${k}" rows="3" maxlength="1000" placeholder="${ph}">${U.esc(p[k] || "")}</textarea>
+  const def = ent === "tutor" ? CONTATO.find(f => f[0] === k) : (BASICO.find(f => f[0] === k) || FICHA.find(f => f[0] === k));
+  const [, l, ph, tipo] = def; const atual = ent === "tutor" ? D.tutor[k] : pet(V.sub)[k];
+  const campo = k === "porte" ? `<div class="pt-portes" role="radiogroup">${PORTES.map(([v, t]) => `<label><input type="radio" name="v" value="${v}"${atual === v ? " checked" : ""}><span>${t}</span></label>`).join("")}</div>`
+    : (FICHA.some(f => f[0] === k) || k === "endereco") ? `<textarea id="f_${k}" name="v" rows="3" maxlength="1000" placeholder="${ph}">${U.esc(atual || "")}</textarea>`
+    : `<input id="f_${k}" name="v" type="${tipo || "text"}" ${tipo === "tel" ? 'inputmode="tel" autocomplete="tel"' : tipo === "email" ? 'autocomplete="email"' : ""} maxlength="${k === "nome" ? 40 : 100}" placeholder="${ph}" value="${U.esc(atual || "")}">`;
+  el.innerHTML = `<form class="pt-edita" data-salvar="${k}" data-ent="${ent}"><label for="f_${k}"><b>${l}</b></label>${campo}
     <div class="pt-edita-a"><button class="pt-btn pt-btn-p" type="submit">Salvar</button><button class="pt-btn pt-btn-2 pt-btn-p" type="button" data-cancelar>Cancelar</button></div></form>`;
-  const ta = el.querySelector("textarea"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  const inp = el.querySelector("textarea, input:not([type=radio])"); if (inp) { inp.focus(); inp.setSelectionRange?.(inp.value.length, inp.value.length); }
 }
 
 // ---------- Mais (orçamentos, pagamentos, histórico, contato) ----------
@@ -260,11 +283,14 @@ function mais() {
       <span><b>${U.esc(U.SERVICOS[o.servico] || "")}</b><small>${U.esc(nomes(o.pets))}, ${U.esc(U.periodo(o.data_inicio, o.data_fim))}</small></span>
       ${o.avaliacao ? `<span class="pt-estrelas" aria-label="Você deu ${o.avaliacao.nota} de 5">${[1, 2, 3, 4, 5].map(n => `<i class="${n <= o.avaliacao.nota ? "s" : ""}">${ic("estrela")}</i>`).join("")}</span>`
         : `<button class="pt-btn pt-btn-2 pt-btn-p" data-avaliar="${o.id}">${ic("estrela")} Avaliar</button>`}</div>`).join("")}</section>` : ""}
+    <section class="pt-bloco pt-ficha" id="seusDados"><h2>Seus dados</h2>${CONTATO.map(([k, l, ph]) => `<div class="pt-campo" data-campo="${k}">
+      <div class="pt-campo-h"><b>${l}</b><button class="pt-link-a" data-editar="${k}" data-ent="tutor">${D.tutor[k] ? "Editar" : "Preencher"}</button></div>
+      <p class="${D.tutor[k] ? "" : "vazio"}">${D.tutor[k] ? U.esc(D.tutor[k]) : (ph || "Toque em Preencher")}</p></div>`).join("")}</section>
     <section class="pt-bloco">
       <a class="pt-linha" href="${zap("Oi, Lari! ")}" target="_blank" rel="noopener">${ic("conversa")}<span><b>Falar com a Lari</b><small>Pelo WhatsApp</small></span>${ic("seta")}</a>
       ${D.contato?.instagram ? `<a class="pt-linha" href="https://instagram.com/${U.esc(D.contato.instagram.replace(/^@/, ""))}" target="_blank" rel="noopener">${ic("coracao")}<span><b>Instagram da Pet Lar</b><small>${U.esc(D.contato.instagram)}</small></span>${ic("seta")}</a>` : ""}
       <button class="pt-linha" id="ptSalvar">${ic("casa")}<span><b>Deixar na tela do celular</b><small>Para abrir com um toque, como um app</small></span>${ic("seta")}</button>
-      <button class="pt-linha" id="ptDados">${ic("olho")}<span><b>Seus dados</b><small>Como cuidamos das suas informações</small></span>${ic("seta")}</button>
+      <button class="pt-linha" id="ptDados">${ic("olho")}<span><b>Privacidade</b><small>Como cuidamos das suas informações</small></span>${ic("seta")}</button>
     </section>
     <p class="pt-nota">Este link é só seu. Não encaminhe para outras pessoas.</p></div>`;
 }
@@ -363,7 +389,7 @@ function comoSalvar() {
   m.el.classList.add("pt-modal");
 }
 function seusDados() {
-  const m = U.modal(`<h3>Seus dados</h3><p>Guardamos seus dados e os dos seus pets (ficha, fotos e registros dos serviços) só para cuidar deles e falar com você. Não passamos para ninguém.</p>
+  const m = U.modal(`<h3>Privacidade</h3><p>Guardamos seus dados e os dos seus pets (ficha, fotos e registros dos serviços) só para cuidar deles e falar com você. Não passamos para ninguém.</p>
     <p>Quer apagar tudo ou corrigir algo? É só pedir para a Lari.</p>
     <div class="acts"><a class="pt-btn pt-btn-2" href="${zap("Oi, Lari! Queria falar sobre os meus dados na Pet Lar.")}" target="_blank" rel="noopener">${ic("conversa")} Falar com a Lari</a><button class="pt-btn pt-btn-2" data-close>Fechar</button></div>`);
   m.el.classList.add("pt-modal");
@@ -383,7 +409,7 @@ document.addEventListener("click", e => {
   const av = t.closest("[data-avaliar]"); if (av) return avaliar(av.dataset.avaliar);
   if (t.closest("#ptSalvar")) return comoSalvar();
   if (t.closest("#ptDados")) return seusDados();
-  const ed = t.closest("[data-editar]"); if (ed) return editarCampo(V.sub, ed.dataset.editar);
+  const ed = t.closest("[data-editar]"); if (ed) return editarCampo(ed.dataset.ent || "pet", ed.dataset.editar);
   if (t.closest("[data-cancelar]")) return pintar();
   const tf = t.closest("[data-trocafoto]"); if (tf) {
     const inp = Object.assign(document.createElement("input"), { type: "file", accept: "image/*" });
@@ -396,10 +422,15 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("submit", async e => {
   const f = e.target.closest("[data-salvar]"); if (!f) return; e.preventDefault();
-  const k = f.dataset.salvar, v = f.querySelector("textarea").value.trim(), id = V.sub;
+  const k = f.dataset.salvar, ent = f.dataset.ent; const fd = new FormData(f); const v = String(fd.get("v") ?? "").trim();
+  if (k === "porte" && !v) return U.toast("Escolha o porte.");
+  if (k === "nome" && !v) return U.toast("Escreva o nome.");
   const b = f.querySelector("[type=submit]"); b.disabled = true;
-  try { await api("ficha", { pet_id: id, campos: { [k]: v } }); Object.assign(pet(id), { [k]: v || null, atualizado_tutor_em: new Date().toISOString() }); pintar(); U.toast("Salvo. A Lari já vê a novidade."); }
-  catch (err) { b.disabled = false; U.toast(err.message); }
+  try {
+    if (ent === "tutor") { await api("tutor", { campos: { [k]: v } }); D.tutor[k] = v || null; }
+    else { const id = V.sub; await api("ficha", { pet_id: id, campos: { [k]: v } }); Object.assign(pet(id), { [k]: v || null, atualizado_tutor_em: new Date().toISOString() }); }
+    pintar(); U.toast("Salvo. A Lari já vê a novidade.");
+  } catch (err) { b.disabled = false; U.toast(err.message); }
 });
 
 function iniciar() { V = lerUrl(); history.replaceState(V, "", location.href); pintar(); }

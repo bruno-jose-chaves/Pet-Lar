@@ -661,7 +661,8 @@ export async function mount(root, ctx) {
       pixState = { key: p.payload, url: "" };
       pixQR(p.payload, 6).then(url => { if (pixState.key === p.payload) { pixState.url = url; renderPage(); } }).catch(() => {});
     }
-    return `<div style="display:flex;gap:10px;align-items:center"><div style="flex:none;width:64px;height:64px;background:#fff;border-radius:8px;display:grid;place-items:center">${pixState.url ? `<img src="${pixState.url}" style="width:60px;height:60px;display:block">` : ""}</div><div><b>Pix do sinal</b>${brl2(p.valor)} para confirmar<br><span style="font-size:10.5px;opacity:.8">Aponte a câmera do banco no QR</span></div></div>`;
+    return `<div class="pix-box"><div class="pix-qr">${pixState.url ? `<img src="${pixState.url}" alt="QR Code do Pix">` : ""}</div>
+      <div class="pix-t"><b>Pix do sinal</b><span class="pix-v">${brl2(p.valor)}</span><span>para confirmar as datas. Abra o app do banco, escolha <i>Pix</i> e aponte a câmera para o QR${SET.pix_chave ? `, ou use a chave <span class="pix-ch">${esc(SET.pix_chave)}</span>` : ""}.</span></div></div>`;
   }
 
   /* ================= cabeçalho / status ================= */

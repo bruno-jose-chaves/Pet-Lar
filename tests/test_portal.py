@@ -21,7 +21,7 @@ TS = lambda h: (dt.datetime.now() + dt.timedelta(hours=h)).astimezone(dt.timezon
 img = "data:image/jpeg;base64," + base64.b64encode((ROOT / "tests" / "foto_teste.jpg").read_bytes()).decode()
 
 BASE = {
-  "tutor": {"nome": "Sabrina Costa"}, "hoje": hoje.isoformat(),
+  "tutor": {"nome": "Sabrina Costa", "whatsapp": "(47) 98888-7777", "email": None, "endereco": None, "bairro": None, "cidade": "Balneário Camboriú"}, "hoje": hoje.isoformat(),
   "contato": {"whatsapp": "(47) 99917-9091", "instagram": "@petlar.bc"},
   "pix": {"chave": "(47) 99917-9091", "nome": "Larissa", "cidade": "BALNEARIO CAMBORIU"},
   "pets": [{"id": "p1", "nome": "Bento", "especie": "cao", "raca": "Border collie", "idade": "4 anos", "porte": "M", "alimentacao": "Ração 150 g", "medicacao": None, "comportamento": None, "limitacoes": None, "veterinario": None, "observacoes": None, "atualizado_tutor_em": None, "foto": img},
@@ -34,7 +34,7 @@ BASE = {
     {"id": "q0", "numero": "PL-2026-000", "status": "aceita", "servico": "banho", "data_inicio": D(-20), "data_fim": D(-20), "valor_total": 120, "valor_cheio": 120, "resumo": "", "validade_ate": None, "pets": ["p1"], "opcoes": None, "pagamentos": [], "avaliacao": None},
   ],
   "diario": [{"id": f"d{i}", "pet_id": "p1", "proposta_id": "q1", "tipo": t, "nota": n, "foto": f, "criado_em": TS(h)} for i, (t, h, n, f) in enumerate([
-    ("comeu", -0.5, None, None), ("passeio", -0.4, "Passeio de 30 min na praia", None), ("foto", -0.3, "Olha ele no sofá", img), ("dormiu", -30, None, None), ("foto", -29, None, img)])],
+    ("comeu", -0.5, None, None), ("passeio", -0.4, "Passeio de 30 min na praia", None), ("foto", -0.3, "Olha ele no sofá", img), ("dormiu", -30, None, None), ("foto", -29, None, img), ("video", -28, "Correndo no quintal", "data:video/mp4;base64,AAAA")])],
 }
 
 def criar_estado():
@@ -62,6 +62,7 @@ def responder(st, route):
   if a == "ficha":
     pet = next(x for x in d["pets"] if x["id"] == req["pet_id"]); pet.update(req["campos"]); return ok({"ok": True})
   if a == "foto": return ok({"ok": True, "foto": img})
+  if a == "tutor": d["tutor"].update(req["campos"]); return ok({"ok": True})
   if a == "avaliar":
     next(x for x in d["propostas"] if x["id"] == req["proposta_id"])["avaliacao"] = {"nota": req["nota"], "comentario": req.get("comentario")}; return ok({"ok": True})
   return err("Ação desconhecida", 400)
@@ -119,17 +120,19 @@ with sync_playwright() as p:
     check(f"[{tam}] Diário: dias e registros de hoje", pg.locator(".pt-dias button").count() == 2 and pg.locator(".pt-tl-i").count() == 3)
     check(f"[{tam}] aba no endereço sem perder o código", "aba=diario" in pg.evaluate("location.search") and TOKEN in pg.evaluate("location.hash"))
     pg.locator(".pt-dias button").nth(1).click(); pg.wait_for_timeout(300)
-    check(f"[{tam}] Diário: dia anterior", pg.locator(".pt-tl-i").count() == 2)
+    check(f"[{tam}] Diário: dia anterior com foto e vídeo", pg.locator(".pt-tl-i").count() == 3 and pg.locator(".pt-tl-i video").count() == 1)
     if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-diario.png"), full_page=True)
     sem_rolagem("Diário")
 
     # Fotos + visor
     pg.click("#tabs [data-ir=fotos]"); pg.wait_for_timeout(400)
-    check(f"[{tam}] Fotos: grade com 2 fotos", pg.locator(".pt-grade button").count() == 2)
+    check(f"[{tam}] Fotos: grade com 2 fotos e 1 vídeo", pg.locator(".pt-grade button").count() == 3 and pg.locator(".pt-grade .pt-play").count() == 1 and "1 vídeo" in pg.inner_text(".pt-tit"))
     pg.locator(".pt-grade button").first.click(); pg.wait_for_timeout(300)
-    check(f"[{tam}] foto abre em tela cheia (1 de 2)", pg.locator(".pt-visor").count() == 1 and "1 de 2" in pg.inner_text(".pt-visor-top"))
+    check(f"[{tam}] foto abre em tela cheia (1 de 2)", pg.locator(".pt-visor").count() == 1 and "1 de 3" in pg.inner_text(".pt-visor-top"))
     pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(200)
-    check(f"[{tam}] passa para a próxima foto", "2 de 2" in pg.inner_text(".pt-visor-top"))
+    check(f"[{tam}] passa para a próxima foto", "2 de 3" in pg.inner_text(".pt-visor-top"))
+    pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(200)
+    check(f"[{tam}] vídeo toca no visor", pg.locator(".pt-visor video[controls]").count() == 1)
     if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-visor.png"))
     pg.click(".pt-visor [data-v=x]"); pg.wait_for_timeout(200)
     check(f"[{tam}] fecha o visor", pg.locator(".pt-visor").count() == 0)
@@ -142,7 +145,12 @@ with sync_playwright() as p:
     pg.click("#tabs [data-ir=pets]"); pg.wait_for_timeout(300)
     check(f"[{tam}] Pets: Bento e Nina com o que falta na ficha", pg.locator(".pt-petcard").count() == 2 and "Falta preencher" in pg.inner_text(".pt-pets"))
     pg.click(".pt-petcard[data-pet='p2']"); pg.wait_for_timeout(300)
-    check(f"[{tam}] ficha da Nina abre", pg.inner_text(".pt-tit h1") == "Nina" and pg.locator(".pt-campo").count() == 6)
+    check(f"[{tam}] ficha da Nina abre com dados e rotina", pg.inner_text(".pt-tit h1") == "Nina" and pg.locator(".pt-campo").count() == 10 and pg.locator("[data-editar=nome]").count() == 0)
+    pg.click("[data-editar=idade]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=idade] input", "2 anos"); pg.click("[data-salvar=idade] [type=submit]"); pg.wait_for_timeout(600)
+    ult = st["chamadas"][-1]
+    check(f"[{tam}] ficha: tutor completa a idade", ult.get("acao") == "ficha" and ult["campos"] == {"idade": "2 anos"} and "2 anos" in pg.inner_text("[data-campo=idade]"))
+    pg.click("[data-editar=porte]"); pg.wait_for_timeout(200); pg.click("[data-salvar=porte] label:has-text('Pequeno')"); pg.click("[data-salvar=porte] [type=submit]"); pg.wait_for_timeout(600)
+    check(f"[{tam}] ficha: escolhe o porte", st["chamadas"][-1]["campos"] == {"porte": "P"})
     pg.click("[data-editar=alimentacao]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=alimentacao] textarea", "Sachê 2x ao dia"); pg.click("[data-salvar=alimentacao] [type=submit]"); pg.wait_for_timeout(700)
     ult = st["chamadas"][-1]
     check(f"[{tam}] ficha: salva um campo por vez", ult.get("acao") == "ficha" and ult.get("pet_id") == "p2" and ult["campos"] == {"alimentacao": "Sachê 2x ao dia"} and "Sachê 2x ao dia" in pg.inner_text("[data-campo=alimentacao]"))
@@ -160,6 +168,9 @@ with sync_playwright() as p:
     pg.click("#tabs [data-ir=mais]"); pg.wait_for_timeout(300)
     check(f"[{tam}] Mais: orçamento, confirmados, pagamentos e anteriores", all(x in pg.inner_text("#pt") for x in ["Orçamentos para responder", "Cuidados confirmados", "Pagamentos", "Cuidados anteriores"]))
     if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-mais.png"), full_page=True)
+    pg.click("[data-editar=endereco][data-ent=tutor]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=endereco] textarea", "Rua 2000, 123, ap 41"); pg.click("[data-salvar=endereco] [type=submit]"); pg.wait_for_timeout(600)
+    ult = st["chamadas"][-1]
+    check(f"[{tam}] Seus dados: tutor completa o endereço", ult.get("acao") == "tutor" and ult["campos"] == {"endereco": "Rua 2000, 123, ap 41"} and "Rua 2000" in pg.inner_text("#seusDados"))
     pg.click("[data-orc='q3']"); pg.wait_for_timeout(300)
     check(f"[{tam}] orçamento: duas opções com preço", pg.locator(".pt-op").count() == 2 and "R$ 420" in pg.inner_text(".pt-ops"))
     if tam == "cel": pg.screenshot(path=str(OUT / f"{tam}-portal-orcamento.png"), full_page=True)
@@ -174,6 +185,7 @@ with sync_playwright() as p:
     check(f"[{tam}] copiar código Pix avisa", pg.locator(".toast").count() >= 1)
     pg.click(".modal [data-close]"); pg.wait_for_timeout(300)
     check(f"[{tam}] volta ao Início com aviso do sinal e sem orçamento pendente", pg.locator(".pt-aviso[data-orc]").count() == 0 and pg.locator(".pt-aviso.pix").count() == 1)
+    check(f"[{tam}] aviso do Pix fica no fim da página", pg.evaluate("(() => { const c = document.querySelector('.pt-corpo'); return c.lastElementChild.classList.contains('pix'); })()"))
 
     # avaliação
     pg.click("#tabs [data-ir=mais]"); pg.wait_for_timeout(300)

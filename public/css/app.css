@@ -355,3 +355,7 @@ a.btn,.btn{text-decoration:none}
 .pend-card > .ic:last-child{color:var(--muted)}
 .cp-f{gap:10px}.cp-f .main{display:flex;flex-direction:column;gap:6px}.cp-f input{width:100%;min-height:42px}
 .cp-f .t a,.cp-list .t a{color:inherit}
+.tl-t video{display:block;margin-top:8px;width:100%;max-height:300px;border-radius:12px;background:#30251F}
+.armz-barra{height:10px;border-radius:999px;background:var(--sand2);overflow:hidden;margin-top:4px}
+.armz-barra i{display:block;height:100%;background:var(--sage-i)}
+.armz-barra i.alto{background:var(--terra)}

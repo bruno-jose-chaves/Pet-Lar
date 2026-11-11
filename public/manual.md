@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.1 · atualizado em 11/11/2026
+Versão 2.2 · atualizado em 11/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -220,7 +220,9 @@ Durante uma estadia ou visita, registre com um toque o que aconteceu. No fim do 
 **Como usar:**
 
 1. Toque no que aconteceu: 🍽️ Comeu · 💧 Bebeu água · 🦮 Passeou · 💛 Xixi · 💩 Cocô · 💊 Remédio · 😴 Dormiu · 🎾 Brincou. O registro entra na hora, com o horário.
-2. **📸 Foto:** tira ou escolhe uma foto e escreve uma legenda, se quiser. A foto fica guardada de forma privada.
+2. **Foto ou vídeo:** tira ou escolhe uma foto **ou um vídeo** e escreve uma legenda, se quiser. Tudo fica guardado de forma privada.
+   - Vídeos de até **90 segundos**. Se o vídeo for grande, o painel diminui antes de enviar (vira algo como 5 MB a cada 30 s). Deixe a tela ligada enquanto aparece "Diminuindo o vídeo…".
+   - O tutor vê o vídeo no diário e na aba Fotos da área do tutor.
 3. **📝 Recado:** escreve qualquer coisa ("comeu tudo e dormiu no sofá").
 4. Com mais de um pet, os botões **Registrar para** escolhem de quem é o registro. Já vêm todos marcados.
 5. Errou? Toque em **Desfazer** no aviso. Para mudar a hora ou o texto, ou apagar, toque no registro na linha do tempo.
@@ -229,6 +231,19 @@ Durante uma estadia ou visita, registre com um toque o que aconteceu. No fim do 
 **📤 Mandar resumo do dia:** monta o texto com tudo o que foi registrado ("08:10 🍽️ Comeu…"). Toque em **Mandar no WhatsApp** e depois em **Compartilhar as fotos** para mandar as fotos do dia na mesma conversa.
 
 A ficha de cada pet mostra o diário de todos os serviços, dia por dia. Mais para frente, este diário é o que o tutor vai ver na área dele.
+
+## Espaço para fotos e vídeos
+
+Fotos e vídeos ficam no armazenamento privado do Supabase (plano grátis: **1 GB**). Em **Configurações → Fotos e vídeos guardados** aparece quanto já foi usado.
+
+| Tipo | Tamanho médio | Cabe em 1 GB |
+|---|---|---|
+| Foto (já diminuída pelo painel) | 0,2 a 0,3 MB | 3.000 a 5.000 fotos |
+| Vídeo de 30 s (já diminuído) | cerca de 5 MB | cerca de 200 vídeos |
+
+- Quando passar de 80%, a barra fica terracota e aparece um aviso.
+- O botão **Apagar vídeos com mais de 90 dias** libera espaço (as fotos ficam). A área do tutor mostra só os últimos 60 dias.
+- Se um dia faltar espaço: o plano Pro do Supabase (US$ 25/mês) tem 100 GB, ou os vídeos podem ir para o Cloudflare R2 (10 GB grátis, precisa cadastrar um cartão).
 
 ## Área do tutor
 
@@ -257,11 +272,11 @@ A área do tutor funciona como um aplicativo, com uma barra de 5 abas embaixo:
 | Aba | O que tem |
 |---|---|
 | Primeira vez | Boas-vindas e o aviso sobre os dados (LGPD). Ele toca em **Entendi, quero entrar** |
-| **Início** | O pet em destaque (foto grande), se ele está com você agora, **o dia do pet** (comeu, água, passeio, xixi, cocô e remédio, com a hora em que você marcou), a foto mais recente, os próximos cuidados e avisos de orçamento para responder ou sinal para pagar. Com mais de um pet, ele troca de pet no topo |
+| **Início** | O pet em destaque (foto grande), se ele está com você agora, **o dia do pet** (comeu, água, passeio, xixi, cocô e remédio, com a hora em que você marcou), a foto ou vídeo mais recente e os próximos cuidados. O aviso de orçamento para responder fica no topo; **Complete o cadastro** e **Falta o sinal (Pix)** ficam no fim da página, para não atrapalhar. Com mais de um pet, ele troca de pet no topo |
 | **Diário** | Os dias com registro (Hoje, Ontem…) e a linha do tempo de cada dia, com recados e fotos |
-| **Fotos** | Todas as fotos dos últimos 60 dias. Toque para ver em tela cheia, passar para o lado e salvar ou compartilhar |
-| **Pets** | Cada pet com o que falta na ficha. Na ficha ele preenche um item por vez (alimentação, remédios, jeitinho, saúde, veterinário, casa) e troca a foto |
-| **Mais** | Orçamentos para responder (com as duas opções, se houver), cuidados confirmados, pagamentos (pago ou a vencer, com Pix), cuidados anteriores com estrelas, falar com você, como deixar na tela do celular e o aviso sobre os dados |
+| **Fotos** | Todas as fotos e vídeos dos últimos 60 dias. Toque para ver em tela cheia, passar para o lado e salvar ou compartilhar |
+| **Pets** | Cada pet com o que falta. Na ficha ele preenche um item por vez: **Sobre** (nome, só se estiver vazio; raça, idade e porte) e **Rotina e cuidados** (alimentação, remédios, jeitinho, saúde, veterinário, casa). Também troca a foto |
+| **Mais** | Orçamentos para responder (com as duas opções, se houver), cuidados confirmados, pagamentos (pago ou a vencer, com Pix), cuidados anteriores com estrelas, **Seus dados** (WhatsApp, e-mail, endereço, bairro e cidade, que o próprio cliente completa), falar com você, como deixar na tela do celular e privacidade |
 
 Quando ele confirma um orçamento, a proposta vira **Aceita** e abre o Pix do sinal (QR Code e copia e cola).
 
@@ -317,6 +332,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.2 | 11/11/2026 | Vídeo no diário (diminuído no celular antes de enviar) e medidor de espaço. Área do tutor: Pix no fim da página, cliente completa os próprios dados e os do pet. Pix do sinal da proposta numa faixa própria, com QR maior e a chave |
 | 2.1 | 11/11/2026 | Área do tutor refeita como aplicativo com abas (Início, Diário, Fotos, Pets, Mais). Senha provisória pelo Administrador. Pets diferentes em cada opção da proposta. Tela Completar cadastros |
 | 2.0 | 10/11/2026 | Área do tutor (link pessoal no WhatsApp: diário, fotos, orçamento com Pix, ficha, avaliação). Painel com a identidade visual da Pet Lar (ícones de traço, paleta oficial, logo em imagem). O nome do cliente só é cadastrado quando você sai do campo |
 | 1.5 | 10/11/2026 | Diário do pet: registros com um toque, fotos, recados, linha do tempo e resumo do dia para o WhatsApp |

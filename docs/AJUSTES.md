@@ -130,9 +130,17 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
   - Acesso pela tela Hoje, pelo menu da proposta aceita e pela tela Serviço (assistente).
   - Tabela `diario` com regras de acesso no banco.
 
+### F-03 · Vídeos no diário e espaço de armazenamento ✅ (v2.2)
+- **Origem:** Bruno, 11/11/2026 ("a Lari tem que ter como adicionar foto e vídeo… talvez Google Drive? veja se o armazenamento não vai ser um problema").
+- **Decisão:** fotos e vídeos ficam no Supabase (privado, com link temporário), porque já tem controle de acesso por tutor. Os vídeos são diminuídos no próprio celular (480p, ~1,2 Mbps; 30 s ≈ 5 MB), até 90 s e 45 MB.
+- **Por que não Google Drive agora:** precisaria criar um projeto no Google Cloud (chave OAuth), a Lari entrar com a conta Google no painel, e cada vídeo teria que ficar "qualquer pessoa com o link" para o tutor ver, sem o controle do link pessoal. Fica como plano B.
+- **Medidor:** Configurações → Fotos e vídeos guardados (alerta acima de 80% de 1 GB) e botão para apagar vídeos com mais de 90 dias.
+- **Se encher:** Supabase Pro (US$ 25/mês, 100 GB) ou Cloudflare R2 para vídeos (10 GB grátis; exige cartão cadastrado).
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 11/11/2026 | v2.2: vídeos no diário (F-03), medidor de espaço, Pix no fim da área do tutor, cliente completa os próprios dados e os do pet, Pix da proposta reorganizado |
 | 11/11/2026 | A-04, C-02 e C-05 entregues (v2.1). Área do tutor refeita em abas |
 | 10/11/2026 | F-01 entregue (v2.0). Identidade visual aplicada no painel. Corrigido: nome do tutor salvo pela metade |
 | 10/11/2026 | Entrou A-04 (trocar senha de usuários). F-01 com acesso por link pessoal (sem SMS). C-03 e C-04 decididos: não fazer agora |

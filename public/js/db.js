@@ -271,3 +271,21 @@ export async function pendencias() {
   };
 }
 export function totalPendencias(x) { return Object.values(x).reduce((a, l) => a + l.length, 0); }
+
+export async function uploadVideoDiario(petId, blob, tipo = "video/mp4", ext = "mp4") {
+  const path = `diario/${petId}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const { error } = await sb.storage.from("pets").upload(path, blob, { contentType: tipo, upsert: false, cacheControl: "604800" });
+  if (error) throw new Error(/size|large|exceed/i.test(error.message) ? "O vídeo é grande demais para enviar." : error.message); return path;
+}
+// medidor de armazenamento (plano grátis do Supabase: 1 GB)
+export async function usoArmazenamento() { const { data, error } = await sb.rpc("uso_armazenamento"); if (error) throw error; return data || []; }
+export async function videosAntigos(dias = 90) {
+  const lim = new Date(Date.now() - dias * 864e5).toISOString();
+  return chk(await sb.from("diario").select("id,foto_path").eq("tipo", "video").lt("criado_em", lim));
+}
+export async function apagarVideos(regs) {
+  const paths = [...new Set(regs.map(r => r.foto_path).filter(Boolean))];
+  for (let i = 0; i < paths.length; i += 100) await sb.storage.from("pets").remove(paths.slice(i, i + 100));
+  if (regs.length) chk(await sb.from("diario").delete().in("id", regs.map(r => r.id)));
+  return paths.length;
+}
