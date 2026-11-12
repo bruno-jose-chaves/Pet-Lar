@@ -8,6 +8,7 @@ import { ic } from "../icones.js";
 const FILTROS = [["", "Todas"], ["rascunho", "Rascunho"], ["enviada", "Enviadas"], ["aceita", "Aceitas"], ["recusada", "Recusadas"], ["cliente", "Por cliente"]];
 
 export async function mount(root) {
+  const equipe = await db.nomesEquipe().catch(() => ({}));
   let st = sessionStorage.getItem("petlar_filtro_prop") || "", q = "", page = 0, total = 0, items = [];
   root.innerHTML = `<h1 class="pg">Propostas</h1>
     <div class="toolbar"><div class="grow search"><input type="text" id="q" placeholder="Buscar por tutor ou número" autocomplete="off"></div><button class="btn soft small" id="bSel">Selecionar</button></div>
@@ -26,16 +27,18 @@ export async function mount(root) {
     { k: "servicos", rotulo: "Serviço", tipo: "opcoes", opcoes: Object.entries(U.SERVICOS) },
     { k: "cidades", rotulo: "Cidade", tipo: "opcoes", opcoes: [["Balneário Camboriú", "Balneário Camboriú"], ["Itajaí", "Itajaí"], ["Camboriú", "Camboriú"]] },
     { k: "valor", rotulo: "Valor", tipo: "faixa" },
+    ...(Object.keys(equipe).length > 1 ? [{ k: "autores", rotulo: "Quem fez", tipo: "opcoes", opcoes: Object.entries(equipe).map(([e, n]) => [e, n]) }] : []),
   ] });
-  const fAtual = () => { const v = filtros.valores; return { criado: filtros.periodo("criado"), servicoData: filtros.periodo("servicoData"), servicos: v.servicos, cidades: v.cidades, valor: v.valor }; };
+  const fAtual = () => { const v = filtros.valores; return { criado: filtros.periodo("criado"), servicoData: filtros.periodo("servicoData"), servicos: v.servicos, cidades: v.cidades, valor: v.valor, autores: v.autores }; };
   const syncChips = () => U.$$("#fil .chip", root).forEach(c => c.classList.toggle("on", c.dataset.v === st));
   syncChips();
 
+  const autor = p => { const e = String(p.criado_por || "").toLowerCase(); return e && Object.keys(equipe).length > 1 ? (equipe[e] || e.split("@")[0]) : ""; };
   const row = p => { const pets = A.nomesPets(p).join(", ");
     return `<div class="pwrap ${sel.has(p.id) ? "sel" : ""}" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
     ${modoSel ? `<span class="ck" aria-hidden="true">${sel.has(p.id) ? ic("marcado") : ic("vazio")}</span>` : ""}
     <div class="main"><div class="t">${U.esc(p.tutor_nome || "Sem tutor")} <span class="muted" style="font-weight:400">· ${U.esc(p.numero || "")}</span></div>
-    <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}${pets ? " · " + U.esc(pets) : ""}${Array.isArray(p.opcoes) ? " · 2 opções" : ""}${p.status === "enviada" && p.cobrancas ? ` · cobrada ${p.cobrancas}×` : ""}</div></div>
+    <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}${pets ? " · " + U.esc(pets) : ""}${Array.isArray(p.opcoes) ? " · 2 opções" : ""}${p.status === "enviada" && p.cobrancas ? ` · cobrada ${p.cobrancas}×` : ""}${autor(p) ? ` · <span class="autor">por ${U.esc(autor(p))}</span>` : ""}</div></div>
     <div class="r"><div class="v">${U.brl(p.valor_total)}</div>${U.pill(p.status)}</div></a>${modoSel ? "" : A.botoes(p)}</div>`; };
   const pintar = () => { if (st === "cliente") return; U.$("#lista", root).innerHTML = items.length ? `<div class="list">${items.map(row).join("")}</div>`
         : `<div class="empty">${q || filtros.ativos() ? "Nada encontrado com essa busca ou filtro." : "Nenhuma proposta aqui ainda."}<br>${filtros.ativos() ? `<button class="btn soft" id="bLimpaF">Limpar filtros</button>` : `<a class="btn primary" href="#/proposta/nova">Criar proposta</a>`}</div>`;

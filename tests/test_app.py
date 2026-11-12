@@ -350,6 +350,14 @@ with sync_playwright() as p:
     check("Hoje: seção Cobrar resposta com link para a aba", "Cobrar resposta" in pg.inner_text("#view") and pg.locator("a[href='#/cobrar']").count() >= 1)
     check("Menu: Cobrar no menu de baixo", pg.locator(".bottomnav [data-nav=cobrar]").count() == 1)
     pg.evaluate("""() => { const T=window.__FAKE_DB; const ids=['c1','c2','c3','c4','c5']; T.propostas=T.propostas.filter(p=>!ids.includes(p.id)); T.proposta_pets=T.proposta_pets.filter(x=>!ids.includes(x.proposta_id)); T.pagamentos=T.pagamentos.filter(g=>!ids.includes(g.proposta_id)); T.pets=T.pets.filter(p=>p.id!=='pc'); T.tutores=T.tutores.filter(t=>t.id!=='tc'); }""")
+    # quem fez a proposta + aniversários
+    pg.evaluate("() => { const T=window.__FAKE_DB; if (T.propostas[0]) T.propostas[0].criado_por='larissa@exemplo.com'; const p=T.pets[0]; const h=new Date(); p.aniversario='2020-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0'); }")
+    go("#/propostas"); pg.wait_for_timeout(1500)
+    check("Propostas: mostra quem fez cada proposta", "por Larissa" in pg.inner_text("#lista"))
+    pg.click("[data-fabrir]"); pg.wait_for_timeout(300)
+    check("Propostas: filtro 'Quem fez'", "Quem fez" in pg.inner_text("body")); pg.keyboard.press("Escape"); pg.evaluate("document.querySelectorAll('.modal-bg').forEach(m => m.remove())")
+    go("#/hoje"); pg.wait_for_timeout(1500)
+    check("Hoje: aniversário do pet com botão de parabéns", "Aniversários" in pg.inner_text("#anivs") and "Hoje!" in pg.inner_text("#anivs"))
     # armazenamento
     go("#/config"); pg.wait_for_timeout(1200)
     check("Config: mostra o espaço usado de fotos e vídeos", "de 1 GB" in pg.inner_text("#armz") and pg.locator("#armz .armz-barra").count() == 1)

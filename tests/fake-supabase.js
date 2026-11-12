@@ -77,6 +77,7 @@
     gt(c, v) { this.f.push(r => r[c] != null && r[c] > v); return this; }
     gte(c, v) { this.f.push(r => r[c] != null && r[c] >= v); return this; }
     is(c, v) { this.f.push(r => (r[c] ?? null) === v); return this; }
+    not(c, op, v) { if (op === "is") this.f.push(r => (r[c] ?? null) !== v); else if (op === "in") { const l = String(v).replace(/[()]/g, "").split(","); this.f.push(r => !l.includes(String(r[c]))); } else this.f.push(r => r[c] !== v); return this; }
     in(c, vs) { this.f.push(r => vs.includes(r[c])); return this; }
     ilike(c, p) { this.f.push(r => like(r[c], p)); return this; }
     or(s) { const parts = s.split(",").map(x => x.split(".")); this.f.push(r => parts.some(([c, op, ...v]) => op === "ilike" && like(r[c], v.join(".")))); return this; }
@@ -92,7 +93,7 @@
       const match = rows.filter(r => this.f.every(fn => fn(r)));
       let out;
       if (this.op === "insert") {
-        out = this.val.map(v => { const r = { id: uid(), created_at: nowISO(), updated_at: nowISO(), ...JSON.parse(JSON.stringify(v)) }; if (this.t === "tutor_acessos") { r.criado_em = r.criado_em || nowISO(); r.acessos = r.acessos ?? 0; r.revogado_em = r.revogado_em ?? null; } if (this.t === "admins") { delete r.id; if (rows.some(a => a.email === r.email)) throw { message: "duplicate key" }; } if (this.t === "proposta_pets") delete r.id; trigInsert(this.t, r); rows.push(r); return r; });
+        out = this.val.map(v => { const r = { id: uid(), created_at: nowISO(), updated_at: nowISO(), ...JSON.parse(JSON.stringify(v)) }; if (this.t === "propostas" && r.criado_por === undefined) r.criado_por = "teste@petlar.app"; if (this.t === "tutor_acessos") { r.criado_em = r.criado_em || nowISO(); r.acessos = r.acessos ?? 0; r.revogado_em = r.revogado_em ?? null; } if (this.t === "admins") { delete r.id; if (rows.some(a => a.email === r.email)) throw { message: "duplicate key" }; } if (this.t === "proposta_pets") delete r.id; trigInsert(this.t, r); rows.push(r); return r; });
       } else if (this.op === "update") {
         out = match.map(r => { const old = { ...r }; Object.assign(r, JSON.parse(JSON.stringify(this.val)), { updated_at: nowISO() }); trigUpdate(this.t, old, r); return r; });
       } else if (this.op === "delete") {

@@ -108,3 +108,37 @@ export function squareBlob(file, size = 900) {
     }; img.onerror = rej; img.src = r.result; }; r.readAsDataURL(file);
   });
 }
+
+// ---------- aniversário do pet: 'AAAA-MM-DD', ou '---MM-DD' quando não se sabe o ano (o ano vira '--') ----------
+export function anivTexto(v) {
+  const m = /^(\d{4}|--)-(\d{2})-(\d{2})$/.exec(v || ""); if (!m) return "";
+  const dia = new Date(2000, Number(m[2]) - 1, Number(m[3])).toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
+  if (m[1] === "--") return dia;
+  const n = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])), h = new Date();
+  let meses = (h.getFullYear() - n.getFullYear()) * 12 + h.getMonth() - n.getMonth() - (h.getDate() < n.getDate() ? 1 : 0);
+  const idade = meses < 0 ? "" : meses < 12 ? `${meses} ${meses === 1 ? "mês" : "meses"}` : `${Math.floor(meses / 12)} ${Math.floor(meses / 12) === 1 ? "ano" : "anos"}`;
+  return `${dia} de ${m[1]}${idade ? ` (${idade})` : ""}`;
+}
+// dias até o próximo aniversário (0 = hoje)
+export function diasAteAniv(v) {
+  const m = /^(\d{4}|--)-(\d{2})-(\d{2})$/.exec(v || ""); if (!m) return null;
+  const h = new Date(); h.setHours(0, 0, 0, 0);
+  let a = new Date(h.getFullYear(), Number(m[2]) - 1, Number(m[3])); if (a < h) a = new Date(h.getFullYear() + 1, Number(m[2]) - 1, Number(m[3]));
+  return Math.round((a - h) / 864e5);
+}
+// campos do formulário: dia, mês e ano (o ano pode ser "não sei")
+export function anivCampos(v, nome = "aniv") {
+  const m = /^(\d{4}|--)-(\d{2})-(\d{2})$/.exec(v || ""); const ano = m && m[1] !== "--" ? m[1] : "";
+  const MES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const y = new Date().getFullYear(), op = (val, txt, sel) => `<option value="${val}"${sel ? " selected" : ""}>${txt}</option>`;
+  return `<div class="aniv-sel">
+    <select name="${nome}_d" aria-label="Dia">${op("", "Dia", !m)}${Array.from({ length: 31 }, (_, i) => op(String(i + 1).padStart(2, "0"), i + 1, m && Number(m[3]) === i + 1)).join("")}</select>
+    <select name="${nome}_m" aria-label="Mês">${op("", "Mês", !m)}${MES.map((t, i) => op(String(i + 1).padStart(2, "0"), t, m && Number(m[2]) === i + 1)).join("")}</select>
+    <select name="${nome}_a" aria-label="Ano">${op("", "Não sei o ano", !ano)}${Array.from({ length: 26 }, (_, i) => op(String(y - i), y - i, ano === String(y - i))).join("")}</select></div>`;
+}
+export function anivDoForm(fd, nome = "aniv") {
+  const d = String(fd.get(nome + "_d") || ""), m = String(fd.get(nome + "_m") || ""), a = String(fd.get(nome + "_a") || "");
+  if (!d || !m) return null;
+  const dt = new Date(Number(a || 2000), Number(m) - 1, Number(d)); if (dt.getDate() !== Number(d)) return null; // ex.: 31 de abril
+  return `${a || "--"}-${m}-${d}`;
+}

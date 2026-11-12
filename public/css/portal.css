@@ -258,3 +258,23 @@ body.portal.com-abas{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 .pt-portes span{display:block;text-align:center;padding:12px;border-radius:14px;background:#fff;border:1.5px solid var(--c-areia);font-weight:700;cursor:pointer}
 .pt-portes input:checked + span{border-color:var(--c-terra);background:var(--c-terra-c);color:var(--c-terra-e)}
 .pt-portes input:focus-visible + span{outline:3px solid var(--c-terra);outline-offset:2px}
+/* v2.3: ficha em conversa (nada obrigatório) */
+.pt-imp{display:inline-block;font-family:Lato,sans-serif;font-size:12px;font-weight:700;color:var(--c-terra-e);background:var(--c-terra-c);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+
+.pt-ficha-sub{font-size:15px}
+.pt-mais summary{display:flex;align-items:baseline;justify-content:space-between;cursor:pointer;list-style:none}
+.pt-mais summary::-webkit-details-marker{display:none}
+.pt-mais summary h2{margin:0}
+.pt-mais summary span{font-size:14px;color:var(--c-cinza);font-weight:700}
+.pt-mais summary::after{content:"Abrir";font-size:14px;font-weight:700;color:var(--c-terra-e);margin-left:10px}
+.pt-mais[open] summary::after{content:"Fechar"}
+.pt-mais[open] summary{margin-bottom:6px}
+.pt-rapidas{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.pt-rapida{border:1.5px solid var(--c-salvia);background:var(--c-salvia-c);color:var(--c-salvia-e);border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px;cursor:pointer}
+.pt-aniv input[type=date]{width:100%;box-sizing:border-box;font:inherit;font-size:17px;background:#fff;border:1.5px solid var(--c-areia);border-radius:16px;padding:12px 14px;min-height:50px;color:var(--c-carvao)}
+.pt-aniv .check{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:15px}
+.pt-aniv .check input{width:22px;height:22px;accent-color:var(--c-terra)}
+.pt-edita-a{align-items:center}
+.pt-edita-a .pt-link-a{margin-left:auto}
+.aniv-sel{display:grid;grid-template-columns:.7fr 1.3fr 1.2fr;gap:8px}
+.aniv-sel select{width:100%;font:inherit;font-size:16px;min-height:50px;background:#fff;border:1.5px solid var(--c-areia);border-radius:14px;padding:0 10px;color:var(--c-carvao)}

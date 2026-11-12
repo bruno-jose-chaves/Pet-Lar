@@ -143,17 +143,21 @@ with sync_playwright() as p:
 
     # Pets + ficha
     pg.click("#tabs [data-ir=pets]"); pg.wait_for_timeout(300)
-    check(f"[{tam}] Pets: Bento e Nina com o que falta na ficha", pg.locator(".pt-petcard").count() == 2 and "Falta preencher" in pg.inner_text(".pt-pets"))
+    check(f"[{tam}] Pets: diz que nada é obrigatório e só pede o importante", "Nada é obrigatório" in pg.inner_text(".pt-tit") and "Ajude a Lari" in pg.inner_text(".pt-petcard[data-pet='p2']"))
     pg.click(".pt-petcard[data-pet='p2']"); pg.wait_for_timeout(300)
-    check(f"[{tam}] ficha da Nina abre com dados e rotina", pg.inner_text(".pt-tit h1") == "Nina" and pg.locator(".pt-campo").count() == 10 and pg.locator("[data-editar=nome]").count() == 0)
-    pg.click("[data-editar=idade]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=idade] input", "2 anos"); pg.click("[data-salvar=idade] [type=submit]"); pg.wait_for_timeout(600)
-    ult = st["chamadas"][-1]
-    check(f"[{tam}] ficha: tutor completa a idade", ult.get("acao") == "ficha" and ult["campos"] == {"idade": "2 anos"} and "2 anos" in pg.inner_text("[data-campo=idade]"))
-    pg.click("[data-editar=porte]"); pg.wait_for_timeout(200); pg.click("[data-salvar=porte] label:has-text('Pequeno')"); pg.click("[data-salvar=porte] [type=submit]"); pg.wait_for_timeout(600)
-    check(f"[{tam}] ficha: escolhe o porte", st["chamadas"][-1]["campos"] == {"porte": "P"})
-    pg.click("[data-editar=alimentacao]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=alimentacao] textarea", "Sachê 2x ao dia"); pg.click("[data-salvar=alimentacao] [type=submit]"); pg.wait_for_timeout(700)
+    check(f"[{tam}] ficha da Nina: importantes marcados, extras recolhidos", pg.inner_text(".pt-tit h1") == "Nina" and pg.locator(".pt-imp").count() == 2 and pg.locator("details.pt-mais:not([open])").count() == 1)
+    pg.click("[data-editar=alimentacao]"); pg.wait_for_timeout(200); pg.fill("[data-salvar=alimentacao] textarea", "Sachê 2x ao dia"); pg.click("[data-salvar=alimentacao] [type=submit]"); pg.wait_for_timeout(600)
     ult = st["chamadas"][-1]
     check(f"[{tam}] ficha: salva um campo por vez", ult.get("acao") == "ficha" and ult.get("pet_id") == "p2" and ult["campos"] == {"alimentacao": "Sachê 2x ao dia"} and "Sachê 2x ao dia" in pg.inner_text("[data-campo=alimentacao]"))
+    pg.click("[data-editar=medicacao]"); pg.wait_for_timeout(200); pg.click("[data-rapida='Não toma remédio']"); pg.wait_for_timeout(600)
+    check(f"[{tam}] resposta de um toque: não toma remédio", st["chamadas"][-1]["campos"] == {"medicacao": "Não toma remédio"} and pg.locator(".pt-imp").count() == 0)
+    pg.click("[data-editar=aniversario]"); pg.wait_for_timeout(200); pg.select_option("[data-salvar=aniversario] [name=v_d]", "12"); pg.select_option("[data-salvar=aniversario] [name=v_m]", "03"); pg.click("[data-salvar=aniversario] [type=submit]"); pg.wait_for_timeout(600)
+    check(f"[{tam}] aniversário sem o ano", st["chamadas"][-1]["campos"] == {"aniversario": "---03-12"} and "12 de março" in pg.inner_text("[data-campo=aniversario]"))
+    pg.click("[data-editar=aniversario]"); pg.wait_for_timeout(200); pg.select_option("[data-salvar=aniversario] [name=v_a]", "2021"); pg.click("[data-salvar=aniversario] [type=submit]"); pg.wait_for_timeout(600)
+    check(f"[{tam}] aniversário com o ano mostra a idade e esconde o campo idade", st["chamadas"][-1]["campos"] == {"aniversario": "2021-03-12"} and "anos" in pg.inner_text("[data-campo=aniversario]") and pg.locator("[data-campo=idade]").count() == 0)
+    pg.click("details.pt-mais summary"); pg.wait_for_timeout(200)
+    pg.click("[data-editar=limitacoes]"); pg.wait_for_timeout(200); pg.click("[data-rapida='Nenhum cuidado especial']"); pg.wait_for_timeout(600)
+    check(f"[{tam}] opcionais: resposta rápida em saúde", st["chamadas"][-1]["campos"] == {"limitacoes": "Nenhum cuidado especial"})
     with pg.expect_file_chooser() as fc: pg.click("[data-trocafoto='p2']")
     fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1500)
     ult = st["chamadas"][-1]

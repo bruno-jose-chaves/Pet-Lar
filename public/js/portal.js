@@ -17,13 +17,24 @@ const TIPOS = {
 };
 // o "dia do pet" na tela inicial: o básico que todo tutor quer saber
 const ROTINA = [["comeu", "Comeu"], ["agua", "Água"], ["passeio", "Passeio"], ["xixi", "Xixi"], ["coco", "Cocô"], ["remedio", "Remédio"]];
-const FICHA = [["alimentacao", "Alimentação", "Ração, quantidade e horários"], ["medicacao", "Remédios", "Nome, dose e horário"],
-  ["comportamento", "Jeitinho", "Medos, manias, como se dá com outros pets"], ["limitacoes", "Saúde e cuidados", "Alergias, limitações, cirurgias"],
-  ["veterinario", "Veterinário", "Nome e telefone"], ["observacoes", "Casa e outras informações", "Chaves, portaria, onde ficam as coisas"]];
-// dados básicos do pet que o tutor pode completar (o nome só se estiver vazio)
-const BASICO = [["nome", "Nome", "Como ele se chama"], ["raca", "Raça", "Ex.: SRD, Shih-tzu, Siamês"], ["idade", "Idade", "Ex.: 3 anos, 8 meses"], ["porte", "Porte", ""]];
+// ficha do pet, em linguagem de conversa. Só 3 coisas são importantes para o dia a dia (imp);
+// o resto é opcional e o tutor preenche se quiser. "rapidas" = respostas de um toque.
+const CAMPOS_PET = [
+  { k: "porte", l: "Porte", imp: true, tipo: "porte", sec: "sobre" },
+  { k: "aniversario", l: "Aniversário", ph: "Se souber, a Lari lembra do dia", tipo: "aniv", sec: "sobre" },
+  { k: "raca", l: "Raça", ph: "Ex.: Shih-tzu, Siamês", rapidas: ["SRD (sem raça definida)"], sec: "sobre" },
+  { k: "idade", l: "Idade", ph: "Ex.: 3 anos, 8 meses", sec: "sobre", soSemAniv: true },
+  { k: "alimentacao", l: "O que come", ph: "Ração, quantidade e horários", imp: true, area: true, sec: "rotina" },
+  { k: "medicacao", l: "Remédios", ph: "Nome, dose e horário", imp: true, area: true, rapidas: ["Não toma remédio"], sec: "rotina" },
+  { k: "comportamento", l: "Jeitinho", ph: "Medos, manias, como se dá com outros pets", area: true, sec: "mais" },
+  { k: "limitacoes", l: "Saúde", ph: "Alergias, limitações, cirurgias", area: true, rapidas: ["Nenhum cuidado especial"], sec: "mais" },
+  { k: "veterinario", l: "Veterinário", ph: "Nome e telefone", sec: "mais" },
+  { k: "observacoes", l: "Sobre a casa", ph: "Chaves, portaria, onde ficam as coisas", area: true, sec: "mais" },
+];
+const SECOES_PET = [["sobre", "Sobre"], ["rotina", "Rotina"], ["mais", "Se quiser contar mais"]];
+const campoPet = k => CAMPOS_PET.find(c => c.k === k);
 // dados de contato do tutor
-const CONTATO = [["whatsapp", "WhatsApp", "(47) 9 9999-9999", "tel"], ["email", "E-mail", "seu@email.com", "email"], ["endereco", "Endereço", "Rua, número e complemento", "text"], ["bairro", "Bairro", "", "text"], ["cidade", "Cidade", "Ex.: Balneário Camboriú", "text"]];
+const CONTATO = [["whatsapp", "WhatsApp", "(47) 9 9999-9999", "tel", true], ["endereco", "Endereço", "Rua, número e complemento", "text", true], ["bairro", "Bairro", "", "text"], ["cidade", "Cidade", "Ex.: Balneário Camboriú", "text"], ["email", "E-mail", "seu@email.com", "email"]];
 const PORTES = [["P", "Pequeno"], ["M", "Médio"], ["G", "Grande"], ["GG", "Gigante"]];
 const ABAS = [["inicio", "casa", "Início"], ["diario", "diario", "Diário"], ["fotos", "foto", "Fotos"], ["pets", "pets", "Pets"], ["mais", "mais", "Mais"]];
 
@@ -182,10 +193,13 @@ function inicio() {
 
 // o que ainda falta no cadastro (para o tutor completar)
 function faltando() {
-  const pets = D.pets.reduce((a, p) => a + BASICO.filter(([k]) => !p[k]).length + FICHA.filter(([k]) => !p[k]).length, 0);
-  const contato = CONTATO.filter(([k]) => !D.tutor[k]).length;
+  const pets = D.pets.reduce((a, p) => a + faltaPet(p).length, 0);
+  const contato = CONTATO.filter(c => c[4] && !D.tutor[c[0]]).length;
   return { pets, contato, total: pets + contato };
 }
+
+const faltaPet = p => CAMPOS_PET.filter(c => c.imp && !p[c.k]);
+const valorPet = (p, c) => c.tipo === "porte" ? (PORTES.find(x => x[0] === p.porte) || [])[1] : c.tipo === "aniv" ? U.anivTexto(p.aniversario) : p[c.k];
 
 // ---------- Diário ----------
 function diario() {
@@ -235,37 +249,44 @@ async function compartilharFoto(r) {
 // ---------- Pets ----------
 function pets() {
   if (V.sub && pet(V.sub)) return fichaPet(pet(V.sub));
-  return `<header class="pt-tit"><h1>${D.pets.length > 1 ? "Seus pets" : "Seu pet"}</h1><p>A Lari consulta a ficha antes de cada cuidado. Mantenha em dia.</p></header>
-    <div class="pt-corpo">${D.pets.length ? `<div class="pt-pets">${D.pets.map(p => { const falta = BASICO.filter(([k]) => !p[k]).length + FICHA.filter(([k]) => !p[k]).length;
+  return `<header class="pt-tit"><h1>${D.pets.length > 1 ? "Seus pets" : "Seu pet"}</h1><p>Conte para a Lari o que souber. Nada é obrigatório.</p></header>
+    <div class="pt-corpo">${D.pets.length ? `<div class="pt-pets">${D.pets.map(p => { const f = faltaPet(p);
       return `<button class="pt-petcard" data-pet="${p.id}"><span class="pt-petcard-f">${fotoPet(p)}</span>
-        <span class="pt-petcard-t"><b>${U.esc(p.nome)}</b><small>${[p.especie === "gato" ? "Gato" : "Cão", p.raca, p.idade].filter(Boolean).map(U.esc).join(", ")}</small>
-        <em class="${falta ? "falta" : "ok"}">${falta ? `Falta preencher ${falta} ${falta > 1 ? "itens" : "item"} da ficha` : "Ficha completa"}</em></span>${ic("seta")}</button>`; }).join("")}</div>`
+        <span class="pt-petcard-t"><b>${U.esc(p.nome)}</b><small>${[p.especie === "gato" ? "Gato" : "Cão", p.raca, U.anivTexto(p.aniversario).replace(/^.*\((.*)\)$/, "$1") || p.idade].filter(Boolean).map(U.esc).join(", ")}</small>
+        <em class="${f.length ? "falta" : "ok"}">${f.length ? `Ajude a Lari: ${f.map(c => c.l.toLowerCase()).join(", ")}` : "Ficha em dia"}</em></span>${ic("seta")}</button>`; }).join("")}</div>`
       : `<section class="pt-bloco pt-vazio"><p>Seus pets ainda não estão cadastrados. Fale com a Lari.</p></section>`}</div>`;
 }
+function linhaCampo(p, c) {
+  const v = valorPet(p, c);
+  return `<div class="pt-campo${c.imp && !v ? " pede" : ""}" data-campo="${c.k}">
+    <div class="pt-campo-h"><b>${c.l}${c.imp && !v ? ' <span class="pt-imp">importante</span>' : ""}</b><button class="pt-link-a" data-editar="${c.k}" data-ent="pet">${v ? "Mudar" : "Contar"}</button></div>
+    <p class="${v ? "" : "vazio"}">${v ? U.esc(v) : c.ph || "Toque em Contar"}</p></div>`;
+}
 function fichaPet(p) {
-  return `<header class="pt-tit pt-tit-volta"><button class="pt-volta" data-ir="pets" aria-label="Voltar para os pets">${ic("setaE")}</button><h1>${U.esc(p.nome)}</h1></header>
+  const semNome = !String(p.nome || "").trim();
+  return `<header class="pt-tit pt-tit-volta"><button class="pt-volta" data-ir="pets" aria-label="Voltar para os pets">${ic("setaE")}</button><h1>${U.esc(p.nome || "Seu pet")}</h1></header>
     <div class="pt-corpo">
     <div class="pt-ficha-foto">${fotoPet(p)}<button class="pt-btn pt-btn-2 pt-btn-p" data-trocafoto="${p.id}">${ic("camera")} ${p.foto ? "Trocar a foto" : "Pôr uma foto"}</button></div>
-    <p class="pt-ficha-sub">${[p.especie === "gato" ? "Gato" : "Cão", p.raca, p.idade, p.porte ? U.PORTE_TXT[p.porte] : ""].filter(Boolean).map(U.esc).join(", ")}</p>
-    <section class="pt-bloco pt-ficha"><h2>Sobre ${U.esc(p.nome || "o pet")}</h2>${BASICO.map(([k, l, ph]) => {
-      const v = k === "porte" ? (PORTES.find(x => x[0] === p.porte) || [])[1] : p[k]; const pode = k !== "nome" || !p.nome;
-      return `<div class="pt-campo" data-campo="${k}"><div class="pt-campo-h"><b>${l}</b>${pode ? `<button class="pt-link-a" data-editar="${k}" data-ent="pet">${v ? "Editar" : "Preencher"}</button>` : ""}</div>
-      <p class="${v ? "" : "vazio"}">${v ? U.esc(v) : (ph || "Toque em Preencher")}</p></div>`; }).join("")}</section>
-    <section class="pt-bloco pt-ficha"><h2>Rotina e cuidados</h2>${FICHA.map(([k, l, ph]) => `<div class="pt-campo" data-campo="${k}">
-      <div class="pt-campo-h"><b>${l}</b><button class="pt-link-a" data-editar="${k}" data-ent="pet">${p[k] ? "Editar" : "Preencher"}</button></div>
-      <p class="${p[k] ? "" : "vazio"}">${p[k] ? U.esc(p[k]) : ph}</p></div>`).join("")}
-      ${p.atualizado_tutor_em ? `<p class="pt-nota">Você atualizou em ${U.fmtY(p.atualizado_tutor_em.slice(0, 10))}.</p>` : ""}</section></div>`;
+    <p class="pt-ficha-sub">Preencha só o que souber. O que estiver marcado como <b>importante</b> ajuda a Lari a cuidar ${/a$/i.test(p.nome || "") ? "dela" : "dele"} no dia a dia.</p>
+    ${semNome ? `<section class="pt-bloco pt-ficha">${linhaCampo(p, { k: "nome", l: "Nome", ph: "Como ele se chama", imp: true })}</section>` : ""}
+    ${SECOES_PET.map(([sec, t]) => { const cs = CAMPOS_PET.filter(c => c.sec === sec && !(c.soSemAniv && /^\d{4}/.test(p.aniversario || "")));
+      return sec === "mais" ? `<details class="pt-bloco pt-ficha pt-mais"${cs.some(c => p[c.k]) ? " open" : ""}><summary><h2>${t}</h2><span>${cs.filter(c => p[c.k]).length} de ${cs.length}</span></summary>${cs.map(c => linhaCampo(p, c)).join("")}</details>`
+        : `<section class="pt-bloco pt-ficha"><h2>${t}</h2>${cs.map(c => linhaCampo(p, c)).join("")}</section>`; }).join("")}
+    ${p.atualizado_tutor_em ? `<p class="pt-nota">Você atualizou em ${U.fmtY(p.atualizado_tutor_em.slice(0, 10))}.</p>` : ""}</div>`;
 }
 function editarCampo(ent, k) {
   const el = tela.querySelector(`[data-campo="${k}"]`);
-  const def = ent === "tutor" ? CONTATO.find(f => f[0] === k) : (BASICO.find(f => f[0] === k) || FICHA.find(f => f[0] === k));
-  const [, l, ph, tipo] = def; const atual = ent === "tutor" ? D.tutor[k] : pet(V.sub)[k];
-  const campo = k === "porte" ? `<div class="pt-portes" role="radiogroup">${PORTES.map(([v, t]) => `<label><input type="radio" name="v" value="${v}"${atual === v ? " checked" : ""}><span>${t}</span></label>`).join("")}</div>`
-    : (FICHA.some(f => f[0] === k) || k === "endereco") ? `<textarea id="f_${k}" name="v" rows="3" maxlength="1000" placeholder="${ph}">${U.esc(atual || "")}</textarea>`
+  let l, ph, tipo, area = false, rapidas = [], atual;
+  if (ent === "tutor") { const c = CONTATO.find(f => f[0] === k); [, l, ph, tipo] = c; area = k === "endereco"; atual = D.tutor[k]; }
+  else { const c = campoPet(k) || { k: "nome", l: "Nome", ph: "Como ele se chama" }; ({ l, ph = "", tipo, area = false, rapidas = [] } = c); atual = pet(V.sub)[k]; }
+  const campo = tipo === "porte" ? `<div class="pt-portes" role="radiogroup">${PORTES.map(([v, t]) => `<label><input type="radio" name="v" value="${v}"${atual === v ? " checked" : ""}><span>${t}</span></label>`).join("")}</div>`
+    : tipo === "aniv" ? `<div class="pt-aniv">${U.anivCampos(atual, "v")}</div>`
+    : area ? `<textarea id="f_${k}" name="v" rows="3" maxlength="1000" placeholder="${ph}">${U.esc(atual || "")}</textarea>`
     : `<input id="f_${k}" name="v" type="${tipo || "text"}" ${tipo === "tel" ? 'inputmode="tel" autocomplete="tel"' : tipo === "email" ? 'autocomplete="email"' : ""} maxlength="${k === "nome" ? 40 : 100}" placeholder="${ph}" value="${U.esc(atual || "")}">`;
-  el.innerHTML = `<form class="pt-edita" data-salvar="${k}" data-ent="${ent}"><label for="f_${k}"><b>${l}</b></label>${campo}
-    <div class="pt-edita-a"><button class="pt-btn pt-btn-p" type="submit">Salvar</button><button class="pt-btn pt-btn-2 pt-btn-p" type="button" data-cancelar>Cancelar</button></div></form>`;
-  const inp = el.querySelector("textarea, input:not([type=radio])"); if (inp) { inp.focus(); inp.setSelectionRange?.(inp.value.length, inp.value.length); }
+  el.innerHTML = `<form class="pt-edita" data-salvar="${k}" data-ent="${ent}" data-tipo="${tipo || ""}"><label for="f_${k}"><b>${l}</b></label>
+    ${rapidas.length ? `<div class="pt-rapidas">${rapidas.map(r => `<button type="button" class="pt-rapida" data-rapida="${U.esc(r)}">${U.esc(r)}</button>`).join("")}</div>` : ""}${campo}
+    <div class="pt-edita-a"><button class="pt-btn pt-btn-p" type="submit">Salvar</button><button class="pt-btn pt-btn-2 pt-btn-p" type="button" data-cancelar>Cancelar</button>${atual && tipo !== "porte" && k !== "nome" ? `<button class="pt-link-a" type="button" data-limpar>Apagar</button>` : ""}</div></form>`;
+  const inp = el.querySelector("textarea, input[type=text], input[type=tel], input[type=email], input:not([type])"); if (inp) { inp.focus(); inp.setSelectionRange?.(inp.value.length, inp.value.length); }
 }
 
 // ---------- Mais (orçamentos, pagamentos, histórico, contato) ----------
@@ -283,8 +304,8 @@ function mais() {
       <span><b>${U.esc(U.SERVICOS[o.servico] || "")}</b><small>${U.esc(nomes(o.pets))}, ${U.esc(U.periodo(o.data_inicio, o.data_fim))}</small></span>
       ${o.avaliacao ? `<span class="pt-estrelas" aria-label="Você deu ${o.avaliacao.nota} de 5">${[1, 2, 3, 4, 5].map(n => `<i class="${n <= o.avaliacao.nota ? "s" : ""}">${ic("estrela")}</i>`).join("")}</span>`
         : `<button class="pt-btn pt-btn-2 pt-btn-p" data-avaliar="${o.id}">${ic("estrela")} Avaliar</button>`}</div>`).join("")}</section>` : ""}
-    <section class="pt-bloco pt-ficha" id="seusDados"><h2>Seus dados</h2>${CONTATO.map(([k, l, ph]) => `<div class="pt-campo" data-campo="${k}">
-      <div class="pt-campo-h"><b>${l}</b><button class="pt-link-a" data-editar="${k}" data-ent="tutor">${D.tutor[k] ? "Editar" : "Preencher"}</button></div>
+    <section class="pt-bloco pt-ficha" id="seusDados"><h2>Seus dados</h2>${CONTATO.map(([k, l, ph, , imp]) => `<div class="pt-campo${imp && !D.tutor[k] ? " pede" : ""}" data-campo="${k}">
+      <div class="pt-campo-h"><b>${l}${imp && !D.tutor[k] ? ' <span class="pt-imp">importante</span>' : ""}</b><button class="pt-link-a" data-editar="${k}" data-ent="tutor">${D.tutor[k] ? "Mudar" : "Contar"}</button></div>
       <p class="${D.tutor[k] ? "" : "vazio"}">${D.tutor[k] ? U.esc(D.tutor[k]) : (ph || "Toque em Preencher")}</p></div>`).join("")}</section>
     <section class="pt-bloco">
       <a class="pt-linha" href="${zap("Oi, Lari! ")}" target="_blank" rel="noopener">${ic("conversa")}<span><b>Falar com a Lari</b><small>Pelo WhatsApp</small></span>${ic("seta")}</a>
@@ -420,17 +441,27 @@ document.addEventListener("click", e => {
     inp.click();
   }
 });
-document.addEventListener("submit", async e => {
-  const f = e.target.closest("[data-salvar]"); if (!f) return; e.preventDefault();
-  const k = f.dataset.salvar, ent = f.dataset.ent; const fd = new FormData(f); const v = String(fd.get("v") ?? "").trim();
-  if (k === "porte" && !v) return U.toast("Escolha o porte.");
-  if (k === "nome" && !v) return U.toast("Escreva o nome.");
+async function salvarCampo(f, v) {
+  const k = f.dataset.salvar, ent = f.dataset.ent;
   const b = f.querySelector("[type=submit]"); b.disabled = true;
   try {
     if (ent === "tutor") { await api("tutor", { campos: { [k]: v } }); D.tutor[k] = v || null; }
     else { const id = V.sub; await api("ficha", { pet_id: id, campos: { [k]: v } }); Object.assign(pet(id), { [k]: v || null, atualizado_tutor_em: new Date().toISOString() }); }
-    pintar(); U.toast("Salvo. A Lari já vê a novidade.");
+    pintar(); U.toast(v ? "Salvo. A Lari já vê a novidade." : "Apagado.");
   } catch (err) { b.disabled = false; U.toast(err.message); }
+}
+document.addEventListener("submit", e => {
+  const f = e.target.closest("[data-salvar]"); if (!f) return; e.preventDefault();
+  const k = f.dataset.salvar, fd = new FormData(f);
+  const v = f.dataset.tipo === "aniv" ? U.anivDoForm(fd, "v") : String(fd.get("v") ?? "").trim();
+  if (k === "porte" && !v) return U.toast("Escolha o porte.");
+  if (k === "nome" && !v) return U.toast("Escreva o nome.");
+  if (f.dataset.tipo === "aniv" && !v) return U.toast("Escolha a data.");
+  salvarCampo(f, v);
+});
+document.addEventListener("click", e => {
+  const r = e.target.closest("[data-rapida]"); if (r) { salvarCampo(r.closest("form"), r.dataset.rapida); return; }
+  const lp = e.target.closest("[data-limpar]"); if (lp) salvarCampo(lp.closest("form"), "");
 });
 
 function iniciar() { V = lerUrl(); history.replaceState(V, "", location.href); pintar(); }

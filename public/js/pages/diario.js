@@ -141,7 +141,7 @@ export async function mount(root, { params }) {
     const alvo = [...selPets][0] || pets[0]?.id;
     U.toast("Preparando o vídeo… deixe a tela ligada", 60000);
     try {
-      const v = await prepararVideo(f, pct => { const t = document.querySelector(".toast"); if (t) t.textContent = `Diminuindo o vídeo… ${pct}% (deixe a tela ligada)`; });
+      const v = await prepararVideo(f, pct => { const t = document.querySelector(".toast"); if (t) t.textContent = `Preparando o vídeo em Full HD… ${pct}% (deixe a tela ligada)`; });
       U.toast(`Enviando o vídeo (${(v.blob.size / 1048576).toFixed(1)} MB)…`, 60000);
       const path = await db.uploadVideoDiario(alvo, v.blob, v.tipo, v.ext);
       const nota = await pedirTexto("Legenda do vídeo (opcional)", "Ex.: Correndo na praia");

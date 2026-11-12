@@ -1,10 +1,11 @@
-// Vídeos do diário: confere a duração e, se o arquivo for grande, diminui no próprio celular
-// (480p, ~1,2 Mbps) antes de enviar. Assim um vídeo de 30 s fica com uns 5 MB em vez de 40 MB.
-// Se o navegador não conseguir diminuir, manda o original (até o limite).
+// Vídeos do diário: qualidade primeiro. O vídeo vai ORIGINAL sempre que couber no limite do armazenamento.
+// Só quando passa do limite ele é regravado no próprio celular em Full HD (1920 px), com a maior taxa
+// que ainda cabe (até 16 Mbps). Nunca diminui abaixo de Full HD.
+// O limite vem do armazenamento: Supabase grátis aceita até 50 MB por arquivo.
 
 export const MAX_SEG = 90;            // duração máxima aceita
-export const MAX_MB = 45;             // tamanho máximo do arquivo enviado (limite do Supabase grátis: 50 MB)
-const COMPRIMIR_ACIMA_MB = 10;        // abaixo disso manda como está
+export const MAX_MB = 48;             // tamanho máximo do arquivo enviado
+const LADO_MAX = 1920;                // Full HD
 
 function metadados(file) {
   return new Promise((res, rej) => {
@@ -26,17 +27,19 @@ function formatoGravacao() {
 async function comprimir(file, meta, aoAvancar) {
   const tipo = formatoGravacao(); const cv = document.createElement("canvas");
   if (!tipo || !cv.captureStream) return null;
-  const k = Math.min(1, 854 / Math.max(meta.w || 854, meta.h || 480));
-  cv.width = Math.round((meta.w || 854) * k / 2) * 2; cv.height = Math.round((meta.h || 480) * k / 2) * 2;
+  const k = Math.min(1, LADO_MAX / Math.max(meta.w || LADO_MAX, meta.h || 1080));
+  cv.width = Math.round((meta.w || 1920) * k / 2) * 2; cv.height = Math.round((meta.h || 1080) * k / 2) * 2;
+  // a maior taxa que cabe no limite (com folga de 8% para o áudio e o "envelope" do arquivo)
+  const bps = Math.max(4_000_000, Math.min(16_000_000, Math.floor(MAX_MB * 1048576 * 8 * 0.92 / Math.max(1, meta.dur || 30)) - 160_000));
   const ctx = cv.getContext("2d");
   const v = document.createElement("video"); v.playsInline = true; v.src = meta.url; v.crossOrigin = "anonymous";
-  const stream = cv.captureStream(30);
+  const stream = cv.captureStream(Math.min(60, Math.max(24, Math.round(meta.fps || 30))));
   try { // áudio: passa pelo WebAudio (não toca no alto-falante)
     const AC = window.AudioContext || window.webkitAudioContext; const ac = new AC();
     const src = ac.createMediaElementSource(v); const dst = ac.createMediaStreamDestination(); src.connect(dst);
     dst.stream.getAudioTracks().forEach(t => stream.addTrack(t));
   } catch { v.muted = true; }
-  const rec = new MediaRecorder(stream, { mimeType: tipo, videoBitsPerSecond: 1_200_000, audioBitsPerSecond: 96_000 });
+  const rec = new MediaRecorder(stream, { mimeType: tipo, videoBitsPerSecond: bps, audioBitsPerSecond: 160_000 });
   const partes = []; rec.ondataavailable = e => e.data.size && partes.push(e.data);
   const fim = new Promise(res => { rec.onstop = res; });
   await new Promise((res, rej) => { v.oncanplay = res; v.onerror = () => rej(new Error("video")); v.load(); });
@@ -56,11 +59,11 @@ export async function prepararVideo(file, aoAvancar) {
   try {
     if (meta.dur && meta.dur > MAX_SEG + 0.5) throw new Error(`O vídeo tem ${Math.round(meta.dur)} s. Envie vídeos de até ${MAX_SEG} s (dá para cortar no app Fotos).`);
     let blob = file;
-    if (file.size > COMPRIMIR_ACIMA_MB * 1048576) {
+    if (file.size > MAX_MB * 1048576) { // só regrava quando não cabe; abaixo disso vai o original, na qualidade do iPhone
       const menor = await comprimir(file, meta, aoAvancar).catch(() => null);
       if (menor && menor.size < file.size) blob = menor;
     }
-    if (blob.size > MAX_MB * 1048576) throw new Error(`O vídeo ficou com ${Math.round(blob.size / 1048576)} MB. O limite é ${MAX_MB} MB: envie um trecho menor.`);
+    if (blob.size > MAX_MB * 1048576) throw new Error(`Esse vídeo tem ${Math.round(blob.size / 1048576)} MB e o limite hoje é ${MAX_MB} MB. Envie um trecho menor (no app Fotos: Editar e cortar).`);
     const tipo = (blob.type || file.type || "video/mp4").split(";")[0];
     const ext = tipo.includes("webm") ? "webm" : tipo.includes("quicktime") ? "mov" : "mp4";
     return { blob, tipo, ext, dur: meta.dur };

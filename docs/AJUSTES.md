@@ -136,10 +136,24 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Por que não Google Drive agora:** precisaria criar um projeto no Google Cloud (chave OAuth), a Lari entrar com a conta Google no painel, e cada vídeo teria que ficar "qualquer pessoa com o link" para o tutor ver, sem o controle do link pessoal. Fica como plano B.
 - **Medidor:** Configurações → Fotos e vídeos guardados (alerta acima de 80% de 1 GB) e botão para apagar vídeos com mais de 90 dias.
 - **Se encher:** Supabase Pro (US$ 25/mês, 100 GB) ou Cloudflare R2 para vídeos (10 GB grátis; exige cartão cadastrado).
+- **Mudança 12/11 (pedido do Bruno: "não pode ficar em resolução ruim, temos um iPhone 17 Pro Max"):** o vídeo vai original até 48 MB; acima disso é regravado em Full HD com a maior taxa que cabe (4 a 16 Mbps). 480p foi abandonado.
+- **Pendente (decisão do Bruno):** guardar o original em 4K exige R2 ou Supabase Pro (ver F-04).
+
+### F-04 · Vídeos originais em 4K 🟡 aguardando decisão
+- iPhone 17 Pro Max: 4K 30 qps ≈ 190 MB por minuto; 4K 60 qps ≈ 440 MB/min. O plano grátis do Supabase aceita 50 MB por arquivo e 1 GB no total.
+- **Opção A (recomendada): Cloudflare R2** só para vídeos. 10 GB grátis, sem custo de download, ~US$ 0,015/GB/mês depois (100 GB ≈ US$ 1,35/mês). Precisa ativar o R2 com cartão no Cloudflare; depois o Claude liga ao Worker (envio em partes, link temporário para o tutor).
+- **Opção B: Supabase Pro** (US$ 25/mês): 100 GB e arquivos grandes; nada muda no código além do limite.
+
+### F-05 · Ficha do pet na área do tutor (refeita) ✅ (v2.3)
+- Nada obrigatório: só porte, o que come e remédios aparecem como "importante". O resto fica recolhido em "Se quiser contar mais". Respostas de um toque. Aniversário (dia/mês e ano opcional; coluna `pets.aniversario`, formato `AAAA-MM-DD` ou `---MM-DD`).
+
+### F-06 · Quem fez cada proposta ✅ (v2.3)
+- Coluna `propostas.criado_por` (e-mail do login). Lista mostra "por Fulano" e o filtro "Quem fez". Origem: proposta do salsicha feita pela Larissa que não apareceu para o Bruno (não estava no banco; ver resposta de 12/11).
 
 ## Histórico
 | Data | O quê |
 |---|---|
+| 12/11/2026 | v2.3: ficha do tutor sem obrigação + aniversário, aniversários no Hoje, quem fez cada proposta, vídeo em qualidade máxima |
 | 11/11/2026 | v2.2: vídeos no diário (F-03), medidor de espaço, Pix no fim da área do tutor, cliente completa os próprios dados e os do pet, Pix da proposta reorganizado |
 | 11/11/2026 | A-04, C-02 e C-05 entregues (v2.1). Área do tutor refeita em abas |
 | 10/11/2026 | F-01 entregue (v2.0). Identidade visual aplicada no painel. Corrigido: nome do tutor salvo pela metade |

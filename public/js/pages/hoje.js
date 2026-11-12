@@ -22,6 +22,7 @@ export async function mount(root) {
   const h = new Date().getHours(); const saud = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
   root.innerHTML = `<h1 class="pg">${saud}!</h1>
     <div class="kpis" id="kpis">${'<div class="sk sk-kpi"></div>'.repeat(4)}</div>
+    <div id="anivs"></div>
     ${g ? `<div id="pend"></div>` : ""}
     <h2 class="sec">Hoje · ${U.fmtY(hoje)} <span class="count" id="cHoje"></span></h2><div id="hoje">${U.skeleton(2)}</div>
     <h2 class="sec">Próximos 7 dias <span class="count" id="cProx"></span></h2><div id="prox">${U.skeleton(2)}</div>
@@ -64,4 +65,12 @@ export async function mount(root) {
   A.ligar(U.$("#fu", root), id => cob.find(x => x.id === id), () => pintar());
   if (g) db.pendencias().then(x => { const n = db.totalPendencias(x); const el = U.$("#pend", root);
     if (el && n) el.innerHTML = `<a class="pend-card" href="#/completar">${ic("marcado")}<span><b>Completar cadastros</b><small>${n} informaç${n === 1 ? "ão" : "ões"} faltando (WhatsApp, fotos, raças, datas)</small></span>${ic("seta")}</a>`; }).catch(() => {});
+  db.petsComAniversario().then(ps => {
+    const prox = ps.map(p => ({ ...p, em: U.diasAteAniv(p.aniversario) })).filter(p => p.em != null && p.em <= 7).sort((a, b) => a.em - b.em);
+    const el = U.$("#anivs", root); if (!el || !prox.length) return;
+    el.innerHTML = `<h2 class="sec">Aniversários</h2><div class="list">${prox.map(p => `<a class="item" href="#/pet/${p.id}"><div class="av">${ic("estrela")}</div><div class="main"><div class="t">${U.esc(p.nome || "Pet")}${p.tutores?.nome ? ` <span class="muted" style="font-weight:400">· ${U.esc(p.tutores.nome)}</span>` : ""}</div>
+      <div class="s">${p.em === 0 ? "<b>Hoje!</b>" : p.em === 1 ? "Amanhã" : `Em ${p.em} dias`} · ${U.esc(U.anivTexto(p.aniversario))}</div></div>
+      ${p.em === 0 && p.tutores?.whatsapp ? `<span class="btn small soft" data-zap="${U.esc(U.waLink(p.tutores.whatsapp, `Oi, ${(p.tutores.nome || "").split(" ")[0]}! Hoje é aniversário ${/a$/i.test(p.nome || "") ? "da" : "do"} ${p.nome}! Muitas felicidades e muitos petiscos para ${/a$/i.test(p.nome || "") ? "ela" : "ele"}. Um beijo da Lari, Pet Lar`))}">${ic("conversa")} Parabéns</span>` : ""}</a>`).join("")}</div>`;
+    el.addEventListener("click", e => { const z = e.target.closest("[data-zap]"); if (z) { e.preventDefault(); window.open(z.dataset.zap, "_blank", "noopener"); } });
+  }).catch(() => {});
 }

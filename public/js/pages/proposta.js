@@ -670,7 +670,7 @@ export async function mount(root, ctx) {
   function renderHead() {
     if (!alive) return;
     $("#pNum").textContent = META.numero || "Nova proposta";
-    $("#pStatus").innerHTML = META.id ? U.pill(META.status) : "";
+    $("#pStatus").innerHTML = META.id ? U.pill(META.status) + (META.autor ? ` <span class="autor-tag">por ${U.esc(META.autor)}</span>` : "") : "";
   }
 
   /* ================= tutor (busca + vínculo) ================= */
@@ -974,6 +974,7 @@ export async function mount(root, ctx) {
   try { tutorParaNova = sessionStorage.getItem("petlar_nova_tutor"); sessionStorage.removeItem("petlar_nova_tutor"); } catch { }
   if (param && param !== "nova") {
     const row = await db.getProposta(param);
+    if (row.criado_por) db.nomesEquipe().then(eq => { if (Object.keys(eq).length > 1) { META.autor = eq[row.criado_por.toLowerCase()] || row.criado_por.split("@")[0]; renderHead(); } }).catch(() => {});
     S = Object.assign(blank(), row.payload || {});
     if (!Array.isArray(S.adds)) S.adds = [];
     if (!S.pets || !S.pets.length) S.pets = [newPet()];

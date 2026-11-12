@@ -54,7 +54,7 @@ export async function followUps(dias) {
 }
 
 // colunas das listas com ações rápidas (Propostas, Cobrar, Hoje)
-export const PROP_LISTA = "id,numero,status,servico,tutor_id,tutor_nome,data_inicio,data_fim,valor_total,valor_cheio,resumo,created_at,enviada_em,cobrancas,cobrada_em,lembrar_em,opcoes:payload->opcoes,escolhida:payload->escolhida,tutores(whatsapp),proposta_pets(pets(nome))";
+export const PROP_LISTA = "id,numero,status,servico,tutor_id,tutor_nome,criado_por,data_inicio,data_fim,valor_total,valor_cheio,resumo,created_at,enviada_em,cobrancas,cobrada_em,lembrar_em,opcoes:payload->opcoes,escolhida:payload->escolhida,tutores(whatsapp),proposta_pets(pets(nome))";
 // filtros da tela Propostas (f = { criado:{ini,fim}, servicoData:{ini,fim}, servicos:[], cidades:[], valor:{min,max} })
 function filtrarPropostas(r, f = {}) {
   if (f.criado?.ini) r = r.gte("created_at", f.criado.ini);
@@ -63,6 +63,7 @@ function filtrarPropostas(r, f = {}) {
   if (f.servicoData?.ini) r = r.gte("data_fim", f.servicoData.ini);
   if (f.servicos?.length) r = r.in("servico", f.servicos);
   if (f.cidades?.length) r = r.in("cidade", f.cidades);
+  if (f.autores?.length) r = r.in("criado_por", f.autores);
   if (f.valor?.min) r = r.gte("valor_total", Number(f.valor.min));
   if (f.valor?.max) r = r.lte("valor_total", Number(f.valor.max));
   return r;
@@ -114,7 +115,7 @@ export async function saveTutor(t) {
 export async function deleteTutor(id) { return chk(await sb.from("tutores").delete().eq("id", id)); }
 
 // ---------- pets ----------
-const PET_COLS = "id,tutor_id,nome,especie,raca,idade,porte,passeia,foto_path,alimentacao,medicacao,comportamento,limitacoes,veterinario,reativo,observacoes,ativo,atualizado_tutor_em";
+const PET_COLS = "id,tutor_id,nome,especie,raca,idade,porte,passeia,foto_path,alimentacao,medicacao,comportamento,limitacoes,veterinario,reativo,observacoes,ativo,atualizado_tutor_em,aniversario";
 export async function petsDoTutor(tutorId) { return chk(await sb.from("pets").select(PET_COLS).eq("tutor_id", tutorId).order("nome")); }
 export async function getPets(ids) { if (!ids.length) return []; return chk(await sb.from("pets").select(PET_COLS).in("id", ids)); }
 export async function listPets({ q, page = 0, size = 30 } = {}) {
@@ -289,3 +290,7 @@ export async function apagarVideos(regs) {
   if (regs.length) chk(await sb.from("diario").delete().in("id", regs.map(r => r.id)));
   return paths.length;
 }
+
+// quem é quem (e-mail → nome), para mostrar quem fez cada proposta
+export const nomesEquipe = () => cached("equipe", 300000, async () => Object.fromEntries((await listAdmins()).map(a => [a.email.toLowerCase(), a.nome || a.email.split("@")[0]])));
+export async function petsComAniversario() { return chk(await sb.from("pets").select("id,nome,especie,aniversario,tutor_id,tutores(nome,whatsapp)").not("aniversario", "is", null).neq("ativo", false)); }

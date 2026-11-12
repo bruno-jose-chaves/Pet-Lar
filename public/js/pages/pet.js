@@ -31,6 +31,7 @@ export async function mount(root, { params }) {
         ${f("nome", "Nome", "text", "Ex.: Bento")}
         <div class="chips"><button type="button" class="chip" data-esp="cao">${ic("cao")} Cão</button><button type="button" class="chip" data-esp="gato">${ic("gato")} Gato</button></div>
         <div class="row">${f("raca", "Raça", "text", "Ex.: SRD")}${f("idade", "Idade", "text", "Ex.: 4 anos")}</div>
+        <label class="f">Aniversário <span class="muted" style="font-weight:400">(se souber)</span>${U.anivCampos(pet.aniversario)}</label>
         <label class="f" id="wPorte">Porte<select name="porte">${Object.entries({ P: "Pequeno (até 10 kg)", M: "Médio (10–25 kg)", G: "Grande (25–40 kg)", GG: "Gigante (40 kg+)" }).map(([k, v]) => `<option value="${k}" ${pet.porte === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="check" id="wPasseia"><input type="checkbox" name="passeia" ${pet.passeia ? "checked" : ""}> Vai passear nas visitas</label>
         <h3 style="margin-top:14px">Ficha</h3>
@@ -80,7 +81,7 @@ export async function mount(root, { params }) {
     const v = { nome: fd.get("nome").trim() || null, especie: esp, raca: fd.get("raca") || null, idade: fd.get("idade") || null, porte: fd.get("porte") || "P",
       passeia: !!fd.get("passeia"), alimentacao: fd.get("alimentacao") || null, medicacao: fd.get("medicacao") || null, comportamento: fd.get("comportamento") || null,
       limitacoes: fd.get("limitacoes") || null, veterinario: fd.get("veterinario") || null, observacoes: fd.get("observacoes") || null,
-      reativo: !!fd.get("reativo"), ativo: !!fd.get("ativo"), tutor_id: tutor ? tutor.id : null };
+      reativo: !!fd.get("reativo"), ativo: !!fd.get("ativo"), tutor_id: tutor ? tutor.id : null, aniversario: U.anivDoForm(fd) };
     try { const r = await db.savePet(id ? { id, ...v } : v); U.toast("Pet salvo"); if (!id) location.hash = "#/pet/" + r.id; else { pet = { ...pet, ...r }; U.$("h1.pg", root).textContent = r.nome || "Pet sem nome"; } }
     catch (err) { U.toast("Não consegui salvar: " + err.message); } finally { b.disabled = false; }
   });

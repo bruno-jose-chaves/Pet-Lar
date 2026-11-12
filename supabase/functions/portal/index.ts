@@ -41,7 +41,7 @@ async function urls(paths: (string | null | undefined)[]) {
 }
 
 async function petsDoTutor(tutorId: string) {
-  return await chk(sb.from("pets").select("id,nome,especie,raca,idade,porte,foto_path,alimentacao,medicacao,comportamento,limitacoes,veterinario,observacoes,atualizado_tutor_em")
+  return await chk(sb.from("pets").select("id,nome,especie,raca,idade,porte,aniversario,foto_path,alimentacao,medicacao,comportamento,limitacoes,veterinario,observacoes,atualizado_tutor_em")
     .eq("tutor_id", tutorId).neq("ativo", false).order("nome")) as Record<string, any>[];
 }
 
@@ -107,6 +107,8 @@ Deno.serve(async req => {
       const row: Record<string, unknown> = { atualizado_tutor_em: new Date().toISOString() };
       const c = body.campos || {};
       for (const k of FICHA) if (k in c) row[k] = texto(c[k], k === "raca" || k === "idade" ? 60 : 1000);
+      if ("aniversario" in c) { const v = c.aniversario ? String(c.aniversario) : null;
+        if (v && !/^(\d{4}|--)-\d{2}-\d{2}$/.test(v)) throw new Erro("Data inválida"); row.aniversario = v; }
       if ("porte" in c) { if (!PORTES.includes(String(c.porte))) throw new Erro("Porte inválido"); row.porte = c.porte; }
       if ("nome" in c) { // o nome só pode ser preenchido pelo tutor quando está vazio
         const atual = pets.find(p => p.id === body.pet_id)?.nome; const novo = texto(c.nome, 40);
