@@ -39,6 +39,7 @@ export function botoes(p, { cobrar = true } = {}) {
   const zap = cobrar && p.status === "enviada"
     ? `<a class="qa-b zap" data-qa="cobrar" data-id="${p.id}" href="${U.waLink(p.tutores?.whatsapp, msgCobranca(p))}" target="_blank" rel="noopener">${ic("conversa")} Cobrar${p.cobrancas ? ` (${p.cobrancas + 1}ª)` : ""}</a>` : "";
   return `<div class="qa" data-qa-row="${p.id}">
+    ${p.status === "rascunho" ? `<a class="qa-b terminar" href="#/proposta/${p.id}/enviar">${ic("enviar")} Enviar</a>` : ""}
     <button class="qa-b ok" data-qa="aceita" data-id="${p.id}">${ic("check")} Aceitou</button>
     <button class="qa-b no" data-qa="recusada" data-id="${p.id}">${ic("x")} Recusou</button>
     ${zap}

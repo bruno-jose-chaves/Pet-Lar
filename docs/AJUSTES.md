@@ -139,7 +139,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Mudança 12/11 (pedido do Bruno: "não pode ficar em resolução ruim, temos um iPhone 17 Pro Max"):** o vídeo vai original até 48 MB; acima disso é regravado em Full HD com a maior taxa que cabe (4 a 16 Mbps). 480p foi abandonado.
 - **Pendente (decisão do Bruno):** guardar o original em 4K exige R2 ou Supabase Pro (ver F-04).
 
-### F-04 · Vídeos originais em 4K 🟡 aguardando decisão
+### F-04 · Vídeos originais em 4K ⏸️ pausado (12/11: por enquanto fotos e vídeos vão pelo WhatsApp; rever quando tiver mais cadência)
 - iPhone 17 Pro Max: 4K 30 qps ≈ 190 MB por minuto; 4K 60 qps ≈ 440 MB/min. O plano grátis do Supabase aceita 50 MB por arquivo e 1 GB no total.
 - **Opção A (recomendada): Cloudflare R2** só para vídeos. 10 GB grátis, sem custo de download, ~US$ 0,015/GB/mês depois (100 GB ≈ US$ 1,35/mês). Precisa ativar o R2 com cartão no Cloudflare; depois o Claude liga ao Worker (envio em partes, link temporário para o tutor).
 - **Opção B: Supabase Pro** (US$ 25/mês): 100 GB e arquivos grandes; nada muda no código além do limite.
@@ -150,9 +150,17 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ### F-06 · Quem fez cada proposta ✅ (v2.3)
 - Coluna `propostas.criado_por` (e-mail do login). Lista mostra "por Fulano" e o filtro "Quem fez". Origem: proposta do salsicha feita pela Larissa que não apareceu para o Bruno (não estava no banco; ver resposta de 12/11).
 
+### A-05 · Rascunho × enviada mais claro ✅ (v2.4)
+- **Origem:** Bruno, 12/11: a Larissa não apertou em Enviar e achou que a proposta tinha sumido ("o enviar não é muito didático").
+- **Feito:** passo 5 no fim do formulário (aviso de rascunho, lista do que falta, "Enviar para Fulana" e "Terminar depois"); rascunho com borda tracejada e botão Enviar na lista; faixa "X rascunhos ainda não enviados"; aviso no Hoje; rota `#/proposta/:id/enviar`.
+
+### F-03 · Mídia no diário ⏸️ (12/11)
+- Fotos e vídeos do diário pelo WhatsApp por enquanto. O botão do diário abre a conversa e registra "Fotos e vídeos enviados no seu WhatsApp". A aba Fotos da área do tutor some quando não há mídia. Para voltar: `MIDIA_NO_PAINEL = true` em `public/js/config.js`.
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 12/11/2026 | v2.4: passo 5 / rascunhos (A-05); mídia do diário pelo WhatsApp (F-03 pausado) |
 | 12/11/2026 | v2.3: ficha do tutor sem obrigação + aniversário, aniversários no Hoje, quem fez cada proposta, vídeo em qualidade máxima |
 | 11/11/2026 | v2.2: vídeos no diário (F-03), medidor de espaço, Pix no fim da área do tutor, cliente completa os próprios dados e os do pet, Pix da proposta reorganizado |
 | 11/11/2026 | A-04, C-02 e C-05 entregues (v2.1). Área do tutor refeita em abas |

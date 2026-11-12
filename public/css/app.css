@@ -361,3 +361,22 @@ a.btn,.btn{text-decoration:none}
 .armz-barra i.alto{background:var(--terra)}
 .autor{color:var(--terra-d);font-weight:700}.autor-tag{font-size:12px;color:var(--muted);font-weight:700;margin-left:4px}
 .aniv-sel{display:grid;grid-template-columns:.7fr 1.3fr 1.2fr;gap:8px;margin-top:4px}
+/* passo 5: enviar (deixa claro o que é rascunho) */
+.env-card .env-aviso{display:flex;gap:8px;align-items:flex-start;background:var(--sand2);border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:14px}
+.env-card .env-aviso .ic{flex:none;margin-top:2px;color:var(--brown)}
+.env-check{list-style:none;padding:0;margin:0 0 12px;display:flex;flex-direction:column;gap:8px}
+.env-check li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.env-check li .ic{width:22px;height:22px;flex:none}
+.env-check li span{display:flex;flex-direction:column}
+.env-check li b{color:var(--char);font-size:14.5px}
+.env-check li.ok .ic{color:var(--sage-d)}
+.env-check li.falta .ic{color:var(--terra)}
+.env-check li.falta span{color:var(--terra-d)}
+.env-btn{width:100%;justify-content:center;min-height:50px;margin-top:8px}
+.env-btn[disabled]{opacity:.55}
+/* rascunho na lista */
+.pwrap.rascunho{border-style:dashed;border-color:#D6C3AE;background:#FBF7F1}
+.qa-b.terminar{background:var(--terra);border-color:var(--terra);color:#fff;text-decoration:none}
+.rasc-banner{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px dashed #D6C3AE;border-radius:14px;padding:10px 14px;margin:0 0 12px;cursor:pointer;width:100%;text-align:left;font:inherit;color:var(--char)}
+.rasc-banner .ic{color:var(--brown)}
+.rasc-banner span{flex:1}

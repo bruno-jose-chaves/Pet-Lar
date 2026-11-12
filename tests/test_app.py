@@ -83,6 +83,14 @@ with sync_playwright() as p:
     no_hscroll("Editor de proposta")
     pg.screenshot(path=str(OUT / "app_proposta.png"))
 
+    # passo 5: rascunho explicado, checklist e atalho na lista
+    check("Passo 5: avisa que é rascunho e o cliente ainda não recebeu", "ainda não recebeu" in pg.inner_text("#envCard") and pg.locator("#envCard li.ok").count() >= 3)
+    check("Passo 5: botão 'Enviar para Sabrina'", "Enviar para Sabrina" in pg.inner_text("#envCard [data-env=abrir]") and pg.is_enabled("#envCard [data-env=abrir]"))
+    tap("#envCard [data-env=sair]"); pg.wait_for_timeout(1500)
+    check("Terminar depois: vai para Propostas com aviso de rascunho", "rascunho" in pg.inner_text("#rascB").lower() and pg.locator(".pwrap.rascunho").count() == 1 and pg.locator(".pwrap.rascunho .qa-b.terminar").count() == 1)
+    tap(".pwrap.rascunho .qa-b.terminar"); pg.wait_for_timeout(1800)
+    check("Enviar pela lista abre a janela de envio", pg.locator(".modal [data-a=wa]").count() == 1)
+    pg.click(".modal [data-close]"); pg.wait_for_timeout(300)
     # Enviar: mensagem com Pix
     tap("#btnEnviar2"); pg.wait_for_timeout(400)
     msg = pg.locator(".modal pre").inner_text()
@@ -448,6 +456,12 @@ with sync_playwright() as p:
     pg.click("#dPets [data-pet=pD2]")
     pg.click("[data-t=nota]"); pg.wait_for_timeout(300); pg.fill("#dTxt", "Dormiram juntinhos no sofá"); pg.click(".modal [data-ok]"); pg.wait_for_timeout(700)
     check("Diário: recado registrado", "juntinhos" in pg.inner_text("#dLista"))
+    # por enquanto fotos e vídeos vão pelo WhatsApp
+    check("Diário: botão 'Fotos no WhatsApp'", "Fotos no WhatsApp" in pg.inner_text("#dBtns"))
+    with pg.expect_popup() as pop: pg.click("[data-t=foto]")
+    pop.value.close(); pg.wait_for_timeout(700)
+    check("Diário: abre o WhatsApp e marca que as fotos foram enviadas", DB("T.diario.some(r=>r.tipo==='foto' && !r.foto_path && /WhatsApp/.test(r.nota||''))") and "WhatsApp" in pg.inner_text("#dLista"))
+    pg.evaluate("() => { const T=window.__FAKE_DB; T.diario=T.diario.filter(r=>!(r.tipo==='foto' && !r.foto_path)); localStorage.setItem('petlar_midia_painel','1'); }")
     with pg.expect_file_chooser() as fc: pg.click("[data-t=foto]")
     fc.value.set_files(str(ROOT / "tests" / "foto_teste.jpg")); pg.wait_for_timeout(1200)
     pg.fill("#dTxt", "Passeio na praia"); pg.click(".modal [data-ok]"); pg.wait_for_timeout(1000)

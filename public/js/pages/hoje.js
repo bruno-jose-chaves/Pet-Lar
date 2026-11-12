@@ -23,7 +23,7 @@ export async function mount(root) {
   root.innerHTML = `<h1 class="pg">${saud}!</h1>
     <div class="kpis" id="kpis">${'<div class="sk sk-kpi"></div>'.repeat(4)}</div>
     <div id="anivs"></div>
-    ${g ? `<div id="pend"></div>` : ""}
+    ${g ? `<div id="rasc"></div><div id="pend"></div>` : ""}
     <h2 class="sec">Hoje · ${U.fmtY(hoje)} <span class="count" id="cHoje"></span></h2><div id="hoje">${U.skeleton(2)}</div>
     <h2 class="sec">Próximos 7 dias <span class="count" id="cProx"></span></h2><div id="prox">${U.skeleton(2)}</div>
     ${g ? `<h2 class="sec">Cobrar resposta <span class="count" id="cFu"></span></h2><div id="fu">${U.skeleton(1)}</div>
@@ -73,4 +73,6 @@ export async function mount(root) {
       ${p.em === 0 && p.tutores?.whatsapp ? `<span class="btn small soft" data-zap="${U.esc(U.waLink(p.tutores.whatsapp, `Oi, ${(p.tutores.nome || "").split(" ")[0]}! Hoje é aniversário ${/a$/i.test(p.nome || "") ? "da" : "do"} ${p.nome}! Muitas felicidades e muitos petiscos para ${/a$/i.test(p.nome || "") ? "ela" : "ele"}. Um beijo da Lari, Pet Lar`))}">${ic("conversa")} Parabéns</span>` : ""}</a>`).join("")}</div>`;
     el.addEventListener("click", e => { const z = e.target.closest("[data-zap]"); if (z) { e.preventDefault(); window.open(z.dataset.zap, "_blank", "noopener"); } });
   }).catch(() => {});
+  if (g) db.contarStatus("rascunho", {}).then(n => { const el = U.$("#rasc", root); if (el && n) el.innerHTML = `<a class="pend-card" href="#/propostas" data-rasc>${ic("nota")}<span><b>${n} proposta${n > 1 ? "s" : ""} em rascunho</b><small>Ainda não ${n > 1 ? "foram enviadas" : "foi enviada"} ao cliente. Toque para terminar.</small></span>${ic("seta")}</a>`;
+    el?.querySelector("[data-rasc]")?.addEventListener("click", () => sessionStorage.setItem("petlar_filtro_prop", "rascunho")); }).catch(() => {});
 }

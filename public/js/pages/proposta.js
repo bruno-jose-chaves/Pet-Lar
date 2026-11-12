@@ -124,6 +124,7 @@ const TEMPLATE = `
       <div class="int" id="calcInt"></div>
     </div>
     <div id="pagtosBox"></div>
+    <div class="card env-card" id="envCard"></div>
   </section>
   <section class="pv">
     <div class="pv-bar"><span>Prévia do PDF</span><span class="row-actions"><button class="btn soft small" id="btnCard">Imagem</button><button class="btn soft small" id="btnPdf2">PDF</button></span></div>
@@ -635,7 +636,29 @@ export async function mount(root, ctx) {
 
   /* ================= UPDATE ================= */
   let saveT;
-  function update(rerenderPets){ if(rerenderPets) renderPets(); syncChips(); renderOptTabs(); renderPage(); markDirty(); }
+  function update(rerenderPets){ if(rerenderPets) renderPets(); syncChips(); renderOptTabs(); renderPage(); markDirty(); renderEnvio(); }
+  // passo 5: deixa claro que a proposta ainda é um rascunho e o que falta para enviar
+  function checklist() {
+    const R = withOpt(principal(), calc);
+    return [
+      ["Cliente", !!S.tutor.trim(), S.tutor.trim() || "Escreva o nome no passo 1"],
+      ["WhatsApp", String(S.tutorWhats || "").replace(/\D/g, "").length >= 10, S.tutorWhats || "Para mandar direto na conversa (opcional)", true],
+      ["Pets", S.pets.some(p => p.nome.trim()), S.pets.map(p => p.nome.trim()).filter(Boolean).join(", ") || "Adicione no passo 2"],
+      ["Serviço e datas", R.ok, R.ok ? R.title : R.msg],
+    ];
+  }
+  function renderEnvio() {
+    const el = $("#envCard"); if (!el || !alive) return;
+    const st = META.status || "rascunho";
+    if (st !== "rascunho") { el.innerHTML = st === "enviada" ? `<h3><span class="n">5</span>Enviada</h3><p class="muted" style="margin:0 0 10px">O cliente já recebeu${META.enviada_em ? ` em ${U.fmt(String(META.enviada_em).slice(0, 10))}` : ""}. Quando ele responder, marque no menu ••• ou na lista.</p><button class="btn soft" data-env="abrir">${ic("enviar")} Mandar de novo</button>` : ""; el.classList.toggle("hide", st !== "enviada"); return; }
+    el.classList.remove("hide");
+    const itens = checklist(); const pronto = itens.every(([, ok, , opc]) => ok || opc);
+    el.innerHTML = `<h3><span class="n">5</span>Enviar para o cliente</h3>
+      <p class="env-aviso">${ic("nota")} <span>Esta proposta é um <b>rascunho</b>: fica salva aqui e na aba Propostas, mas o cliente <b>ainda não recebeu</b>.</span></p>
+      <ul class="env-check">${itens.map(([l, ok, txt, opc]) => `<li class="${ok ? "ok" : opc ? "opc" : "falta"}">${ic(ok ? "marcado" : "vazio")}<span><b>${l}</b>${U.esc(txt)}</span></li>`).join("")}</ul>
+      <button class="btn primary env-btn" data-env="abrir" ${pronto ? "" : "disabled"}>${ic("enviar")} ${pronto ? `Enviar para ${U.esc(S.tutor.trim().split(" ")[0])}` : "Complete os itens acima"}</button>
+      <button class="btn soft env-btn" data-env="sair">Terminar depois</button>`;
+  }
 
   function bindValues(){ $$("[data-k]").forEach(el=>{ const k=el.dataset.k; if(el.type==="checkbox") el.checked=!!S[k]; else el.value=S[k]??""; }); }
 
@@ -668,7 +691,7 @@ export async function mount(root, ctx) {
   /* ================= cabeçalho / status ================= */
   function setState(t) { if (!alive) return; const el = document.getElementById("saveState"); if (el) el.textContent = t; }
   function renderHead() {
-    if (!alive) return;
+    if (!alive) return; renderEnvio();
     $("#pNum").textContent = META.numero || "Nova proposta";
     $("#pStatus").innerHTML = META.id ? U.pill(META.status) + (META.autor ? ` <span class="autor-tag">por ${U.esc(META.autor)}</span>` : "") : "";
   }
@@ -965,6 +988,9 @@ export async function mount(root, ctx) {
     });
   }
   on($("#pEnviar"), "click", abrirEnviar);
+  on($("#envCard"), "click", async e => { const b = e.target.closest("[data-env]"); if (!b) return;
+    if (b.dataset.env === "abrir") abrirEnviar();
+    else { if (podeSalvar()) { try { await save(); } catch { } } toast("Rascunho guardado em Propostas. Falta enviar.", 3500); location.hash = "#/propostas"; } });
   on($("#btnEnviar2"), "click", abrirEnviar);
   on($("#btnPdf2"), "click", e => enviarPdf(e.currentTarget));
   on($("#btnCard"), "click", e => enviarCard(e.currentTarget));
@@ -988,7 +1014,7 @@ export async function mount(root, ctx) {
     }));
     if (acao === "duplicar") {
       Object.assign(META, { id: null, numero: null, status: "rascunho" }); S.data = U.today(); delete S.importada; S.escolhida = null;
-    } else Object.assign(META, { id: row.id, numero: row.numero, status: row.status });
+    } else Object.assign(META, { id: row.id, numero: row.numero, status: row.status, enviada_em: row.enviada_em });
     if (S.tutor_id) db.petsDoTutor(S.tutor_id).then(r => { tutorPetsCache = r; renderTutorPets(); }).catch(() => {});
   } else if (tutorParaNova) {
     const t = await db.getTutor(tutorParaNova).catch(() => null); if (t) { await linkTutor(t); }
@@ -1003,6 +1029,7 @@ export async function mount(root, ctx) {
   document.fonts && document.fonts.ready.then(fitPreview);
   clearTimeout(autoT); dirty = false; window.__dirty = false; setState(META.id ? "Salvo ✓" : "");
   if (acao === "duplicar") { replaceHash("#/proposta/nova"); markDirty(); toast("Cópia criada. Ajuste e ela salva sozinha."); }
+  if (acao === "enviar") { replaceHash("#/proposta/" + META.id); setTimeout(() => alive && abrirEnviar(), 300); }
 
   setNavGuard(async () => {
     if (saving) { try { await saving; } catch { } }

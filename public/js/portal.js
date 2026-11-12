@@ -347,7 +347,8 @@ function pintar() {
   barra.hidden = false; document.body.classList.add("com-abas");
   const ab = ABAS.some(a => a[0] === V.aba) ? V.aba : "inicio";
   const n = grupos().abertas.length;
-  barra.innerHTML = ABAS.map(([k, i, l]) => `<button class="${k === ab ? "on" : ""}" data-ir="${k}"${k === ab ? ' aria-current="page"' : ""}>${ic(i)}<span>${l}</span>${k === "mais" && n ? `<i class="pt-ponto" aria-label="${n} orçamento para responder"></i>` : ""}</button>`).join("");
+  const temMidia = D.diario.some(r => r.foto); // fotos e vídeos vão pelo WhatsApp por enquanto: sem mídia, a aba Fotos some
+  barra.innerHTML = ABAS.filter(([k]) => k !== "fotos" || temMidia || ab === "fotos").map(([k, i, l]) => `<button class="${k === ab ? "on" : ""}" data-ir="${k}"${k === ab ? ' aria-current="page"' : ""}>${ic(i)}<span>${l}</span>${k === "mais" && n ? `<i class="pt-ponto" aria-label="${n} orçamento para responder"></i>` : ""}</button>`).join("");
   tela.className = "pt-main aba-" + ab;
   tela.innerHTML = ({ inicio, diario, fotos, pets, mais })[ab]();
 }

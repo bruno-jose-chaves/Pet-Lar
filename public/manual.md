@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.3 · atualizado em 12/11/2026
+Versão 2.4 · atualizado em 12/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -82,9 +82,20 @@ O quadro escuro **Conta (só você vê)** mostra o cálculo completo, inclusive 
 
 A proposta **salva sozinha** enquanto você digita, a partir do momento em que tem o nome do tutor ou de um pet. O número (PL-2026-001…) é dado no primeiro salvamento.
 
+### Rascunho × enviada
+
+Enquanto você preenche, a proposta é um **Rascunho**: já fica salva no painel e aparece na aba Propostas (com borda tracejada), mas **o cliente ainda não recebeu**.
+
+No fim do formulário tem o passo **5 · Enviar para o cliente**, com o que já está pronto (cliente, WhatsApp, pets, serviço e datas) e dois botões:
+
+- **Enviar para Fulana**: abre as opções de envio abaixo;
+- **Terminar depois**: guarda o rascunho e volta para Propostas.
+
+Rascunhos esquecidos aparecem em três lugares: aviso no **Hoje** ("X propostas em rascunho"), faixa no topo de **Propostas** e o botão **Enviar** em cada rascunho da lista.
+
 ### Enviar
 
-Toque em **Enviar**. Dá para:
+Toque em **Enviar** (no topo, no passo 5 ou na lista). Dá para:
 
 - **Compartilhar PDF**, que abre o WhatsApp ou o app que você escolher;
 - **Compartilhar imagem (card)**, uma versão curta para o WhatsApp;
@@ -230,8 +241,8 @@ Durante uma estadia ou visita, registre com um toque o que aconteceu. No fim do 
 **Como usar:**
 
 1. Toque no que aconteceu: 🍽️ Comeu · 💧 Bebeu água · 🦮 Passeou · 💛 Xixi · 💩 Cocô · 💊 Remédio · 😴 Dormiu · 🎾 Brincou. O registro entra na hora, com o horário.
-2. **Foto ou vídeo:** tira ou escolhe uma foto **ou um vídeo** e escreve uma legenda, se quiser. Tudo fica guardado de forma privada.
-   - Vídeos de até **90 segundos**. O vídeo vai **original, na qualidade do iPhone**, sempre que tiver até 48 MB (o limite do plano grátis). Se passar disso, o painel regrava em **Full HD** com a maior qualidade que cabe (nunca abaixo de Full HD). Deixe a tela ligada enquanto aparece "Preparando o vídeo em Full HD…".
+2. **Fotos no WhatsApp:** por enquanto, fotos e vídeos vão direto pelo WhatsApp (decisão de 12/11/2026, para não pagar armazenamento maior agora). O botão abre a conversa com o tutor e marca no diário "Fotos e vídeos enviados no seu WhatsApp", para o tutor ver na área dele. A foto de perfil de cada pet continua no painel.
+   - *Quando voltarmos a guardar no painel* (é só ligar uma chave no código): o botão vira **Foto ou vídeo**. Vídeos de até **90 segundos**. O vídeo vai **original, na qualidade do iPhone**, sempre que tiver até 48 MB (o limite do plano grátis). Se passar disso, o painel regrava em **Full HD** com a maior qualidade que cabe (nunca abaixo de Full HD). Deixe a tela ligada enquanto aparece "Preparando o vídeo em Full HD…".
    - O tutor vê o vídeo no diário e na aba Fotos da área do tutor.
 3. **📝 Recado:** escreve qualquer coisa ("comeu tudo e dormiu no sofá").
 4. Com mais de um pet, os botões **Registrar para** escolhem de quem é o registro. Já vêm todos marcados.
@@ -243,6 +254,8 @@ Durante uma estadia ou visita, registre com um toque o que aconteceu. No fim do 
 A ficha de cada pet mostra o diário de todos os serviços, dia por dia. Mais para frente, este diário é o que o tutor vai ver na área dele.
 
 ## Espaço para fotos e vídeos
+
+> Hoje as fotos e vídeos do diário vão pelo WhatsApp. O painel guarda só a foto de perfil dos pets. O que está abaixo vale para quando o envio pelo painel for ligado de novo.
 
 Fotos e vídeos ficam no armazenamento privado do Supabase (plano grátis: **1 GB**). Em **Configurações → Fotos e vídeos guardados** aparece quanto já foi usado.
 
@@ -343,6 +356,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.4 | 12/11/2026 | Passo 5 da proposta (rascunho explicado, o que falta, Enviar / Terminar depois), rascunhos destacados na lista, aviso no Hoje e botão Enviar nos rascunhos. Fotos e vídeos do diário pelo WhatsApp por enquanto |
 | 2.3 | 12/11/2026 | Ficha do pet na área do tutor sem obrigação (só 3 importantes, respostas de um toque, extras recolhidos) e aniversário do pet. Aniversários no Hoje. Quem fez cada proposta (lista e filtro). Vídeo original em qualidade máxima até 48 MB; acima, Full HD |
 | 2.2 | 11/11/2026 | Vídeo no diário (diminuído no celular antes de enviar) e medidor de espaço. Área do tutor: Pix no fim da página, cliente completa os próprios dados e os do pet. Pix do sinal da proposta numa faixa própria, com QR maior e a chave |
 | 2.1 | 11/11/2026 | Área do tutor refeita como aplicativo com abas (Início, Diário, Fotos, Pets, Mais). Senha provisória pelo Administrador. Pets diferentes em cada opção da proposta. Tela Completar cadastros |

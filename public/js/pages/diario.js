@@ -4,6 +4,7 @@ import * as U from "../ui.js";
 import * as db from "../db.js";
 import { ic } from "../icones.js";
 import { prepararVideo } from "../video.js";
+import { midiaNoPainel } from "../config.js";
 
 export const TIPOS = {
   comeu: [ic("comeu"), "Comeu", "🍽️"], agua: [ic("agua"), "Bebeu água", "💧"], passeio: [ic("passeio"), "Passeou", "🦮"], xixi: [ic("xixi"), "Fez xixi", "✅"], coco: [ic("coco"), "Fez cocô", "✅"],
@@ -68,7 +69,7 @@ export async function mount(root, { params }) {
       <div class="muted">${U.svcPill(serv.servico)} ${U.esc(U.periodo(serv.data_inicio, serv.data_fim))}${serv.tutor_nome ? " · " + U.esc(serv.tutor_nome) : ""}</div></div></div>
     <div class="cal-head" style="margin:12px 0 6px"><button class="btn soft small" id="dPrev" aria-label="Dia anterior">‹</button><b id="dNome"></b><button class="btn soft small" id="dNext" aria-label="Próximo dia">›</button></div>
     ${pets.length > 1 ? `<div class="chips" id="dPets"><span class="muted" style="align-self:center">Registrar para:</span>${pets.map(p => `<button class="chip on" data-pet="${p.id}">${U.esc(p.nome || "pet")}</button>`).join("")}</div>` : ""}
-    <div class="dbtns" id="dBtns">${BOTOES.map(t => `<button class="dbtn" data-t="${t}"><span>${TIPOS[t][0]}</span>${t === "foto" ? "Foto ou vídeo" : TIPOS[t][1]}</button>`).join("")}</div>
+    <div class="dbtns" id="dBtns">${BOTOES.map(t => `<button class="dbtn" data-t="${t}"><span>${TIPOS[t][0]}</span>${t === "foto" ? (midiaNoPainel() ? "Foto ou vídeo" : "Fotos no WhatsApp") : TIPOS[t][1]}</button>`).join("")}</div>
     <input type="file" accept="image/*,video/*" id="dFoto" class="hide">
     <h2 class="sec">Linha do tempo <span class="count" id="dCount"></span></h2>
     <div id="dLista">${U.skeleton(3)}</div>
@@ -120,7 +121,15 @@ export async function mount(root, { params }) {
 
   U.$("#dBtns", root).addEventListener("click", async e => {
     const b = e.target.closest("[data-t]"); if (!b) return; const t = b.dataset.t;
-    if (t === "foto") { U.$("#dFoto", root).click(); return; }
+    if (t === "foto") {
+      if (midiaNoPainel()) { U.$("#dFoto", root).click(); return; }
+      // por enquanto fotos e vídeos vão pelo WhatsApp: abre a conversa e marca no diário que foram enviados
+      const nomesPets = juntar(pets.filter(p => selPets.has(p.id)).map(p => p.nome || "seu pet")) || "seu pet";
+      const oi = serv.tutor_nome ? `Oi, ${serv.tutor_nome.trim().split(/\s+/)[0]}!` : "Oi!";
+      window.open(U.waLink(serv.tutores?.whatsapp, `${oi} Olha ${nomesPets} agora 📸`), "_blank", "noopener");
+      await registrar("foto", { nota: "Fotos e vídeos enviados no seu WhatsApp" });
+      return;
+    }
     if (t === "nota") { const v = await pedirTexto("Recado", "Ex.: Comeu tudo e dormiu no sofá"); if (v) registrar("nota", { nota: v }); return; }
     if (t === "remedio") { const v = await pedirTexto("Remédio", "Qual remédio e dose (opcional)"); if (v !== null) registrar("remedio", { nota: v || null }); return; }
     b.classList.add("pulse"); setTimeout(() => b.classList.remove("pulse"), 400);

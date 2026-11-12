@@ -15,6 +15,7 @@ export async function mount(root) {
     <div id="fbar"></div>
     <div class="chips" id="fil">${FILTROS.map(([k, t]) => `<button class="chip" data-v="${k}">${t}</button>`).join("")}</div>
     <div id="funil" class="muted" style="margin:-4px 0 10px"></div>
+    <div id="rascB"></div>
     <div id="lista">${U.skeleton(5)}</div><div class="more" id="more"></div>
     <a class="btn primary fab" id="fabNova" href="#/proposta/nova">+ Nova proposta</a>
     <div class="lote hide" id="lote"><span id="loteN">0 selecionadas</span>
@@ -35,7 +36,7 @@ export async function mount(root) {
 
   const autor = p => { const e = String(p.criado_por || "").toLowerCase(); return e && Object.keys(equipe).length > 1 ? (equipe[e] || e.split("@")[0]) : ""; };
   const row = p => { const pets = A.nomesPets(p).join(", ");
-    return `<div class="pwrap ${sel.has(p.id) ? "sel" : ""}" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
+    return `<div class="pwrap ${p.status} ${sel.has(p.id) ? "sel" : ""}" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
     ${modoSel ? `<span class="ck" aria-hidden="true">${sel.has(p.id) ? ic("marcado") : ic("vazio")}</span>` : ""}
     <div class="main"><div class="t">${U.esc(p.tutor_nome || "Sem tutor")} <span class="muted" style="font-weight:400">· ${U.esc(p.numero || "")}</span></div>
     <div class="s">${U.svcPill(p.servico)} ${U.esc(U.periodo(p.data_inicio, p.data_fim) || "sem data")}${pets ? " · " + U.esc(pets) : ""}${Array.isArray(p.opcoes) ? " · 2 opções" : ""}${p.status === "enviada" && p.cobrancas ? ` · cobrada ${p.cobrancas}×` : ""}${autor(p) ? ` · <span class="autor">por ${U.esc(autor(p))}</span>` : ""}</div></div>
@@ -72,11 +73,14 @@ export async function mount(root) {
     } catch (e) { U.$("#lista", root).innerHTML = `<div class="empty">Não consegui carregar. <button class="btn soft" id="retry">Tentar de novo</button></div>`; U.$("#retry", root).onclick = () => load(); }
   }
   async function funil() {
-    const f = fAtual(); const cont = await Promise.all(["enviada", "aceita", "recusada"].map(s => db.contarStatus(s, f))).catch(() => null);
-    if (!cont) return; const [e, a, r] = cont; const resp = a + r;
+    const f = fAtual(); const cont = await Promise.all(["enviada", "aceita", "recusada", "rascunho"].map(s => db.contarStatus(s, f))).catch(() => null);
+    if (!cont) return; const [e, a, r, ra] = cont; const resp = a + r;
+    const rb = U.$("#rascB", root);
+    if (rb) rb.innerHTML = ra && st !== "rascunho" ? `<button class="rasc-banner" id="bRasc">${ic("nota")}<span><b>${ra} rascunho${ra > 1 ? "s" : ""}</b> ainda não ${ra > 1 ? "foram enviados" : "foi enviado"} ao cliente</span><span class="btn soft small" style="flex:none">Ver</span></button>` : "";
+    U.$("#bRasc", root)?.addEventListener("click", () => { st = "rascunho"; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); load(); funil(); });
     U.$("#funil", root).innerHTML = `${filtros.ativos() ? "Com os filtros: " : ""}Enviadas aguardando: <b>${e}</b> · Aceitas: <b>${a}</b> · Recusadas: <b>${r}</b>${resp ? ` · Taxa de aceite: <b>${Math.round(a / resp * 100)}%</b>` : ""}`;
   }
-  U.$("#fil", root).addEventListener("click", e => { const c = e.target.closest(".chip"); if (!c) return; st = c.dataset.v; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); load(); });
+  U.$("#fil", root).addEventListener("click", e => { const c = e.target.closest(".chip"); if (!c) return; st = c.dataset.v; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); load(); funil(); });
   U.$("#lista", root).addEventListener("click", e => { const a = e.target.closest("[data-busca]"); if (!a) return; e.preventDefault(); st = ""; sessionStorage.setItem("petlar_filtro_prop", st); syncChips(); q = a.dataset.busca; U.$("#q", root).value = q; load(); });
   // ações rápidas em cada linha
   A.ligar(U.$("#lista", root), id => items.find(x => x.id === id), () => { pintar(); funil(); });

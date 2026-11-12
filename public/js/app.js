@@ -9,7 +9,7 @@ const svg = k => ic(k);
 const ROUTES = [
   { re: /^#?\/?(hoje)?$/, mod: "hoje", nav: "hoje", title: "Hoje" },
   { re: /^#\/propostas$/, mod: "propostas", nav: "propostas", title: "Propostas" },
-  { re: /^#\/proposta\/(nova|[\w-]+)(?:\/(duplicar))?$/, mod: "proposta", nav: "propostas", title: "Proposta", wide: true },
+  { re: /^#\/proposta\/(nova|[\w-]+)(?:\/(duplicar|enviar))?$/, mod: "proposta", nav: "propostas", title: "Proposta", wide: true },
   { re: /^#\/pets$/, mod: "pets", nav: "pets", title: "Pets" },
   { re: /^#\/pet\/(novo|[\w-]+)$/, mod: "pet", nav: "pets", title: "Pet" },
   { re: /^#\/tutores$/, mod: "tutores", nav: "mais", title: "Tutores" },
