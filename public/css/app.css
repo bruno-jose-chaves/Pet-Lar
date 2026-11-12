@@ -380,3 +380,14 @@ a.btn,.btn{text-decoration:none}
 .rasc-banner{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px dashed #D6C3AE;border-radius:14px;padding:10px 14px;margin:0 0 12px;cursor:pointer;width:100%;text-align:left;font:inherit;color:var(--char)}
 .rasc-banner .ic{color:var(--brown)}
 .rasc-banner span{flex:1}
+/* enquadrar foto */
+.rc-modal{max-width:460px}
+.rc-dica{margin:-4px 0 10px;font-size:14px}
+.rc-palco{position:relative;width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;touch-action:none;cursor:grab;background:#30251F;user-select:none;-webkit-user-select:none}
+.rc-palco:active{cursor:grabbing}
+.rc-palco:focus-visible{outline:3px solid var(--terra);outline-offset:2px}
+.rc-palco canvas{display:block}
+.rc-mascara{position:absolute;inset:0;pointer-events:none;border-radius:16px;background:radial-gradient(circle at center,transparent 0 49.5%,rgba(48,37,31,.45) 50%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.rc-ctrl{display:flex;align-items:center;gap:8px;margin:12px 0 4px}
+.rc-ctrl input[type=range]{flex:1;accent-color:var(--terra)}
+.rc-ctrl .btn{min-width:42px;justify-content:center;font-size:18px}

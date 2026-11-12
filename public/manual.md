@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.4 · atualizado em 12/11/2026
+Versão 2.5 · atualizado em 12/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -154,6 +154,19 @@ Ao abrir um deles, aparece um aviso **Orçamento importado do histórico**. Ness
 Cada proposta guarda quem criou (o login). Na lista de **Propostas** aparece "por Larissa", "por Bruno"… e nos **Filtros** tem **Quem fez**. Administrador e Gestora veem as propostas de todo mundo.
 
 > Se uma proposta "sumiu": confira se não há um filtro ligado (a barra de filtros mostra o que está ativo) ou se a aba de status não está em Enviadas/Aceitas. Rascunhos aparecem em **Todas** e **Rascunhos**. Propostas feitas no gerador antigo (link do Claude) **não** entram no painel.
+
+## Enquadrar a foto do pet
+
+Sempre que você escolhe uma foto de pet (na proposta, na ficha do pet ou em Completar cadastros), abre a tela **Enquadrar a foto**:
+
+| Gesto | O que faz |
+|---|---|
+| Arrastar com um dedo | Reposiciona a foto |
+| Pinça com dois dedos, ou a barra / botões − e + | Zoom (até 4×) |
+| Botão de girar | Gira 90° (foto deitada) |
+| **Usar esta foto** | Salva o recorte quadrado (até 1080 px) |
+
+O círculo mostra como a foto aparece nas listas. Para ajustar uma foto que já está salva, toque em **Enquadrar** ao lado de "Trocar foto". O cliente tem o mesmo recurso na área do tutor.
 
 ## Aniversários
 
@@ -356,6 +369,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.5 | 12/11/2026 | Enquadrar a foto do pet (arrastar, zoom com pinça, girar) no painel e na área do tutor |
 | 2.4 | 12/11/2026 | Passo 5 da proposta (rascunho explicado, o que falta, Enviar / Terminar depois), rascunhos destacados na lista, aviso no Hoje e botão Enviar nos rascunhos. Fotos e vídeos do diário pelo WhatsApp por enquanto |
 | 2.3 | 12/11/2026 | Ficha do pet na área do tutor sem obrigação (só 3 importantes, respostas de um toque, extras recolhidos) e aniversário do pet. Aniversários no Hoje. Quem fez cada proposta (lista e filtro). Vídeo original em qualidade máxima até 48 MB; acima, Full HD |
 | 2.2 | 11/11/2026 | Vídeo no diário (diminuído no celular antes de enviar) e medidor de espaço. Área do tutor: Pix no fim da página, cliente completa os próprios dados e os do pet. Pix do sinal da proposta numa faixa própria, com QR maior e a chave |

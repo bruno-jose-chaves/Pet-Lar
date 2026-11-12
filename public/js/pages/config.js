@@ -41,7 +41,7 @@ export async function mount(root) {
         <div class="panel" style="margin-top:12px"><h3>Minha conta</h3><p class="muted" style="margin-top:0">${U.esc(user?.email || "")}</p>
           <form id="fP"><label class="f">Nova senha<input type="password" name="s" minlength="6" autocomplete="new-password"></label><div class="row-actions"><button class="btn soft" type="submit">Trocar senha</button><button class="btn danger" type="button" id="bSair">Sair</button></div></form>
         </div>
-        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v2.4 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
+        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v2.5 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
       </div>
     </div>`;
   async function testePix() {

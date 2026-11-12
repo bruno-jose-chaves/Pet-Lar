@@ -3,6 +3,7 @@ import * as U from "../ui.js";
 import * as db from "../db.js";
 import { gestao } from "../perfil.js";
 import { ic } from "../icones.js";
+import { enquadrar } from "../recorte.js";
 
 const squareBlob = U.squareBlob;
 
@@ -25,7 +26,7 @@ export async function mount(root, { params }) {
           <div class="ph" id="ph" style="width:96px;height:96px">${fotoUrl ? `<img src="${fotoUrl}" alt=""><span class="chg">trocar</span>` : U.PAW + "<small>foto</small>"}</div>
           <div class="photo-actions" style="margin:0;flex-direction:column;align-items:flex-start">
             <button type="button" class="btn mini" id="bFoto">${ic("camera")} ${fotoUrl ? "Trocar" : "Adicionar"} foto</button>
-            ${fotoUrl ? `<button type="button" class="btn mini danger" id="bRmFoto">${ic("lixo")} Remover foto</button>` : ""}
+            ${fotoUrl ? `<button type="button" class="btn mini" id="bAjFoto">${ic("foto")} Enquadrar</button><button type="button" class="btn mini danger" id="bRmFoto">${ic("lixo")} Remover foto</button>` : ""}
           </div>
         </div>
         ${f("nome", "Nome", "text", "Ex.: Bento")}
@@ -90,13 +91,18 @@ export async function mount(root, { params }) {
   U.$("#ph", root).addEventListener("click", pick); U.$("#bFoto", root).addEventListener("click", pick);
   U.$("#file", root).addEventListener("change", async e => {
     const file = e.target.files[0]; if (!file) return;
+    e.target.value = ""; enviar(file);
+  });
+  async function enviar(fonte) {
+    let blob; try { blob = await enquadrar(fonte); } catch (err) { U.toast(err.message); return; } if (!blob) return;
     U.$("#ph", root).innerHTML = '<div class="sk" style="width:100%;height:100%"></div>';
     try {
-      const blob = await squareBlob(file); const old = pet.foto_path;
+      const old = pet.foto_path;
       const path = await db.uploadFoto(id, blob); await db.savePet({ id, foto_path: path }); if (old) db.removeFoto(old).catch(() => {});
       U.toast("Foto salva"); mount(root, { params });
     } catch (err) { U.toast("Não consegui enviar a foto: " + err.message); mount(root, { params }); }
-  });
+  }
+  U.$("#bAjFoto", root)?.addEventListener("click", () => enviar(fotoUrl));
   const rm = U.$("#bRmFoto", root);
   if (rm) rm.addEventListener("click", async () => { await db.savePet({ id, foto_path: null }); db.removeFoto(pet.foto_path).catch(() => {}); U.toast("Foto removida"); mount(root, { params }); });
   const bp = U.$("#bProp", root);

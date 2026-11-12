@@ -157,9 +157,14 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ### F-03 · Mídia no diário ⏸️ (12/11)
 - Fotos e vídeos do diário pelo WhatsApp por enquanto. O botão do diário abre a conversa e registra "Fotos e vídeos enviados no seu WhatsApp". A aba Fotos da área do tutor some quando não há mídia. Para voltar: `MIDIA_NO_PAINEL = true` em `public/js/config.js`.
 
+### F-07 · Enquadrar a foto do pet ✅ (v2.5)
+- **Origem:** Bruno, 12/11 ("reposicionar, dar zoom, enquadrar a foto do cachorro").
+- **Feito:** `public/js/recorte.js` (arrastar, pinça, barra de zoom, girar, teclado); recorte quadrado até 1080 px em JPEG. Usado na proposta, ficha do pet, Completar cadastros e área do tutor; botão **Enquadrar** para fotos já salvas.
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 12/11/2026 | v2.5: enquadrar a foto do pet (F-07) |
 | 12/11/2026 | v2.4: passo 5 / rascunhos (A-05); mídia do diário pelo WhatsApp (F-03 pausado) |
 | 12/11/2026 | v2.3: ficha do tutor sem obrigação + aniversário, aniversários no Hoje, quem fez cada proposta, vídeo em qualidade máxima |
 | 11/11/2026 | v2.2: vídeos no diário (F-03), medidor de espaço, Pix no fim da área do tutor, cliente completa os próprios dados e os do pet, Pix da proposta reorganizado |

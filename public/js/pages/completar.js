@@ -3,6 +3,7 @@
 import * as U from "../ui.js";
 import * as db from "../db.js";
 import { ic } from "../icones.js";
+import { enquadrar } from "../recorte.js";
 
 const SEC = [
   ["semCliente", "Propostas sem cliente", "Abra e escolha o cliente (ou cadastre)."],
@@ -53,7 +54,7 @@ export async function mount(root) {
   U.$("#cpFile", root).addEventListener("change", async e => {
     const file = e.target.files[0]; e.target.value = ""; if (!file || !alvo) return;
     const id = alvo.dataset.foto; alvo.disabled = true; alvo.textContent = "Enviando…";
-    try { const blob = await U.squareBlob(file); const path = await db.uploadFoto(id, blob); await db.savePet({ id, foto_path: path }); U.toast("Foto salva"); tirar(alvo.closest(".item")); }
+    try { const blob = await enquadrar(file); if (!blob) { alvo.disabled = false; alvo.innerHTML = `${ic("camera")} Pôr foto`; return; } const path = await db.uploadFoto(id, blob); await db.savePet({ id, foto_path: path }); U.toast("Foto salva"); tirar(alvo.closest(".item")); }
     catch (err) { U.toast("Não consegui enviar a foto: " + err.message); alvo.disabled = false; alvo.innerHTML = `${ic("camera")} Pôr foto`; }
   });
 }

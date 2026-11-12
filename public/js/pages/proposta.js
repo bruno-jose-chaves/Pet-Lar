@@ -4,6 +4,7 @@ import * as db from "../db.js";
 import { pixPayload, pixQR } from "../pix.js";
 import { setNavGuard, replaceHash } from "../app.js";
 import { ic } from "../icones.js";
+import { enquadrar } from "../recorte.js";
 
 const toast = U.toast;
 
@@ -453,7 +454,7 @@ export async function mount(root, ctx) {
             <label class="f" style="margin:0">Nome do pet ${i? "#"+(i+1):""}<input type="text" data-pk="nome" value="${esc(p.nome)}" placeholder="Ex.: Bento"></label>
           </div>
         </div>
-        ${p.foto?`<div class="photo-actions"><button class="btn mini" data-photo="${p.id}">${ic("camera")} Trocar foto</button><button class="btn mini danger" data-rmfoto="${p.id}">${ic("lixo")} Remover foto</button></div>`:""}
+        ${p.foto?`<div class="photo-actions"><button class="btn mini" data-photo="${p.id}">${ic("camera")} Trocar foto</button><button class="btn mini" data-ajustar="${p.id}">${ic("foto")} Enquadrar</button><button class="btn mini danger" data-rmfoto="${p.id}">${ic("lixo")} Remover foto</button></div>`:""}
         <div class="chips" style="margin-bottom:10px">
           <button class="chip ${p.especie==="cao"?"on":""}" data-pc="especie" data-v="cao">${ic("cao")} Cão</button>
           <button class="chip ${p.especie==="gato"?"on":""}" data-pc="especie" data-v="gato">${ic("gato")} Gato</button>
@@ -487,13 +488,15 @@ export async function mount(root, ctx) {
   $("#petList").addEventListener("click",e=>{
     const card=e.target.closest(".pet"); if(!card) return; const p=S.pets.find(x=>x.id===card.dataset.id);
     const chip=e.target.closest("[data-pc]"); if(chip){ e.preventDefault(); p[chip.dataset.pc]=chip.dataset.v; update(true); return; }
+    if(e.target.closest("[data-ajustar]")){ e.preventDefault(); (async()=>{ const b = await enquadrar(p.foto).catch(err=>{ toast(err.message); return null; }); if(!b) return; p.foto = await U.blobToDataURL(b); p._fotoNova=true; p._fotoRemover=false; update(true); })(); return; }
     if(e.target.closest("[data-photo]")){ e.preventDefault(); photoTarget=p.id; $("#petFile").value=""; $("#petFile").click(); return; }
     if(e.target.dataset.rm){ S.pets=S.pets.filter(x=>x.id!==p.id); if(S.petsFora) S.petsFora=S.petsFora.filter(x=>x!==p.id); if(S.alt&&S.alt.petsFora) S.alt.petsFora=S.alt.petsFora.filter(x=>x!==p.id); update(true); renderTutorPets(); return; }
     if(e.target.closest("[data-rmfoto]")){ p.foto=""; p._fotoNova=false; if(p.foto_path) p._fotoRemover=true; update(true); return; }
   });
   $("#addPet").addEventListener("click",()=>{ if(S.pets.length>=4){ toast("Até 4 pets por proposta."); return; } S.pets.push(newPet()); update(true); renderTutorPets(); });
   $("#petFile").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f||!photoTarget) return;
-    const p=S.pets.find(x=>x.id===photoTarget); p.foto = await squareImage(f, 900); p._fotoNova=true; p._fotoRemover=false; update(true); });
+    const p=S.pets.find(x=>x.id===photoTarget); const b = await enquadrar(f).catch(err=>{ toast(err.message); return null; }); if(!b) return;
+    p.foto = await U.blobToDataURL(b); p._fotoNova=true; p._fotoRemover=false; update(true); });
   function squareImage(file,size){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>{ const img=new Image(); img.onload=()=>{
     const s=Math.min(img.width,img.height); const c=document.createElement("canvas"); c.width=c.height=size; const x=c.getContext("2d");
     x.imageSmoothingQuality="high"; x.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,size,size); res(c.toDataURL("image/jpeg",.9)); }; img.onerror=rej; img.src=r.result; }; r.readAsDataURL(file); }); }

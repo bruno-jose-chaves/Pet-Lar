@@ -3,6 +3,7 @@
 // Tudo passa pela Edge Function "portal", que só mostra o que é deste tutor.
 import * as U from "./ui.js";
 import { ic } from "./icones.js";
+import { enquadrar } from "./recorte.js";
 
 const FN = "https://jyzqcazwargpywjmayoh.supabase.co/functions/v1/portal";
 const KEY = "sb_publishable_5VCBmavQviKh0GrvUWmp_A_3Z_HeARk";
@@ -266,7 +267,7 @@ function fichaPet(p) {
   const semNome = !String(p.nome || "").trim();
   return `<header class="pt-tit pt-tit-volta"><button class="pt-volta" data-ir="pets" aria-label="Voltar para os pets">${ic("setaE")}</button><h1>${U.esc(p.nome || "Seu pet")}</h1></header>
     <div class="pt-corpo">
-    <div class="pt-ficha-foto">${fotoPet(p)}<button class="pt-btn pt-btn-2 pt-btn-p" data-trocafoto="${p.id}">${ic("camera")} ${p.foto ? "Trocar a foto" : "Pôr uma foto"}</button></div>
+    <div class="pt-ficha-foto">${fotoPet(p)}<div class="pt-ficha-fbtn">${p.foto ? `<button class="pt-btn pt-btn-2 pt-btn-p" data-ajustafoto="${p.id}">${ic("foto")} Enquadrar</button>` : ""}<button class="pt-btn pt-btn-2 pt-btn-p" data-trocafoto="${p.id}">${ic("camera")} ${p.foto ? "Trocar" : "Pôr uma foto"}</button></div></div>
     <p class="pt-ficha-sub">Preencha só o que souber. O que estiver marcado como <b>importante</b> ajuda a Lari a cuidar ${/a$/i.test(p.nome || "") ? "dela" : "dele"} no dia a dia.</p>
     ${semNome ? `<section class="pt-bloco pt-ficha">${linhaCampo(p, { k: "nome", l: "Nome", ph: "Como ele se chama", imp: true })}</section>` : ""}
     ${SECOES_PET.map(([sec, t]) => { const cs = CAMPOS_PET.filter(c => c.sec === sec && !(c.soSemAniv && /^\d{4}/.test(p.aniversario || "")));
@@ -379,13 +380,13 @@ async function verPix(p) {
   m.el.classList.add("pt-modal");
   m.el.querySelector("[data-copiar]").addEventListener("click", async () => { await U.copyText(payload); U.toast("Código Pix copiado. Agora cole no app do banco.", 4500); });
 }
-function reduzir(file, max = 1280) {
-  return new Promise((res, rej) => { const r = new FileReader(); r.onerror = rej;
-    r.onload = () => { const img = new Image(); img.onerror = () => rej(new Error("Não consegui abrir essa foto.")); img.onload = () => {
-      const k = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement("canvas");
-      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      res(c.toDataURL("image/jpeg", .85)); }; img.src = r.result; };
-    r.readAsDataURL(file); });
+async function enviarFoto(botao, fonte) {
+  const id = botao.dataset.trocafoto || botao.dataset.ajustafoto;
+  let blob; try { blob = await enquadrar(fonte, { titulo: "Enquadrar a foto" }); } catch (err) { U.toast(err.message); return; }
+  if (!blob) return;
+  botao.disabled = true; botao.textContent = "Enviando…";
+  try { const imagem = await U.blobToDataURL(blob); const r = await api("foto", { pet_id: id, imagem }); pet(id).foto = r.foto; pintar(); U.toast("Foto salva!"); }
+  catch (err) { pintar(); U.toast(err.message || "Não consegui enviar a foto."); }
 }
 function avaliar(id) {
   const p = D.propostas.find(x => x.id === id); let nota = 0;
@@ -435,12 +436,10 @@ document.addEventListener("click", e => {
   if (t.closest("[data-cancelar]")) return pintar();
   const tf = t.closest("[data-trocafoto]"); if (tf) {
     const inp = Object.assign(document.createElement("input"), { type: "file", accept: "image/*" });
-    inp.addEventListener("change", async () => { const file = inp.files[0]; if (!file) return;
-      tf.disabled = true; tf.textContent = "Enviando…";
-      try { const imagem = await reduzir(file); const r = await api("foto", { pet_id: tf.dataset.trocafoto, imagem }); pet(tf.dataset.trocafoto).foto = r.foto; pintar(); U.toast("Foto nova salva!"); }
-      catch (err) { pintar(); U.toast(err.message || "Não consegui enviar a foto."); } });
-    inp.click();
+    inp.addEventListener("change", () => { const file = inp.files[0]; if (file) enviarFoto(tf, file); });
+    inp.click(); return;
   }
+  const aj = t.closest("[data-ajustafoto]"); if (aj) return enviarFoto(aj, pet(aj.dataset.ajustafoto).foto);
 });
 async function salvarCampo(f, v) {
   const k = f.dataset.salvar, ent = f.dataset.ent;
