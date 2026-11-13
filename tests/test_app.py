@@ -26,7 +26,7 @@ def check(name, cond, extra=""):
 engine = sys.argv[1] if len(sys.argv) > 1 else "webkit"
 with sync_playwright() as p:
     br = getattr(p, engine).launch()
-    opts = dict(viewport={"width": 430, "height": 932}, device_scale_factor=3, has_touch=True, locale="pt-BR", accept_downloads=True)
+    opts = dict(viewport={"width": 430, "height": 932}, device_scale_factor=3, has_touch=True, locale="pt-BR", timezone_id="UTC", accept_downloads=True)  # datas do teste usam toISOString (UTC)
     if engine == "webkit": opts.update(is_mobile=True, user_agent=p.devices["iPhone 15 Pro Max"]["user_agent"])
     ctx = br.new_context(**opts)
     ctx.route("**/vendor/supabase.js", lambda r: r.fulfill(body=FAKE, content_type="application/javascript"))
@@ -73,6 +73,8 @@ with sync_playwright() as p:
     pg.click(".rc-modal [data-girar]"); pg.click(".rc-modal [data-usar]"); pg.wait_for_timeout(600)
     check("Enquadrar: foto quadrada aplicada no pet", pg.evaluate("(async()=>{const s=G.S.pets[0].foto; if(!s) return false; const i=new Image(); i.src=s; await i.decode(); return i.width===i.height && i.width>=200})()"))
     check("Proposta: botão Enquadrar na foto", pg.locator("#petList [data-ajustar]").count() == 1)
+    pg.fill("#petList [data-pk=idade]", "4"); pg.wait_for_timeout(400)
+    check("Ficha da proposta: idade com a palavra anos", "4 anos" in pg.inner_text("#page"))
     check("Proposta: botões de foto pequenos", pg.locator("#petList .photo-actions .btn.mini").first.bounding_box()["height"] <= 34)
     tap("[data-chips=servico] .chip[data-v=hosp]")
     hoje = pg.evaluate("new Date().toISOString().slice(0,10)")
@@ -232,7 +234,9 @@ with sync_playwright() as p:
 
     # ---------- v1.2: duas opções na mesma proposta ----------
     go(f"#/proposta/{pid}"); pg.wait_for_timeout(900)
-    tap("#optTabs [data-opt=add]"); pg.wait_for_timeout(400)
+    check("2 opções: convite com atalhos (hospedagem ou visitas, avulso ou pacote)", "duas opções" in pg.inner_text("#optTabs") and pg.locator("#optTabs [data-par]").count() == 2)
+    tap("#optTabs [data-par='hosp,visitas']"); pg.wait_for_timeout(500)
+    check("2 opções: atalho já põe visitas na opção 2 com as mesmas datas", pg.evaluate("G.S.servico") == "visitas" and pg.evaluate("G.S.alt.servico") == "hosp" and pg.input_value("[data-k=v_ini]") == hoje)
     check("2 opções: cria a opção 2 e passa a editá-la", DB("true") and pg.evaluate("G.S.editando") == 2 and pg.locator("#optTabs .chip").count() == 2)
     tap("[data-chips=servico] .chip[data-v=visitas]")
     pg.fill("[data-k=v_ini]", hoje); pg.fill("[data-k=v_fim]", dois); pg.select_option("[data-k=v_dia]", "1"); pg.wait_for_timeout(300)

@@ -364,7 +364,8 @@ export async function mount(root, ctx) {
   function renderOptTabs(){
     const box=$("#optTabs"); if(!box) return; const e=edit();
     $("#ajOpt").textContent = S.alt ? `· opção ${e}` : "";
-    if(!S.alt){ box.innerHTML=`<button class="btn soft small" data-opt="add">+ Adicionar opção 2</button> <span class="hint">Para mandar duas opções no mesmo PDF, por exemplo hospedagem ou visitas.</span>`; return; }
+    if(!S.alt){ box.innerHTML=`<div class="opt-convite"><div class="oc-t"><b>Quer oferecer duas opções?</b><span>O cliente escolhe uma. Ex.: hospedagem <i>ou</i> visitas · visita avulsa <i>ou</i> pacote mensal.</span></div>
+      <div class="oc-b">${[["hosp","visitas","Hospedagem ou visitas"],["visitas","pacote","Avulso ou pacote mensal"]].map(([a,b,t])=>`<button class="btn soft small" data-opt="add" data-par="${a},${b}">${t}</button>`).join("")}<button class="btn soft small" data-opt="add">Outra combinação</button></div></div>`; return; }
     const Rs={1:withOpt(1,calc),2:withOpt(2,calc)}; const pr=principal();
     box.innerHTML=`<div class="chips">${[1,2].map(n=>`<button class="chip ${e===n?"on":""}" data-opt="${n}">Opção ${n}${Rs[n].ok?" · "+brl(Rs[n].final):""}${pr===n?" "+ic("estrela","sm"):""}</button>`).join("")}</div>
       <div class="row-actions" style="margin:6px 0 2px">${pr!==e?`<button class="btn soft small" data-opt="rec">${ic("estrela")} Recomendar a opção ${e}</button>`:`<span class="hint">${ic("estrela","sm")} Opção ${e} ${S.escolhida?"escolhida pelo cliente":"recomendada (fica em destaque no PDF)"}</span>`}<button class="x" data-opt="rm">remover opção ${e}</button></div>
@@ -376,7 +377,15 @@ export async function mount(root, ctx) {
       if(f.has(id)) f.delete(id); else { if(S.pets.filter(p=>!f.has(p.id)).length<=1){ toast("Cada opção precisa de pelo menos 1 pet."); return; } f.add(id); }
       S.petsFora=[...f]; update(true); return; }
     const b=ev.target.closest("[data-opt]"); if(!b) return; ev.preventDefault(); const o=b.dataset.opt;
-    if(o==="add"){ S.alt=pick(S); S.recomendada=1; S.escolhida=null; trocarOpcao(); toast("Opção 2 criada. Troque o serviço, as datas ou o valor."); }
+    if(o==="add"){
+      const par=(b.dataset.par||"").split(",");
+      if(par.length===2){ // atalho: opção 1 e 2 já com os serviços do par, mesmas datas
+        const ini = S.v_ini||S.h_in||S.p_ini||S.e_data||S.b_data||"", fim = S.v_fim||S.h_out||ini;
+        const aplicar=(svc)=>{ S.servico=svc; if(ini){ if(svc==="hosp"){ S.h_in=S.h_in||ini; S.h_out=S.h_out||fim; } if(svc==="visitas"){ S.v_ini=S.v_ini||ini; S.v_fim=S.v_fim||fim; } if(svc==="pacote") S.p_ini=S.p_ini||ini; } };
+        aplicar(par[0]); S.alt=pick(S); S.recomendada=1; S.escolhida=null; trocarOpcao(); aplicar(par[1]); bindValues(); update(true);
+        toast("Pronto: opção 1 e opção 2 montadas. Confira as datas e os valores de cada uma.", 4000);
+      } else { S.alt=pick(S); S.recomendada=1; S.escolhida=null; trocarOpcao(); toast("Opção 2 criada. Troque o serviço, as datas ou o valor."); }
+    }
     else if(o==="rec"){ S.recomendada=edit(); S.escolhida=null; update(); }
     else if(o==="rm"){
       if(!(await U.confirmDialog(`Remover a opção ${edit()}? A outra opção fica como a proposta.`,{ok:"Remover",danger:true}))) return;
@@ -554,11 +563,11 @@ export async function mount(root, ctx) {
     const n=S.pets.length;
     const petsHTML = S.pets.map(p=>{
       const tags=[]; if(p.especie==="gato") tags.push("Gato"); else tags.push("Porte "+PORTE_TXT[p.porte]);
-      const det=[p.raca, p.idade].filter(Boolean).join(" · ");
+      const det=[p.raca, U.idadeTxt(p.idade) && "Idade: "+U.idadeTxt(p.idade)].filter(Boolean).join(" · ");
       return `<div class="pcard"><div class="pimg">${p.foto?`<img src="${p.foto}">`:PAW}</div>
         <div><div class="pn">${esc(petTitle(p))}</div>${det?`<div class="pd">${esc(det)}</div>`:""}<div>${tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div></div>`; }).join("");
     const p0=S.pets[0];
-    const ficha=[["Espécie",p0.especie==="gato"?"Gato":"Cão"],["Raça",p0.raca],["Idade",p0.idade],["Porte",p0.especie==="gato"?"":PORTE_TXT[p0.porte][0].toUpperCase()+PORTE_TXT[p0.porte].slice(1)]].filter(x=>x[1]&&String(x[1]).trim());
+    const ficha=[["Espécie",p0.especie==="gato"?"Gato":"Cão"],["Raça",p0.raca],["Idade",U.idadeTxt(p0.idade)],["Porte",p0.especie==="gato"?"":PORTE_TXT[p0.porte][0].toUpperCase()+PORTE_TXT[p0.porte].slice(1)]].filter(x=>x[1]&&String(x[1]).trim());
     const soloHTML = `<div class="pcard solo"><div class="pimg">${p0.foto?`<img src="${p0.foto}">`:PAW}</div>
       <div class="pinfo"><div class="pk">Quem vamos cuidar</div><div class="pn">${esc(petTitle(p0))}</div>
       <div class="ficha">${ficha.map(([k,v])=>`<div><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div></div></div>`;

@@ -391,3 +391,8 @@ a.btn,.btn{text-decoration:none}
 .rc-ctrl{display:flex;align-items:center;gap:8px;margin:12px 0 4px}
 .rc-ctrl input[type=range]{flex:1;accent-color:var(--terra)}
 .rc-ctrl .btn{min-width:42px;justify-content:center;font-size:18px}
+/* convite para montar duas opções */
+.opt-convite{border:1.5px dashed #D6C3AE;background:#FBF7F1;border-radius:14px;padding:12px 14px;margin:0 0 12px}
+.opt-convite .oc-t{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.opt-convite .oc-t span{font-size:13.5px;color:var(--muted)}
+.opt-convite .oc-b{display:flex;flex-wrap:wrap;gap:8px}

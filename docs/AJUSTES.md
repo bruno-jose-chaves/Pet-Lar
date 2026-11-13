@@ -161,9 +161,15 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Origem:** Bruno, 12/11 ("reposicionar, dar zoom, enquadrar a foto do cachorro").
 - **Feito:** `public/js/recorte.js` (arrastar, pinça, barra de zoom, girar, teclado); recorte quadrado até 1080 px em JPEG. Usado na proposta, ficha do pet, Completar cadastros e área do tutor; botão **Enquadrar** para fotos já salvas.
 
+### A-06 · Idade sem unidade e duas opções escondidas ✅ (v2.6)
+- **Origem:** Bruno, 12/11: no card aparecia só o número da idade; e ele não sabia que dava para mandar duas opções.
+- **Feito:** idade escrita só com número vira "4 anos" (PDF, card do WhatsApp, área do tutor; na lista de pets do PDF sai "Idade: 4 anos"). O botão pequeno "+ Adicionar opção 2" virou o quadro **Quer oferecer duas opções?** com atalhos que já montam as duas opções.
+- Testes: relógio dos testes fixado em UTC (falhavam à noite no horário de Brasília).
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 12/11/2026 | v2.6: idade com unidade, convite para duas opções (A-06) |
 | 12/11/2026 | v2.5: enquadrar a foto do pet (F-07) |
 | 12/11/2026 | v2.4: passo 5 / rascunhos (A-05); mídia do diário pelo WhatsApp (F-03 pausado) |
 | 12/11/2026 | v2.3: ficha do tutor sem obrigação + aniversário, aniversários no Hoje, quem fez cada proposta, vídeo em qualidade máxima |

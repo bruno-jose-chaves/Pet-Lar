@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.5 · atualizado em 12/11/2026
+Versão 2.6 · atualizado em 12/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -112,7 +112,10 @@ Marcar como aceita ou recusada, voltar para enviada, cancelar o serviço, duplic
 
 Serve para mandar, no mesmo PDF, duas alternativas para o cliente escolher. Por exemplo: hospedagem aqui em casa **ou** visitas na casa dele.
 
-1. No passo 3 (Serviço), toque em **+ Adicionar opção 2**. A opção 2 começa igual à 1.
+1. No passo 3 (Serviço), no quadro **Quer oferecer duas opções?**, toque em um atalho:
+   - **Hospedagem ou visitas**: opção 1 vira hospedagem e opção 2 vira visitas, com as mesmas datas;
+   - **Avulso ou pacote mensal**: opção 1 visitas avulsas, opção 2 pacote mensal;
+   - **Outra combinação**: a opção 2 começa igual à 1 e você muda o que quiser.
 2. Mude o que for diferente: serviço, datas, desconto, adicionais ou valor combinado. Use as abas **Opção 1** e **Opção 2** para alternar entre elas. Cliente e recado valem para as duas.
    - **Pets diferentes em cada opção:** com mais de um pet, aparece **Pets nesta opção** logo abaixo das abas. Toque no pet para tirar ou pôr de volta naquela opção. Ex.: opção 1 com os dois gatos (visitas), opção 2 só com um (hospedagem). O preço, o PDF ("Para Mimi") e o aceite usam só os pets daquela opção. Cada opção precisa de pelo menos 1 pet.
 3. A opção com ⭐ é a **recomendada**: fica em destaque no PDF e no card. Para trocar, abra a outra opção e toque em **Recomendar a opção**.
@@ -369,6 +372,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.6 | 12/11/2026 | Quadro "Quer oferecer duas opções?" com atalhos (hospedagem ou visitas; avulso ou pacote). Idade com a palavra "anos" no PDF, no card e na área do tutor |
 | 2.5 | 12/11/2026 | Enquadrar a foto do pet (arrastar, zoom com pinça, girar) no painel e na área do tutor |
 | 2.4 | 12/11/2026 | Passo 5 da proposta (rascunho explicado, o que falta, Enviar / Terminar depois), rascunhos destacados na lista, aviso no Hoje e botão Enviar nos rascunhos. Fotos e vídeos do diário pelo WhatsApp por enquanto |
 | 2.3 | 12/11/2026 | Ficha do pet na área do tutor sem obrigação (só 3 importantes, respostas de um toque, extras recolhidos) e aniversário do pet. Aniversários no Hoje. Quem fez cada proposta (lista e filtro). Vídeo original em qualidade máxima até 48 MB; acima, Full HD |

@@ -200,7 +200,7 @@ function faltando() {
 }
 
 const faltaPet = p => CAMPOS_PET.filter(c => c.imp && !p[c.k]);
-const valorPet = (p, c) => c.tipo === "porte" ? (PORTES.find(x => x[0] === p.porte) || [])[1] : c.tipo === "aniv" ? U.anivTexto(p.aniversario) : p[c.k];
+const valorPet = (p, c) => c.tipo === "porte" ? (PORTES.find(x => x[0] === p.porte) || [])[1] : c.tipo === "aniv" ? U.anivTexto(p.aniversario) : c.k === "idade" ? U.idadeTxt(p.idade) : p[c.k];
 
 // ---------- Diário ----------
 function diario() {
@@ -253,7 +253,7 @@ function pets() {
   return `<header class="pt-tit"><h1>${D.pets.length > 1 ? "Seus pets" : "Seu pet"}</h1><p>Conte para a Lari o que souber. Nada é obrigatório.</p></header>
     <div class="pt-corpo">${D.pets.length ? `<div class="pt-pets">${D.pets.map(p => { const f = faltaPet(p);
       return `<button class="pt-petcard" data-pet="${p.id}"><span class="pt-petcard-f">${fotoPet(p)}</span>
-        <span class="pt-petcard-t"><b>${U.esc(p.nome)}</b><small>${[p.especie === "gato" ? "Gato" : "Cão", p.raca, U.anivTexto(p.aniversario).replace(/^.*\((.*)\)$/, "$1") || p.idade].filter(Boolean).map(U.esc).join(", ")}</small>
+        <span class="pt-petcard-t"><b>${U.esc(p.nome)}</b><small>${[p.especie === "gato" ? "Gato" : "Cão", p.raca, U.anivTexto(p.aniversario).replace(/^.*\((.*)\)$/, "$1") || U.idadeTxt(p.idade)].filter(Boolean).map(U.esc).join(", ")}</small>
         <em class="${f.length ? "falta" : "ok"}">${f.length ? `Ajude a Lari: ${f.map(c => c.l.toLowerCase()).join(", ")}` : "Ficha em dia"}</em></span>${ic("seta")}</button>`; }).join("")}</div>`
       : `<section class="pt-bloco pt-vazio"><p>Seus pets ainda não estão cadastrados. Fale com a Lari.</p></section>`}</div>`;
 }

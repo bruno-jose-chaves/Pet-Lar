@@ -142,3 +142,10 @@ export function anivDoForm(fd, nome = "aniv") {
   const dt = new Date(Number(a || 2000), Number(m) - 1, Number(d)); if (dt.getDate() !== Number(d)) return null; // ex.: 31 de abril
   return `${a || "--"}-${m}-${d}`;
 }
+// idade escrita só com número ("4") vira "4 anos"; texto livre ("8 meses") fica como está
+export function idadeTxt(v) {
+  const t = String(v ?? "").trim(); if (!t) return "";
+  const m = /^(\d+)(?:[.,](\d+))?$/.exec(t); if (!m) return t;
+  if (m[2]) return `${t.replace(".", ",")} anos`;
+  return Number(m[1]) === 1 ? "1 ano" : `${m[1]} anos`;
+}
