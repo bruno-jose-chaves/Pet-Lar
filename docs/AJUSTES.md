@@ -166,9 +166,15 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Feito:** idade escrita só com número vira "4 anos" (PDF, card do WhatsApp, área do tutor; na lista de pets do PDF sai "Idade: 4 anos"). O botão pequeno "+ Adicionar opção 2" virou o quadro **Quer oferecer duas opções?** com atalhos que já montam as duas opções.
 - Testes: relógio dos testes fixado em UTC (falhavam à noite no horário de Brasília).
 
+### A-07 · Tirar a "Espécie" da proposta 🟡 a fazer
+- **Origem:** Bruno, 13/11/2026: o quadro "Quem vamos cuidar" do PDF mostra "Espécie: Cão". Não vale a pena aparecer na proposta.
+- **Ideia:** remover a linha Espécie da ficha do PDF (1 pet) e o "Cão/Gato" dos cartões de vários pets. Para gato, manter só o que já diferencia (ex.: sem porte). A espécie continua no cadastro, porque muda o preço e o diário.
+- **Onde:** `public/js/pages/proposta.js`, função que monta `ficha` e `petsHTML` (renderPage).
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 13/11/2026 | Anotado A-07 (tirar "Espécie" da proposta) |
 | 12/11/2026 | v2.6: idade com unidade, convite para duas opções (A-06) |
 | 12/11/2026 | v2.5: enquadrar a foto do pet (F-07) |
 | 12/11/2026 | v2.4: passo 5 / rascunhos (A-05); mídia do diário pelo WhatsApp (F-03 pausado) |
