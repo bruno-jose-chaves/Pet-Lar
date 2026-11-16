@@ -24,7 +24,7 @@
     const out = []; let i = 0, buf = "";
     while (i < s.length) {
       const c = s[i];
-      if (c === "(") { let d = 1, j = i + 1; while (d) { if (s[j] === "(") d++; if (s[j] === ")") d--; j++; } out.push({ rel: buf.trim(), sub: parseSel(s.slice(i + 1, j - 1)) }); buf = ""; i = j; if (s[i] === ",") i++; continue; }
+      if (c === "(") { let d = 1, j = i + 1; while (d) { if (s[j] === "(") d++; if (s[j] === ")") d--; j++; } out.push({ rel: buf.trim().replace("!inner", ""), sub: parseSel(s.slice(i + 1, j - 1)) }); buf = ""; i = j; if (s[i] === ",") i++; continue; }
       if (c === ",") { if (buf.trim()) out.push({ col: buf.trim() }); buf = ""; i++; continue; }
       buf += c; i++;
     }
@@ -54,6 +54,14 @@
     if (t === "pagamentos") r.pago_em = r.pago_em ?? null;
   }
   function trigUpdate(t, old, r) {
+    if (t === "propostas" && old.status === "aceita" && r.status !== "aceita") T.pagamentos = T.pagamentos.filter(g => g.proposta_id !== r.id || g.pago_em);
+    if (t === "propostas" && old.status === "aceita" && r.status === "aceita" && Number(r.valor_total) !== Number(old.valor_total)) {
+      const pago = T.pagamentos.filter(g => g.proposta_id === r.id && g.pago_em).reduce((a, g) => a + Number(g.valor), 0);
+      T.pagamentos = T.pagamentos.filter(g => g.proposta_id !== r.id || (pago > 0 && g.pago_em));
+      const base = { id: uid(), proposta_id: r.id, pago_em: null, forma: null, created_at: nowISO() };
+      if (!pago) { const s = Math.round(Number(r.valor_total) / 2 * 100) / 100; T.pagamentos.push({ ...base, descricao: "Sinal (50%)", valor: s, vencimento: today() }, { ...base, id: uid(), descricao: "Saldo (50%)", valor: Number(r.valor_total) - s, vencimento: r.data_fim || r.data_inicio || today() }); }
+      else if (Number(r.valor_total) - pago > 0) T.pagamentos.push({ ...base, descricao: "Saldo (ajustado)", valor: Number(r.valor_total) - pago, vencimento: r.data_fim || r.data_inicio || today() });
+    }
     if (t === "propostas" && r.status !== old.status) {
       if (r.status === "enviada" && !r.enviada_em) r.enviada_em = nowISO();
       if (["aceita", "recusada"].includes(r.status)) r.respondida_em = nowISO();
@@ -70,7 +78,7 @@
     insert(v) { this.op = "insert"; this.val = Array.isArray(v) ? v : [v]; return this; }
     update(v) { this.op = "update"; this.val = v; return this; }
     delete() { this.op = "delete"; return this; }
-    eq(c, v) { this.f.push(r => r[c] === v || String(r[c]) === String(v)); return this; }
+    eq(c, v) { if (c.includes(".")) { const [rel, col] = c.split("."); this.f.push(r => { const x = rel === "propostas" ? T.propostas.find(y => y.id === r.proposta_id) : null; return !!x && String(x[col]) === String(v); }); return this; } this.f.push(r => r[c] === v || String(r[c]) === String(v)); return this; }
     neq(c, v) { this.f.push(r => r[c] !== v); return this; }
     lt(c, v) { this.f.push(r => r[c] != null && r[c] < v); return this; }
     lte(c, v) { this.f.push(r => r[c] != null && r[c] <= v); return this; }
@@ -93,7 +101,7 @@
       const match = rows.filter(r => this.f.every(fn => fn(r)));
       let out;
       if (this.op === "insert") {
-        out = this.val.map(v => { const r = { id: uid(), created_at: nowISO(), updated_at: nowISO(), ...JSON.parse(JSON.stringify(v)) }; if (this.t === "propostas" && r.criado_por === undefined) r.criado_por = "teste@petlar.app"; if (this.t === "tutor_acessos") { r.criado_em = r.criado_em || nowISO(); r.acessos = r.acessos ?? 0; r.revogado_em = r.revogado_em ?? null; } if (this.t === "admins") { delete r.id; if (rows.some(a => a.email === r.email)) throw { message: "duplicate key" }; } if (this.t === "proposta_pets") delete r.id; trigInsert(this.t, r); rows.push(r); return r; });
+        out = this.val.map(v => { const r = { id: uid(), created_at: nowISO(), updated_at: nowISO(), ...JSON.parse(JSON.stringify(v)) }; if (this.t === "propostas" && r.criado_por === undefined) r.criado_por = "teste@petlar.app"; if (this.t === "tutor_acessos") { r.criado_em = r.criado_em || nowISO(); r.acessos = r.acessos ?? 0; r.expira_em = r.expira_em ?? new Date(Date.now() + 90 * 864e5).toISOString(); r.revogado_em = r.revogado_em ?? null; } if (this.t === "admins") { delete r.id; if (rows.some(a => a.email === r.email)) throw { message: "duplicate key" }; } if (this.t === "proposta_pets") delete r.id; trigInsert(this.t, r); rows.push(r); return r; });
       } else if (this.op === "update") {
         out = match.map(r => { const old = { ...r }; Object.assign(r, JSON.parse(JSON.stringify(this.val)), { updated_at: nowISO() }); trigUpdate(this.t, old, r); return r; });
       } else if (this.op === "delete") {
@@ -128,7 +136,7 @@
         servicos_hoje: ac.filter(p => p.data_inicio <= d && (p.data_fim || p.data_inicio) >= d).length,
         proximos_7: ac.filter(p => p.data_inicio > d && p.data_inicio <= d7).length,
         aguardando: env.length, aguardando_valor: env.reduce((a, p) => a + Number(p.valor_total), 0),
-        a_receber: T.pagamentos.filter(g => !g.pago_em).reduce((a, g) => a + Number(g.valor), 0),
+        a_receber: T.pagamentos.filter(g => !g.pago_em && ac.some(p => p.id === g.proposta_id)).reduce((a, g) => a + Number(g.valor), 0),
         recebido_mes: T.pagamentos.filter(g => g.pago_em && g.pago_em.slice(0, 7) === mes).reduce((a, g) => a + Number(g.valor), 0),
         follow_up: env.filter(p => p.enviada_em && Date.now() - new Date(p.enviada_em) > 2 * 86400000).length } });
     }

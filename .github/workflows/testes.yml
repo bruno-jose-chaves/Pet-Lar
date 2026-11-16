@@ -1,0 +1,20 @@
+# L-16: roda os testes do painel a cada push e pull request (avisa se algo quebrar antes de ir ao ar)
+name: Testes
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright
+      - run: python -m playwright install --with-deps webkit
+      - run: python tests/test_precos.py
+      - run: python tests/test_portal.py
+      - run: python tests/test_app.py

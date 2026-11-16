@@ -34,10 +34,10 @@ export async function mount(root) {
     const aReceber = abertos.reduce((a, g) => a + Number(g.valor), 0);
     const recebido = rec.reduce((a, g) => a + Number(g.valor), 0);
     const fechado = servs.reduce((a, p) => a + Number(p.valor_total), 0);
-    U.$("#kpis", root).innerHTML = `<div class="kpi"><span>A receber</span><b>${U.brl(aReceber)}</b><small>${abertos.length} parcela(s)</small></div>
+    U.$("#kpis", root).innerHTML = `<div class="kpi"><span>A receber</span><b>${U.brl(aReceber)}</b><small>${U.plural(abertos.length, "parcela", "parcelas")}</small></div>
       <div class="kpi ${vencido ? "alert" : ""}"><span>Vencido</span><b>${U.brl(vencido)}</b><small>cobrar no WhatsApp</small></div>
-      <div class="kpi"><span>Recebido no mês</span><b>${U.brl(recebido)}</b><small>${rec.length} pagamento(s)</small></div>
-      <div class="kpi"><span>Fechado no mês</span><b>${U.brl(fechado)}</b><small>${servs.length} serviço(s) · ticket ${U.brl(servs.length ? fechado / servs.length : 0)}</small></div>`;
+      <div class="kpi"><span>Recebido no mês</span><b>${U.brl(recebido)}</b><small>${U.plural(rec.length, "pagamento", "pagamentos")}</small></div>
+      <div class="kpi"><span>Fechado no mês</span><b>${U.brl(fechado)}</b><small>${U.plural(servs.length, "serviço", "serviços")} · ticket ${U.brl(servs.length ? fechado / servs.length : 0)}</small></div>`;
   }
   function renderAbertos() {
     const hoje = U.today();

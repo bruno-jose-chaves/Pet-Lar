@@ -47,7 +47,7 @@ async function petsDoTutor(tutorId: string) {
 
 async function propostaDoTutor(id: unknown, tutorId: string) {
   if (typeof id !== "string") throw new Erro("Proposta inválida");
-  const p = await chk(sb.from("propostas").select("id,status,tutor_id,valor_total,valor_cheio,payload,data_inicio,data_fim").eq("id", id).maybeSingle()) as any;
+  const p = await chk(sb.from("propostas").select("id,status,tutor_id,valor_total,valor_cheio,payload,data_inicio,data_fim,validade_ate").eq("id", id).maybeSingle()) as any;
   if (!p || p.tutor_id !== tutorId) throw new Erro("Proposta não encontrada", 404);
   return p;
 }
@@ -144,6 +144,7 @@ Deno.serve(async req => {
     if (acao === "aceitar") {
       const p = await propostaDoTutor(body.proposta_id, a.tutor_id);
       if (p.status !== "enviada") throw new Erro(p.status === "aceita" ? "Essa proposta já está confirmada" : "Essa proposta não está mais aberta");
+      if (p.validade_ate && p.validade_ate < hojeBR()) throw new Erro("Essa proposta venceu. Fale com a Lari para renovar.");
       const payload = p.payload || {};
       const ops = Array.isArray(payload.opcoes) && payload.opcoes.length === 2 ? payload.opcoes : null;
       payload.aceita_pelo_tutor_em = new Date().toISOString();

@@ -260,8 +260,8 @@ function pets() {
 function linhaCampo(p, c) {
   const v = valorPet(p, c);
   return `<div class="pt-campo${c.imp && !v ? " pede" : ""}" data-campo="${c.k}">
-    <div class="pt-campo-h"><b>${c.l}${c.imp && !v ? ' <span class="pt-imp">importante</span>' : ""}</b><button class="pt-link-a" data-editar="${c.k}" data-ent="pet">${v ? "Mudar" : "Contar"}</button></div>
-    <p class="${v ? "" : "vazio"}">${v ? U.esc(v) : c.ph || "Toque em Contar"}</p></div>`;
+    <div class="pt-campo-h"><b>${c.l}${c.imp && !v ? ' <span class="pt-imp">importante</span>' : ""}</b><button class="pt-link-a" data-editar="${c.k}" data-ent="pet">${v ? "Mudar" : "Preencher"}</button></div>
+    <p class="${v ? "" : "vazio"}">${v ? U.esc(v) : c.ph || "Toque em Preencher"}</p></div>`;
 }
 function fichaPet(p) {
   const semNome = !String(p.nome || "").trim();
@@ -306,7 +306,7 @@ function mais() {
       ${o.avaliacao ? `<span class="pt-estrelas" aria-label="Você deu ${o.avaliacao.nota} de 5">${[1, 2, 3, 4, 5].map(n => `<i class="${n <= o.avaliacao.nota ? "s" : ""}">${ic("estrela")}</i>`).join("")}</span>`
         : `<button class="pt-btn pt-btn-2 pt-btn-p" data-avaliar="${o.id}">${ic("estrela")} Avaliar</button>`}</div>`).join("")}</section>` : ""}
     <section class="pt-bloco pt-ficha" id="seusDados"><h2>Seus dados</h2>${CONTATO.map(([k, l, ph, , imp]) => `<div class="pt-campo${imp && !D.tutor[k] ? " pede" : ""}" data-campo="${k}">
-      <div class="pt-campo-h"><b>${l}${imp && !D.tutor[k] ? ' <span class="pt-imp">importante</span>' : ""}</b><button class="pt-link-a" data-editar="${k}" data-ent="tutor">${D.tutor[k] ? "Mudar" : "Contar"}</button></div>
+      <div class="pt-campo-h"><b>${l}${imp && !D.tutor[k] ? ' <span class="pt-imp">importante</span>' : ""}</b><button class="pt-link-a" data-editar="${k}" data-ent="tutor">${D.tutor[k] ? "Mudar" : "Preencher"}</button></div>
       <p class="${D.tutor[k] ? "" : "vazio"}">${D.tutor[k] ? U.esc(D.tutor[k]) : (ph || "Toque em Preencher")}</p></div>`).join("")}</section>
     <section class="pt-bloco">
       <a class="pt-linha" href="${zap("Oi, Lari! ")}" target="_blank" rel="noopener">${ic("conversa")}<span><b>Falar com a Lari</b><small>Pelo WhatsApp</small></span>${ic("seta")}</a>
@@ -332,10 +332,10 @@ function orcamento(p) {
           <b>${U.esc(o.titulo || U.SERVICOS[o.servico] || "")}</b>
           <span>${o.pets?.length ? "Para " + U.esc(o.pets.join(" e ")) + ". " : ""}${o.data_inicio ? U.esc(U.periodo(o.data_inicio, o.data_fim)) : ""}</span>
           <strong>${U.brl(o.valor_total)}</strong>
-          ${aberto ? `<button class="pt-btn" data-aceitar="${p.id}" data-op="${o.n}">Quero a opção ${o.n}</button>` : ""}</div>`).join("")}</div>`
+          ${aberto && !vencida ? `<button class="pt-btn" data-aceitar="${p.id}" data-op="${o.n}">Quero a opção ${o.n}</button>` : ""}</div>`).join("")}</div>`
       : `<div class="pt-orc-v"><span>${U.esc(U.SERVICOS[p.servico] || "Serviço")} para ${U.esc(nomes(p.pets))}${p.data_inicio ? `, ${U.esc(U.periodo(p.data_inicio, p.data_fim))}` : ""}</span>
           <strong>${U.brl(p.valor_total)}</strong>${p.valor_cheio > p.valor_total ? `<s>${U.brl(p.valor_cheio)}</s>` : ""}</div>
-        ${aberto ? `<p>Para garantir as datas, o sinal é de <b>${U.brl2(p.valor_total / 2)}</b> (metade). O restante fica para o fim do cuidado.</p>
+        ${aberto && !vencida ? `<p>Para garantir as datas, o sinal é de <b>${U.brl2(p.valor_total / 2)}</b> (metade). O restante fica para o fim do cuidado.</p>
         <button class="pt-btn" data-aceitar="${p.id}">${ic("check")} Quero confirmar</button>` : ""}`}
       ${p.obs ? `<div class="pt-recado"><b>Recado da Lari</b><p>${U.esc(p.obs)}</p></div>` : ""}
       <a class="pt-btn pt-btn-2" href="${zap(`Oi, Lari! Tenho uma dúvida sobre o orçamento ${p.numero || ""}.`)}" target="_blank" rel="noopener">${ic("conversa")} Tirar uma dúvida</a>
@@ -363,7 +363,7 @@ async function confirmarProposta(id, op) {
   try {
     D = await api("aceitar", { proposta_id: id, opcao: op || null }); ir("inicio", null, { trocar: true });
     const novo = D.propostas.find(x => x.id === id);
-    if (novo && D.pix) verPix(novo); else U.toast("Confirmado! A Lari já foi avisada.", 4500);
+    if (novo && D.pix) verPix(novo); else U.toast("Confirmado! Sua escolha ficou registrada. Se quiser, avise a Lari no WhatsApp.", 5000);
   } catch (e) { U.toast(e.message, 4500); }
 }
 async function verPix(p) {

@@ -37,7 +37,7 @@ export async function mount(root) {
   ]);
   const r = res || {};
   U.$("#kpis", root).innerHTML = `
-    <a class="kpi" href="#/pets"><span>Serviços hoje</span><b>${r.servicos_hoje ?? "—"}</b><small>${r.hospedados_hoje || 0} hospedado(s)</small></a>
+    <a class="kpi" href="#/pets"><span>Serviços hoje</span><b>${r.servicos_hoje ?? "—"}</b><small>${U.plural(r.hospedados_hoje || 0, "hospedado", "hospedados")}</small></a>
     <a class="kpi" href="#/agenda"><span>Próximos 7 dias</span><b>${r.proximos_7 ?? "—"}</b><small>serviços confirmados</small></a>
     ${g ? `<a class="kpi ${r.follow_up ? "alert" : ""}" href="#/cobrar"><span>Aguardando resposta</span><b>${r.aguardando ?? "—"}</b><small>${U.brl(r.aguardando_valor || 0)} em propostas</small></a>
     <a class="kpi" href="#/financeiro"><span>A receber</span><b>${U.brl(r.a_receber || 0)}</b><small>recebido no mês: ${U.brl(r.recebido_mes || 0)}</small></a>` : ""}`;

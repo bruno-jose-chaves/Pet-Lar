@@ -80,20 +80,23 @@ export async function mount(root, { params }) {
       U.$("#pCriar", box).onclick = async e => { e.currentTarget.disabled = true; try { await db.criarAcessoTutor(id); pintarPortal(); } catch (err) { U.toast("Não consegui criar: " + err.message); e.currentTarget.disabled = false; } };
       return;
     }
-    const url = db.linkPortal(a.token);
+    const url = db.linkPortal(a.token); const vencido = a.expira_em && new Date(a.expira_em) < new Date();
     const msg = `Oi, ${t.nome.split(" ")[0]}! Criei um cantinho para você acompanhar ${quem} aqui na Pet Lar: fotos e diário de cada dia, orçamentos e a ficha. É só tocar no link, não precisa de senha:\n${url}\n\nEsse link é só seu, tá? Não encaminhe para outras pessoas.`;
     box.innerHTML = `<div class="portal-url"><span>${ic("link")}</span><input readonly value="${U.esc(url)}" aria-label="Link da área do tutor"></div>
       <div class="kv" style="margin:10px 0">
         <span>Criado em</span><b>${U.fmtY(a.criado_em.slice(0, 10))}</b>
+        <span>Validade</span><b>${!a.expira_em ? "sem prazo" : vencido ? "venceu em " + U.fmtY(a.expira_em.slice(0, 10)) : "até " + U.fmtY(a.expira_em.slice(0, 10))}</b>
         <span>Aviso de privacidade</span><b>${a.aceite_em ? "aceito em " + U.fmtY(a.aceite_em.slice(0, 10)) : "ainda não abriu"}</b>
         <span>Último acesso</span><b>${a.ultimo_acesso ? U.relTime(a.ultimo_acesso) + ` · ${a.acessos} acesso${a.acessos === 1 ? "" : "s"}` : "nunca"}</b></div>
       <div class="row-actions">${t.whatsapp ? `<a class="btn primary small" href="${U.waLink(t.whatsapp, msg)}" target="_blank" rel="noopener">${ic("conversa")} Mandar no WhatsApp</a>` : ""}
         <button class="btn soft small" id="pCopiar">${ic("copiar")} Copiar link</button>
         <a class="btn soft small" href="${U.esc(url)}" target="_blank" rel="noopener">${ic("olho")} Ver como o tutor vê</a>
+        <button class="btn ${vencido ? "primary" : "soft"} small" id="pRenovar">${ic("relogio")} Renovar por 90 dias</button>
         <button class="btn soft small" id="pTrocar">${ic("voltar")} Trocar link</button>
         <button class="btn danger small" id="pDesativar">Desativar</button></div>
       ${t.whatsapp ? "" : `<p class="muted" style="margin:8px 0 0">Cadastre o WhatsApp do tutor para mandar o link com um toque.</p>`}`;
     U.$("#pCopiar", box).onclick = async () => { await U.copyText(url); U.toast("Link copiado"); };
+    U.$("#pRenovar", box).onclick = async () => { try { await db.renovarAcessoTutor(a.id); U.toast("Link renovado por 90 dias. O mesmo link volta a funcionar."); pintarPortal(); } catch { U.toast("Não consegui renovar."); } };
     U.$("#pTrocar", box).onclick = async () => {
       if (!(await U.confirmDialog("Trocar o link? O link antigo para de funcionar e você manda o novo para o tutor.", { ok: "Trocar link" }))) return;
       await db.revogarAcessoTutor(a.id); await db.criarAcessoTutor(id); U.toast("Link novo criado. Mande para o tutor."); pintarPortal();

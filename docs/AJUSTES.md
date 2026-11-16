@@ -1,6 +1,7 @@
 # Pet Lar · Backlog de ajustes
 
 Lista viva do que melhorar no painel depois do MVP. Cada item tem a situação ao lado do título.
+Checklist geral priorizado: `docs/CHECKLIST_MELHORIAS.md`.
 Cópia no Obsidian: "Pet Lar - Backlog de Ajustes" (a versão mais recente é a de número mais alto). **Ao pedir, mudar ou entregar um ajuste, atualizar os dois.**
 
 Status: 🟡 a fazer · 🔵 em andamento · ✅ feito · ⏸️ pausado
@@ -166,14 +167,35 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **Feito:** idade escrita só com número vira "4 anos" (PDF, card do WhatsApp, área do tutor; na lista de pets do PDF sai "Idade: 4 anos"). O botão pequeno "+ Adicionar opção 2" virou o quadro **Quer oferecer duas opções?** com atalhos que já montam as duas opções.
 - Testes: relógio dos testes fixado em UTC (falhavam à noite no horário de Brasília).
 
-### A-07 · Tirar a "Espécie" da proposta 🟡 a fazer
+### A-07 · Tirar a "Espécie" da proposta ✅ (v2.7)
 - **Origem:** Bruno, 13/11/2026: o quadro "Quem vamos cuidar" do PDF mostra "Espécie: Cão". Não vale a pena aparecer na proposta.
 - **Ideia:** remover a linha Espécie da ficha do PDF (1 pet) e o "Cão/Gato" dos cartões de vários pets. Para gato, manter só o que já diferencia (ex.: sem porte). A espécie continua no cadastro, porque muda o preço e o diário.
 - **Onde:** `public/js/pages/proposta.js`, função que monta `ficha` e `petsHTML` (renderPage).
 
+### A-08 · Desconto por opção ✅ (v2.7)
+- **Origem:** Bruno, 13/11/2026: com duas opções, o desconto só vai para a proposta 2; quer dar desconto em uma opção específica.
+- **Leitura do código (provável, não reproduzido):** o desconto já é guardado por opção (`descManual` em `SVC_KEYS`, `proposta.js:351`), mas o campo fica no quadro "4 Ajustes e recado", longe das abas, e grava na opção que estiver aberta (`S.editando`), que após os atalhos é a 2.
+- **Ideia:** mostrar "Desconto da opção 1/2" dentro de cada opção (ou os dois juntos) e o resumo com o desconto de cada uma.
+
+### A-09 · Foto padrão do pet sem foto ✅ (v2.7)
+- **Origem:** Bruno, 13/11/2026: o cachorrinho que aparece quando o pet não tem foto está feio.
+- **Ideia:** ilustração da marca, com cor por espécie. Aparece em 21 de 27 pets hoje. Verificar se sai no PDF.
+
+### A-10 · Trocar "Um lar de verdade" ✅ (v2.7)
+- **Origem:** Bruno, 13/11/2026: o termo, usado para falar da casa da Larissa, é ruim.
+- **Onde:** `public/js/pages/proposta.js:421` (selo "Um lar de verdade") e `:641` ("aqui em casa").
+- **Falta:** o Bruno dizer a ideia ou escolher entre as sugestões do checklist.
+
+### A-11 · Cobrar em 2–3 dias e reconfirmar perto da data ✅ (v2.7)
+- **Origem:** Bruno, 13/11/2026.
+- **Parte 1:** cobrar 2–3 dias depois de enviar. Já existe: Configurações → "Lembrar proposta sem resposta após (dias)" (hoje 2). Falta confirmar o que mais ele quer.
+- **Parte 2 (nova):** lista de propostas **recusadas e em aberto** com serviço em até 2 dias (ajustável). Motivo: muita gente recusa porque vai deixar com um conhecido e, na hora, desiste. Linha com tutor, pet, serviço, data, motivo da recusa (campo novo opcional `propostas.motivo_recusa`) e WhatsApp com mensagem pronta ("Deu certo de alguém ficar com o Thor?"); botões "Fechou" e "Deixa para lá".
+
 ## Histórico
 | Data | O quê |
 |---|---|
+| 16/11/2026 | v2.7: lote do checklist (L-01 a L-32 menos os que dependem de decisão ou dados). A-07 a A-11 entregues. Defaults usados onde as 9 perguntas ficaram sem resposta: parcelas recalculam sozinhas; proposta vencida bloqueia o aceite; link do tutor vale 90 dias (renovável); menu "Cobrar" virou "Respostas"; "Dentro de casa, com a gente" no lugar de "Um lar de verdade"; desconto por opção com botão "usar o mesmo nas duas" |
+| 13/11/2026 | Raio-X e auditoria de front-end juntados em `docs/CHECKLIST_MELHORIAS.md`; entraram A-08 a A-11 (desconto por opção, foto padrão, "lar de verdade", cobrar perto da data) |
 | 13/11/2026 | Anotado A-07 (tirar "Espécie" da proposta) |
 | 12/11/2026 | v2.6: idade com unidade, convite para duas opções (A-06) |
 | 12/11/2026 | v2.5: enquadrar a foto do pet (F-07) |

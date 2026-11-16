@@ -11,6 +11,7 @@ export function pd(s) { if (!s) return null; const [y, m, d] = String(s).slice(0
 export function fmt(s) { const d = typeof s === "string" ? pd(s) : s; return d ? String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") : ""; }
 export function fmtY(s) { const d = typeof s === "string" ? pd(s) : s; return d ? fmt(d) + "/" + d.getFullYear() : ""; }
 export function periodo(a, b) { if (!a) return ""; if (!b || a === b) return fmt(a); return fmt(a) + " a " + fmt(b); }
+export const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 export function addDays(s, n) { const d = pd(s); d.setDate(d.getDate() + n); return iso(d); }
 export function relTime(ts) {
   if (!ts) return ""; const diff = (Date.now() - new Date(ts).getTime()) / 1000;
@@ -24,7 +25,7 @@ export const PORTE_TXT = { P: "Pequeno", M: "Médio", G: "Grande", GG: "Gigante"
 export const pill = st => `<span class="pill ${st}">${STATUS[st] || st}</span>`;
 export const svcPill = sv => `<span class="pill ${sv}">${SERVICOS[sv] || sv}</span>`;
 
-export const PAW = `<svg viewBox="0 0 24 24" fill="none" stroke="#6E7F63" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5C6 5 4 6.5 3.5 9.5 3 12 4 14 5.5 14l1-4"/><path d="M16 5.5c2-.5 4 1 4.5 4 .5 2.5-.5 4.5-2 4.5l-1-4"/><path d="M7 7.5C8 5.8 10 5 12 5s4 .8 5 2.5c.6 1.3 1 3.5 1 5.5 0 3.5-2.7 6-6 6s-6-2.5-6-6c0-2 .4-4.2 1-5.5z"/><path d="M10 12h.01M14 12h.01"/><path d="M10.8 15.2c.4.5.8.7 1.2.7s.8-.2 1.2-.7"/></svg>`;
+export const PAW = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 8.5C3.6 9.5 3.2 13 4.3 15.2c1.4-.4 2.2-2.6 2.2-4.8z" fill="#B88A66"/><path d="M18.8 8.5c1.6 1 2 4.5.9 6.7-1.4-.4-2.2-2.6-2.2-4.8z" fill="#B88A66"/><circle cx="12" cy="13" r="6.5" fill="#EBD2B7"/><ellipse cx="12" cy="15.6" rx="3.1" ry="2.4" fill="#F9EFE3"/><ellipse cx="12" cy="14.3" rx="1.3" ry=".9" fill="#5A3B2A"/><circle cx="9.5" cy="11.9" r=".85" fill="#5A3B2A"/><circle cx="14.5" cy="11.9" r=".85" fill="#5A3B2A"/><path d="M12 15.2v1.1M10.6 16.7c.5.5 2.3.5 2.8 0" fill="none" stroke="#5A3B2A" stroke-width=".8" stroke-linecap="round"/></svg>`;
 export const USER = `<svg viewBox="0 0 24 24" fill="none" stroke="#6E7F63" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c1.3-3.6 4-5.4 7-5.4s5.7 1.8 7 5.4"/></svg>`;
 
 export function debounce(fn, ms = 300) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }

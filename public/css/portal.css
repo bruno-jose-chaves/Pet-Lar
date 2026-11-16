@@ -1,7 +1,7 @@
 /* Pet Lar · área do tutor — um app próprio, não uma cópia do painel.
    Paleta do manual: creme #F9F3EC, terracota #C7694A, sálvia #8A9B7F, carvão #30251F, areia #E8D9C8.
    Assinatura visual: o pet em destaque dentro da "casa" (forma sálvia com arco terracota, como no logo). */
-:root{--c-creme:#F9F3EC;--c-papel:#FFFCF8;--c-terra:#C7694A;--c-terra-e:#A9553A;--c-terra-c:#F4E0D6;--c-salvia:#8A9B7F;--c-salvia-e:#5F6F55;--c-salvia-c:#E4E9DE;--c-carvao:#30251F;--c-areia:#E8D9C8;--c-cinza:#7D7068}
+:root{--c-creme:#F9F3EC;--c-papel:#FFFCF8;--c-terra:#C7694A;--c-terra-e:#A9553A;--c-terra-c:#F4E0D6;--c-salvia:#8A9B7F;--c-salvia-e:#5F6F55;--c-salvia-c:#E4E9DE;--c-carvao:#30251F;--c-areia:#E8D9C8;--c-cinza:#6B5F57}
 body.portal{background:var(--c-creme);color:var(--c-carvao);font-family:Lato,system-ui,sans-serif;font-size:17px;line-height:1.5;margin:0;-webkit-tap-highlight-color:transparent}
 body.portal.com-abas{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 .pt-main{max-width:560px;margin:0 auto;min-height:100vh}
@@ -25,7 +25,7 @@ body.portal.com-abas{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 .pt-nota{font-size:14px;color:var(--c-cinza);text-align:center;margin:14px 0 0}
 
 /* ---------- botões ---------- */
-.pt-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;margin-top:12px;border:0;border-radius:999px;background:var(--c-terra);color:#fff;font-weight:700;font-size:17px;text-decoration:none;cursor:pointer;padding:0 22px}
+.pt-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;margin-top:12px;border:0;border-radius:999px;background:var(--c-terra-e);color:#fff;font-weight:700;font-size:17px;text-decoration:none;cursor:pointer;padding:0 22px}
 .pt-btn .ic{width:21px;height:21px}
 .pt-btn:active{background:var(--c-terra-e)}
 .pt-btn:disabled{opacity:.55}
@@ -280,3 +280,5 @@ body.portal.com-abas{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 .pt-ficha-fbtn{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
 .pt-ficha-fbtn .pt-btn{position:static;background:var(--c-papel)}
 .portal .rc-modal{border-radius:26px 26px 0 0;background:var(--c-papel)}
+
+.pt-link-a{min-height:44px}

@@ -102,11 +102,12 @@ const TEMPLATE = `
     </div>
     <div class="card">
       <h3><span class="n">4</span>Ajustes e recado <span class="hint" id="ajOpt"></span></h3>
-      <label class="f">Desconto especial (%) <span class="hint">Deixe vazio para usar a regra da tabela. Hoje: <b id="autoDesc">—</b></span>
+      <label class="f"><span id="descLbl">Desconto especial (%)</span> <span class="hint">Deixe vazio para usar a regra da tabela. Hoje: <b id="autoDesc">—</b></span>
         <input type="number" min="0" max="50" step="1" data-k="descManual" placeholder="Automático">
       </label>
+      <div id="descOpts" class="desc-opts hide"></div>
       <div id="descWarn" class="warn hide">Acima do teto de 15%. Tudo bem se for uma exceção combinada.</div>
-      <label class="f">Valor final combinado (R$) <span class="hint">Deixe vazio para usar a conta da tabela. Use quando fechar um valor diferente com o cliente. Conta da tabela: <b id="valorTabela">—</b></span>
+      <label class="f"><span id="vfLbl">Valor final combinado (R$)</span> <span class="hint">Deixe vazio para usar a conta da tabela. Use quando fechar um valor diferente com o cliente. Conta da tabela: <b id="valorTabela">—</b></span>
         <input type="number" min="0" step="5" inputmode="decimal" data-k="valorFechado" placeholder="Pela tabela">
       </label>
       <label class="f" style="margin-bottom:6px">Adicionais <span class="hint">Cuidado especial, pet reativo, horário fora do comum… em % ou em R$.</span></label>
@@ -364,6 +365,8 @@ export async function mount(root, ctx) {
   function renderOptTabs(){
     const box=$("#optTabs"); if(!box) return; const e=edit();
     $("#ajOpt").textContent = S.alt ? `· opção ${e}` : "";
+    $("#descLbl").textContent = S.alt ? `Desconto especial da opção ${e} (%)` : "Desconto especial (%)";
+    $("#vfLbl").textContent = S.alt ? `Valor final combinado da opção ${e} (R$)` : "Valor final combinado (R$)";
     if(!S.alt){ box.innerHTML=`<div class="opt-convite"><div class="oc-t"><b>Quer oferecer duas opções?</b><span>O cliente escolhe uma. Ex.: hospedagem <i>ou</i> visitas · visita avulsa <i>ou</i> pacote mensal.</span></div>
       <div class="oc-b">${[["hosp","visitas","Hospedagem ou visitas"],["visitas","pacote","Avulso ou pacote mensal"]].map(([a,b,t])=>`<button class="btn soft small" data-opt="add" data-par="${a},${b}">${t}</button>`).join("")}<button class="btn soft small" data-opt="add">Outra combinação</button></div></div>`; return; }
     const Rs={1:withOpt(1,calc),2:withOpt(2,calc)}; const pr=principal();
@@ -372,6 +375,7 @@ export async function mount(root, ctx) {
       ${S.pets.length>1?`<div class="opt-pets"><span class="hint">Pets nesta opção:</span>${S.pets.map(p=>{ const on=!(S.petsFora||[]).includes(p.id); return `<button class="chip ${on?"on":""}" data-optpet="${p.id}">${ic(on?"marcado":"vazio")} ${esc(petName(p))}</button>`; }).join("")}</div>`:""}
       <p class="hint" style="margin:0 0 8px">Editando a <b>opção ${e}</b>: serviço, datas, pets e o passo 4 valem só para ela. Cliente e recado valem para as duas.</p>`;
   }
+  $("#descOpts").addEventListener("click", ev=>{ if(!ev.target.closest("[data-mesmo]")||!S.alt) return; S.alt.descManual=S.descManual; update(); toast("Mesmo desconto nas duas opções."); });
   $("#optTabs").addEventListener("click", async ev=>{
     const bp=ev.target.closest("[data-optpet]"); if(bp){ ev.preventDefault(); const id=bp.dataset.optpet; const f=new Set(S.petsFora||[]);
       if(f.has(id)) f.delete(id); else { if(S.pets.filter(p=>!f.has(p.id)).length<=1){ toast("Cada opção precisa de pelo menos 1 pet."); return; } f.add(id); }
@@ -418,7 +422,7 @@ export async function mount(root, ctx) {
     ["broom","Limpeza do ambiente","A casa fica do jeito que você deixou"],
     ["phone","Foto e relatório no WhatsApp","Você acompanha tudo de onde estiver"]]; }
   function incHosp(){ return [
-    ["house","Um lar de verdade","Sem baias e sem gaiola: ele fica dentro de casa com a gente"],
+    ["house","Dentro de casa, com a gente","Sem baias e sem gaiola: ele fica com a gente, como da família"],
     ...(walkers().length?[["walk","Passeios diários","Rotina de passeio mantida"]]:[]),
     ["bowl","Alimentação no horário","Com a ração e a rotina dele"],
     ["moon","Companhia o dia todo","Inclusive à noite"],
@@ -430,7 +434,7 @@ export async function mount(root, ctx) {
     ["shield","Sem estresse","O pet não sai de casa e você não perde tempo levando e buscando"],
     ["broom","Ambiente do jeito que estava","A gente deixa tudo limpinho no final"]]; }
   const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="#C7694A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]||IC.heart}</svg>`;
-  const PAW = `<svg viewBox="0 0 24 24" fill="none" stroke="#6E7F63" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5C6 5 4 6.5 3.5 9.5 3 12 4 14 5.5 14l1-4"/><path d="M16 5.5c2-.5 4 1 4.5 4 .5 2.5-.5 4.5-2 4.5l-1-4"/><path d="M7 7.5C8 5.8 10 5 12 5s4 .8 5 2.5c.6 1.3 1 3.5 1 5.5 0 3.5-2.7 6-6 6s-6-2.5-6-6c0-2 .4-4.2 1-5.5z"/><path d="M10 12h.01M14 12h.01"/><path d="M10.8 15.2c.4.5.8.7 1.2.7s.8-.2 1.2-.7"/></svg>`;
+  const PAW = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 8.5C3.6 9.5 3.2 13 4.3 15.2c1.4-.4 2.2-2.6 2.2-4.8z" fill="#B88A66"/><path d="M18.8 8.5c1.6 1 2 4.5.9 6.7-1.4-.4-2.2-2.6-2.2-4.8z" fill="#B88A66"/><circle cx="12" cy="13" r="6.5" fill="#EBD2B7"/><ellipse cx="12" cy="15.6" rx="3.1" ry="2.4" fill="#F9EFE3"/><ellipse cx="12" cy="14.3" rx="1.3" ry=".9" fill="#5A3B2A"/><circle cx="9.5" cy="11.9" r=".85" fill="#5A3B2A"/><circle cx="14.5" cy="11.9" r=".85" fill="#5A3B2A"/><path d="M12 15.2v1.1M10.6 16.7c.5.5 2.3.5 2.8 0" fill="none" stroke="#5A3B2A" stroke-width=".8" stroke-linecap="round"/></svg>`;
   const MARK = `<svg class="mk" viewBox="0 0 48 48" fill="none" stroke="#C7694A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 23 24 7l19 16"/><path d="M10 19v21h28V19"/><g fill="#F9F3EC" stroke="none"><ellipse cx="24" cy="31.5" rx="5.2" ry="4.2"/><circle cx="18.3" cy="25.8" r="2.1"/><circle cx="22" cy="22.6" r="2.1"/><circle cx="26" cy="22.6" r="2.1"/><circle cx="29.7" cy="25.8" r="2.1"/></g></svg>`;
 
   /* ================= RENDER: FORM ================= */
@@ -540,6 +544,9 @@ export async function mount(root, ctx) {
     $("#valorTabela").textContent = R.ok ? brl(R.tabela) : "—";
     $("#autoDesc").textContent = R.ok ? (R.discAuto? Math.round(R.discAuto*100)+"%" : "sem desconto") : "—";
     $("#descWarn").classList.toggle("hide", !(Number(S.descManual)>15));
+    const dO=$("#descOpts"); dO.classList.toggle("hide", !S.alt);
+    if(S.alt){ const dd=n=>{ const r=withOpt(n,calc), m=withOpt(n,()=>S.descManual); return r.ok ? (r.disc?Math.round(r.disc*100)+"%":"sem desconto")+(m!==""&&m!=null?" (especial)":"") : "—"; };
+      dO.innerHTML=`<span>Opção 1: <b>${dd(1)}</b> · Opção 2: <b>${dd(2)}</b></span> <button type="button" class="btn soft small" data-mesmo="1">Usar o mesmo desconto nas duas</button>`; }
     if(!R.ok){ $("#calcLines").innerHTML=`<div><span>${R.msg}</span></div>`; $("#calcTot").textContent="—"; $("#calcInt").textContent=""; return; }
     let h = (S.alt?`<div><span><b>Opção ${edit()}</b>${principal()===edit()?" "+ic("estrela","sm"):""}</span><span></span></div>`:"") + R.lines.map(x=>`<div><span>${esc(x.l)}</span><span>${x.v<0?"− "+brl2(-x.v):brl2(x.v)}</span></div>`).join("");
     if(R.disc) h+=`<div><span>Desconto ${Math.round(R.disc*100)}%${S.descManual!==""?" (especial)":""}</span><span>− ${brl2(R.discountable*R.disc)}</span></div>`;
@@ -567,7 +574,7 @@ export async function mount(root, ctx) {
       return `<div class="pcard"><div class="pimg">${p.foto?`<img src="${p.foto}">`:PAW}</div>
         <div><div class="pn">${esc(petTitle(p))}</div>${det?`<div class="pd">${esc(det)}</div>`:""}<div>${tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div></div>`; }).join("");
     const p0=S.pets[0];
-    const ficha=[["Espécie",p0.especie==="gato"?"Gato":"Cão"],["Raça",p0.raca],["Idade",U.idadeTxt(p0.idade)],["Porte",p0.especie==="gato"?"":PORTE_TXT[p0.porte][0].toUpperCase()+PORTE_TXT[p0.porte].slice(1)]].filter(x=>x[1]&&String(x[1]).trim());
+    const ficha=[["Raça",p0.raca],["Idade",U.idadeTxt(p0.idade)],["Porte",p0.especie==="gato"?"":PORTE_TXT[p0.porte][0].toUpperCase()+PORTE_TXT[p0.porte].slice(1)]].filter(x=>x[1]&&String(x[1]).trim());
     const soloHTML = `<div class="pcard solo"><div class="pimg">${p0.foto?`<img src="${p0.foto}">`:PAW}</div>
       <div class="pinfo"><div class="pk">Quem vamos cuidar</div><div class="pn">${esc(petTitle(p0))}</div>
       <div class="ficha">${ficha.map(([k,v])=>`<div><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div></div></div>`;
@@ -638,7 +645,7 @@ export async function mount(root, ctx) {
   function discName(){ return {visitas:"pacote viagem",pacote:"do plano",hosp:"estadia longa",banho:"do plano",estendida:""}[S.servico]||""; }
   function introText(R){
     const nomes=namesList(S.pets); const s=S.servico;
-    if(s==="hosp") return `Preparei esta proposta com carinho para a estadia de <b>${esc(nomes)}</b> aqui em casa. Enquanto você estiver fora, ${S.pets.length>1?"eles ficam":"fica"} num lar de verdade, com rotina, passeios e muito carinho, e você recebe notícias todos os dias.`;
+    if(s==="hosp") return `Preparei esta proposta com carinho para a estadia de <b>${esc(nomes)}</b>. Enquanto você estiver fora, ${S.pets.length>1?"eles ficam":"fica"} dentro de casa com a gente, como da família, com rotina, passeios e muito carinho, e você recebe notícias todos os dias.`;
     if(s==="banho") return `Preparei esta proposta para o banho de <b>${esc(nomes)}</b> sem sair de casa. Eu levo todo o equipamento, o pet fica no ambiente dele, sem barulho e sem estresse, e você não perde tempo levando e buscando.`;
     if(s==="pacote") return `Preparei esta proposta para cuidar de <b>${esc(nomes)}</b> na rotina da semana. Enquanto você trabalha, eu passo aí para passear, brincar e cuidar, e você recebe foto e relatório a cada visita.`;
     return `Preparei esta proposta com carinho para cuidar de <b>${esc(nomes)}</b> enquanto você estiver fora. ${S.pets.length>1?"Eles continuam":"Continua"} em casa, na rotina de sempre, e você acompanha tudo pelo WhatsApp.`;
@@ -705,6 +712,9 @@ export async function mount(root, ctx) {
   function renderHead() {
     if (!alive) return; renderEnvio();
     $("#pNum").textContent = META.numero || "Nova proposta";
+    { const st = META.status || "rascunho"; // L-08: um "Enviar" claro por estado
+      const txt = st === "rascunho" ? "Enviar" : st === "enviada" ? "Enviar de novo" : "Enviar PDF";
+      for (const id of ["#pEnviar", "#btnEnviar2"]) { const b = $(id); if (b) b.textContent = txt; } }
     $("#pStatus").innerHTML = META.id ? U.pill(META.status) + (META.autor ? ` <span class="autor-tag">por ${U.esc(META.autor)}</span>` : "") : "";
   }
 
@@ -811,6 +821,15 @@ export async function mount(root, ctx) {
   }
   async function doSave({ auto = false } = {}) {
     setState("Salvando…");
+    if (META.id && META.updated_at) { // L-17: alguém mexeu nesta proposta depois que você abriu?
+      const rem = await db.propostaAtualizadaEm(META.id).catch(() => null);
+      if (rem && rem !== META.updated_at) {
+        const conflito = () => Object.assign(new Error("conflito"), { conflito: true });
+        if (auto) throw conflito();
+        const hora = new Date(rem).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+        if (!(await U.confirmDialog(`Outra pessoa alterou esta proposta às ${hora}. Se você salvar agora, as mudanças dela serão trocadas pelas suas. Salvar mesmo assim?`, { ok: "Salvar mesmo assim", danger: true }))) throw conflito();
+      }
+    }
     const pr = principal(); const R = withOpt(pr, calc);
     if (!S.tutor_id && nomeTutorPronto(auto)) {
       const t = await db.saveTutor({ nome: S.tutor.trim(), whatsapp: S.tutorWhats || null, cidade: cidadeNome() || null });
@@ -840,12 +859,13 @@ export async function mount(root, ctx) {
     const per = withOpt(pr, periodoDe); const svc = withOpt(pr, () => S.servico); const vf = withOpt(pr, () => Number(S.valorFechado) || 0);
     const valDays = Number(S.validade) || 7;
     const row = { tutor_id: S.tutor_id || null, tutor_nome: S.tutor.trim() || null, servico: svc, ...per, cidade: cidadeNome() || null,
-      valor_total: R.ok ? R.final : vf, valor_cheio: R.ok ? R.full : vf, resumo: resumoDe(R), payload: payloadDe(), validade_ate: S.data ? U.addDays(S.data, valDays) : null };
-    if (!META.id) { const r = await db.insertProposta(row); Object.assign(META, { id: r.id, numero: r.numero, status: r.status }); if (alive) replaceHash("#/proposta/" + r.id); }
-    else await db.updateProposta(META.id, row);
+      valor_total: R.ok ? R.final : vf, valor_cheio: R.ok ? R.full : vf, resumo: resumoDe(R), payload: payloadDe(), validade_ate: U.addDays(S.data || U.today(), valDays) };
+    if (!META.id) { const r = await db.insertProposta(row); Object.assign(META, { id: r.id, numero: r.numero, status: r.status, updated_at: r.updated_at }); if (alive) replaceHash("#/proposta/" + r.id); }
+    else { const r = await db.updateProposta(META.id, row); META.updated_at = r.updated_at; }
     const petsSalvar = S.alt && S.escolhida ? withOpt(Number(S.escolhida), petsDaOpcao) : S.pets; // aceita com uma opção: só os pets dela
     await db.setPropostaPets(META.id, [...new Set(petsSalvar.map(p => p.pet_id).filter(Boolean))]);
     db.invalidate("lista");
+    if (META.status === "aceita" && alive) loadPagtos();
   }
   async function save(opts = {}) {
     if (!podeSalvar()) { toast("Preencha o nome do tutor ou do pet."); return false; }
@@ -853,7 +873,7 @@ export async function mount(root, ctx) {
     if (saving) { saveAgain = true; return saving; }
     dirty = false; window.__dirty = false;
     saving = doSave(opts).then(() => { if (!alive) return true; if (!dirty) setState("Salvo ✓"); renderHead(); renderPage(); return true; })
-      .catch(e => { dirty = true; if (alive) { window.__dirty = true; setState("Erro ao salvar"); toast("Não consegui salvar. Confira a internet; tento de novo na próxima alteração."); } throw e; })
+      .catch(e => { dirty = true; if (alive) { window.__dirty = true; if (e.conflito) { setState("Não salvo"); toast("Outra pessoa alterou esta proposta. Toque em Salvar para decidir se sobrescreve.", 5000); } else { setState("Erro ao salvar"); toast("Não consegui salvar. Confira a internet; tento de novo na próxima alteração."); } } throw e; })
       .finally(() => { saving = null; if (saveAgain && alive) { saveAgain = false; if (dirty) save({ auto: true }).catch(() => {}); } });
     return saving;
   }
@@ -868,7 +888,7 @@ export async function mount(root, ctx) {
     if (!META.id) await save();
     if (dirty) await save();
     const antes = META.status; META.status = st; renderHead(); // otimista
-    try { await db.updateProposta(META.id, { status: st }); db.invalidate("lista"); }
+    try { const r = await db.updateProposta(META.id, { status: st }); META.updated_at = r.updated_at; db.invalidate("lista"); }
     catch (e) { META.status = antes; renderHead(); toast("Não consegui mudar o status."); return; }
     window.dispatchEvent(new Event("petlar:propostas"));
     if (st === "aceita") { toast("Proposta aceita! Sinal e saldo foram lançados no Financeiro.", 4000); loadPagtos(); }
@@ -1026,7 +1046,7 @@ export async function mount(root, ctx) {
     }));
     if (acao === "duplicar") {
       Object.assign(META, { id: null, numero: null, status: "rascunho" }); S.data = U.today(); delete S.importada; S.escolhida = null;
-    } else Object.assign(META, { id: row.id, numero: row.numero, status: row.status, enviada_em: row.enviada_em });
+    } else Object.assign(META, { id: row.id, numero: row.numero, status: row.status, enviada_em: row.enviada_em, updated_at: row.updated_at });
     if (S.tutor_id) db.petsDoTutor(S.tutor_id).then(r => { tutorPetsCache = r; renderTutorPets(); }).catch(() => {});
   } else if (tutorParaNova) {
     const t = await db.getTutor(tutorParaNova).catch(() => null); if (t) { await linkTutor(t); }

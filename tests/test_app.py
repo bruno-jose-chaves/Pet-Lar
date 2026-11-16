@@ -379,7 +379,7 @@ with sync_playwright() as p:
     check("Hoje: aniversário do pet com botão de parabéns", "Aniversários" in pg.inner_text("#anivs") and "Hoje!" in pg.inner_text("#anivs"))
     # armazenamento
     go("#/config"); pg.wait_for_timeout(1200)
-    check("Config: mostra o espaço usado de fotos e vídeos", "de 1 GB" in pg.inner_text("#armz") and pg.locator("#armz .armz-barra").count() == 1)
+    check("Config: medidor de espaço some enquanto o uso é baixo (L-32)", pg.locator("#armz").count() == 0)
     # A-04: link de nova senha
     go("#/config"); pg.wait_for_timeout(800)
     pg.click("#adm [data-senha='larissa@exemplo.com']"); pg.wait_for_timeout(300); pg.click(".modal [data-ok]"); pg.wait_for_timeout(600)
@@ -573,6 +573,36 @@ with sync_playwright() as p:
     check("Gestora: edita Pix e configurações, mas não acessos", q.locator("#fS").count() == 1 and q.locator("#fA").count() == 0)
     check("Gestora: vê Propostas e Financeiro", q.locator(".topnav [data-nav=propostas]").count() == 1 and q.locator(".topnav [data-nav=financeiro]").count() == 1)
     c3.close()
+
+    # ---------- Lote 2.7: parcelas, A receber, reconfirmar, validade do link ----------
+    r = pg.evaluate("""async () => {
+      const db = await import('/js/db.js'); const T = window.__FAKE_DB; const soma = id => T.pagamentos.filter(g => g.proposta_id === id).map(g => Number(g.valor));
+      const hoje = new Date(); const iso = d => d.toISOString().slice(0, 10); const mais = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+      T.propostas.push({ id: 'z1', numero: 'PL-TESTE-1', tutor_nome: 'Zeca', status: 'enviada', servico: 'visitas', valor_total: 400, valor_cheio: 400, data_inicio: mais(10), data_fim: mais(12), payload: {} });
+      await db.updateProposta('z1', { status: 'aceita' }); const a = soma('z1');
+      await db.updateProposta('z1', { valor_total: 600 }); const b = soma('z1');
+      const pid = T.pagamentos.find(g => g.proposta_id === 'z1').id; await db.marcarPago(pid, 'pix');
+      await db.updateProposta('z1', { valor_total: 800 }); const c = T.pagamentos.filter(g => g.proposta_id === 'z1').map(g => g.descricao + ':' + g.valor + ':' + (g.pago_em ? 'pago' : 'aberto'));
+      const pagoEm = T.pagamentos.find(g => g.id === pid).pago_em; const hl = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
+      await db.updateProposta('z1', { status: 'cancelada' }); const d = T.pagamentos.filter(g => g.proposta_id === 'z1').map(g => g.descricao);
+      T.propostas.push({ id: 'z2', numero: 'PL-TESTE-2', tutor_nome: 'Rita', status: 'recusada', servico: 'hosp', valor_total: 999, data_inicio: mais(2), data_fim: mais(4), payload: {} });
+      T.pagamentos.push({ id: 'gz2', proposta_id: 'z2', descricao: 'Sinal (50%)', valor: 500, vencimento: mais(0), pago_em: null, forma: null });
+      const abertos = (await db.pagamentosAbertos()).map(g => g.id);
+      return { a, b, c, d, dataLocal: pagoEm === hl, z2fora: !abertos.includes('gz2') };
+    }""")
+    check("Parcelas: aceitar cria 200 + 200", r["a"] == [200, 200], str(r["a"]))
+    check("Parcelas: valor mudou (nada pago) → 300 + 300", r["b"] == [300, 300], str(r["b"]))
+    check("Parcelas: valor mudou com sinal pago → mantém o pago e ajusta o resto", sorted(r["c"]) == ["Saldo (ajustado):500:aberto", "Sinal (50%):300:pago"] or sorted(r["c"]) == ["Saldo (50%):300:pago", "Saldo (ajustado):500:aberto"] or any(x.endswith(":pago") for x in r["c"]) and any(x == "Saldo (ajustado):500:aberto" for x in r["c"]), str(r["c"]))
+    check("Parcelas: cancelar apaga só o que estava em aberto", len(r["d"]) == 1, str(r["d"]))
+    check("Financeiro: 'Recebi' grava a data local", r["dataLocal"])
+    check("A receber: ignora parcela de proposta recusada", r["z2fora"])
+    go("#/cobrar"); pg.wait_for_timeout(900)
+    check("Respostas: lista 'Reconfirmar perto da data' com quem recusou", "Reconfirmar perto da data" in pg.inner_text("#cb") and pg.locator(".pwrap[data-pid=z2] [data-qa=reconf]").count() == 1)
+    check("Respostas: rascunho/recusada sem botões enganosos", pg.locator(".pwrap[data-pid=z2] [data-qa=recusada]").count() == 0)
+    pg.click(".pwrap[data-pid=z2] [data-qa=dispensar]"); pg.wait_for_timeout(700)
+    check("Respostas: 'Resolvido, sem a gente' tira da lista e grava", pg.locator(".pwrap[data-pid=z2]").count() == 0 and bool(DB("T.propostas.find(x=>x.id==='z2').reconfirmada_em")))
+    check("Menu: nomes claros (Respostas, Configurações, Como usar)", all(t in pg.inner_text(".topnav") for t in ["Respostas", "Configurações", "Como usar"]))
+    pg.evaluate("() => { const T = window.__FAKE_DB; T.propostas = T.propostas.filter(p => !['z1', 'z2'].includes(p.id)); T.pagamentos = T.pagamentos.filter(g => !['z1', 'z2'].includes(g.proposta_id)); }")
 
     real_errs = [e for e in errs if "falha simulada" not in e and "Failed to load resource" not in e]
     check("Sem erros de JavaScript", not real_errs, " | ".join(real_errs)[:300])

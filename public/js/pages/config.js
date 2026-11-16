@@ -1,7 +1,7 @@
 // Configurações: Pix, contato, capacidade, quem tem acesso e conta
 import * as U from "../ui.js";
 import * as db from "../db.js";
-import { sair } from "../app.js";
+import { sair, VERSAO } from "../app.js";
 import { pixPayload, pixQR } from "../pix.js";
 import { perfil, gestao, admin, PAPEIS } from "../perfil.js";
 import { ic } from "../icones.js";
@@ -21,7 +21,8 @@ export async function mount(root) {
         <h3 style="margin-top:16px">Contato no PDF</h3>
         <div class="row">${f("whatsapp", "WhatsApp", "tel")}${f("instagram", "Instagram")}</div>
         <h3 style="margin-top:16px">Operação</h3>
-        <div class="row">${f("capacidade_hospedagem", "Máx. de hóspedes por dia", "number")}${f("follow_up_dias", "Lembrar proposta sem resposta após (dias)", "number")}</div>
+        <div class="row">${f("capacidade_hospedagem", "Máx. de hóspedes por dia", "number")}${f("follow_up_dias", "1ª cobrança após (dias)", "number")}</div>
+        <div class="row">${f("follow_up_dias_seg", "Demais cobranças a cada (dias)", "number")}${f("reconfirmar_dias", "Reconfirmar quantos dias antes do serviço", "number")}</div>
         ${f("expira_dias", "Considerar “sem resposta” depois de (dias)", "number")}
         <button class="btn primary" type="submit">Salvar</button>
       </form>` : `<div class="panel"><h3>Seu acesso: ${U.esc(PAPEIS[perfil.papel]?.nome || "")}</h3><p class="muted" style="margin:0">${U.esc(PAPEIS[perfil.papel]?.desc || "")}</p><p class="muted">Contato da Pet Lar: ${U.esc(s.whatsapp || "")} · ${U.esc(s.instagram || "")}</p></div>`}
@@ -39,9 +40,10 @@ export async function mount(root) {
         </div>` : G ? `<div class="panel"><h3>Seu acesso: ${U.esc(PAPEIS[perfil.papel]?.nome || "")}</h3><p class="muted" style="margin:0">${U.esc(PAPEIS[perfil.papel]?.desc || "")} Para dar acesso a alguém, fale com o administrador.</p></div>` : ""}
         ${G ? `<div class="panel" style="margin-top:12px" id="armz"><h3>Fotos e vídeos guardados</h3><div class="sk" style="height:40px"></div></div>` : ""}
         <div class="panel" style="margin-top:12px"><h3>Minha conta</h3><p class="muted" style="margin-top:0">${U.esc(user?.email || "")}</p>
-          <form id="fP"><label class="f">Nova senha<input type="password" name="s" minlength="6" autocomplete="new-password"></label><div class="row-actions"><button class="btn soft" type="submit">Trocar senha</button><button class="btn danger" type="button" id="bSair">Sair</button></div></form>
+          <form id="fP"><label class="f">Nova senha<input type="password" name="s" minlength="8" autocomplete="new-password"></label><div class="row-actions"><button class="btn soft" type="submit">Trocar senha</button><button class="btn danger" type="button" id="bSair">Sair</button></div></form>
         </div>
-        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v2.6 · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
+        ${G ? `<div class="panel" style="margin-top:12px" id="erros"></div>` : ""}
+        <div class="panel" style="margin-top:12px"><h3>Sobre</h3><p class="muted" style="margin:0">Pet Lar · painel v${VERSAO} · tabela de preços v2.3 · <a href="#/ajuda">Como usar</a><br>Dados no Supabase (São Paulo) · site na Cloudflare</p></div>
       </div>
     </div>`;
   async function testePix() {
@@ -56,7 +58,7 @@ export async function mount(root) {
   U.$("[name=pix_chave]", root).addEventListener("input", U.debounce(testePix, 500));
   U.$("#fS", root).addEventListener("submit", async e => {
     e.preventDefault(); const v = Object.fromEntries(new FormData(e.target));
-    v.capacidade_hospedagem = Number(v.capacidade_hospedagem) || 3; v.follow_up_dias = Number(v.follow_up_dias) || 2; v.expira_dias = Number(v.expira_dias) || 15;
+    v.capacidade_hospedagem = Number(v.capacidade_hospedagem) || 3; v.follow_up_dias = Number(v.follow_up_dias) || 2; v.follow_up_dias_seg = Number(v.follow_up_dias_seg) || 3; v.reconfirmar_dias = Number(v.reconfirmar_dias) || 2; v.expira_dias = Number(v.expira_dias) || 15;
     for (const k of ["pix_chave", "pix_nome", "pix_cidade", "whatsapp", "instagram"]) v[k] = String(v[k]).trim() || null;
     try { await db.saveSettings(v); U.toast("Configurações salvas"); } catch (err) { U.toast("Não consegui salvar: " + err.message); }
   });
@@ -108,17 +110,25 @@ export async function mount(root) {
   });
   }
   U.$("#fP", root).addEventListener("submit", async e => {
-    e.preventDefault(); const p = e.target.s.value; if (p.length < 6) { U.toast("Mínimo 6 caracteres."); return; }
+    e.preventDefault(); const p = e.target.s.value; if (p.length < 8) { U.toast("Mínimo 8 caracteres."); return; }
     const { error } = await db.sb.auth.updateUser({ password: p }); U.toast(error ? error.message : "Senha alterada"); e.target.reset();
   });
   U.$("#bSair", root).onclick = sair;
   if (G) armazenamento();
+  if (G) erros();
+  async function erros() {
+    const box = U.$("#erros", root); if (!box) return;
+    const l = await db.errosRecentes().catch(() => null); if (!l) { box.innerHTML = ""; return; }
+    box.innerHTML = `<h3>Erros do painel</h3>${l.length ? `<div class="list">${l.map(x => `<div class="item" style="background:#fff"><div class="main"><div class="t">${U.esc(x.mensagem || "")}</div><div class="s">${U.relTime(x.criado_em)} · ${U.esc(x.rota || "")} · v${U.esc(x.versao || "?")}</div></div></div>`).join("")}</div>${A ? `<button class="btn soft small" id="erLimpar" style="margin-top:8px">Limpar lista</button>` : ""}` : `<p class="muted" style="margin:0">Nenhum erro registrado. 🎉</p>`}`;
+    const b = U.$("#erLimpar", box); if (b) b.onclick = async () => { await db.limparErros().catch(() => {}); erros(); };
+  }
   async function armazenamento() {
     const box = U.$("#armz", root); if (!box) return;
     const LIM = 1024 ** 3; // plano grátis do Supabase: 1 GB
     let uso = []; try { uso = await db.usoArmazenamento(); } catch { box.innerHTML = `<h3>Fotos e vídeos guardados</h3><p class="muted">Não consegui medir agora.</p>`; return; }
     const de = t => uso.find(u => u.tipo === t) || { arquivos: 0, bytes: 0 };
     const f = de("foto"), v = de("video"), tot = Number(f.bytes) + Number(v.bytes), pct = Math.min(100, tot / LIM * 100);
+    if (pct < 50) { box.remove(); return; } // L-32: vídeos pausados; o medidor só aparece quando o espaço aperta
     const mb = b => (Number(b) / 1048576).toLocaleString("pt-BR", { maximumFractionDigits: b > 1e8 ? 0 : 1 }) + " MB";
     const antigos = await db.videosAntigos(90).catch(() => []);
     box.innerHTML = `<h3>Fotos e vídeos guardados</h3>
@@ -128,8 +138,8 @@ export async function mount(root) {
       ${pct > 80 ? `<p class="warn" style="margin-top:8px">${ic("alerta")} Espaço quase cheio. Apague vídeos antigos ou fale com o Bruno para aumentar o plano.</p>` : ""}
       ${antigos.length ? `<button class="btn soft small" id="bVidAnt" style="margin-top:10px">${ic("lixo")} Apagar ${antigos.length} vídeo${antigos.length > 1 ? "s" : ""} com mais de 90 dias</button>` : ""}`;
     U.$("#bVidAnt", box)?.addEventListener("click", async () => {
-      if (!(await U.confirmDialog(`Apagar ${antigos.length} vídeo(s) com mais de 90 dias? Eles somem do diário e da área do tutor. As fotos ficam.`, { ok: "Apagar vídeos", danger: true }))) return;
-      try { const n = await db.apagarVideos(antigos); U.toast(`${n} vídeo(s) apagado(s)`); armazenamento(); } catch (err) { U.toast("Não consegui apagar: " + err.message); }
+      if (!(await U.confirmDialog(`Apagar ${U.plural(antigos.length, "vídeo", "vídeos")} com mais de 90 dias? Eles somem do diário e da área do tutor. As fotos ficam.`, { ok: "Apagar vídeos", danger: true }))) return;
+      try { const n = await db.apagarVideos(antigos); U.toast(`${U.plural(n, "vídeo apagado", "vídeos apagados")}`); armazenamento(); } catch (err) { U.toast("Não consegui apagar: " + err.message); }
     });
   }
 }

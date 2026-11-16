@@ -5,13 +5,13 @@ import * as db from "./db.js";
 import { ic } from "./icones.js";
 
 // Separa as enviadas em: cobrar agora, recém-enviadas, adiadas e antigas (sem resposta há muito tempo)
-export function agrupar(todas, fu = 2, exp = 15) {
+export function agrupar(todas, fu = 2, exp = 15, fuSeg = 3) {
   const hoje = U.today(); const g = { agora: [], recentes: [], adiadas: [], antigas: [] };
   for (const p of todas.filter(x => x.status === "enviada")) {
     const dEnvio = U.diasDesde(p.enviada_em) ?? 0; const dUlt = U.diasDesde(p.cobrada_em || p.enviada_em) ?? 0;
     if (p.lembrar_em && p.lembrar_em > hoje) g.adiadas.push(p);
     else if (dEnvio >= exp) g.antigas.push(p);
-    else if (dUlt >= fu || (p.lembrar_em && p.lembrar_em <= hoje)) g.agora.push(p);
+    else if (dUlt >= (p.cobrancas ? fuSeg : fu) || (p.lembrar_em && p.lembrar_em <= hoje)) g.agora.push(p);
     else g.recentes.push(p);
   }
   g.adiadas.sort((a, b) => a.lembrar_em.localeCompare(b.lembrar_em));
@@ -37,13 +37,28 @@ export function msgCobranca(p) {
 export function botoes(p, { cobrar = true } = {}) {
   if (p.status !== "enviada" && p.status !== "rascunho") return "";
   const zap = cobrar && p.status === "enviada"
-    ? `<a class="qa-b zap" data-qa="cobrar" data-id="${p.id}" href="${U.waLink(p.tutores?.whatsapp, msgCobranca(p))}" target="_blank" rel="noopener">${ic("conversa")} Cobrar${p.cobrancas ? ` (${p.cobrancas + 1}ª)` : ""}</a>` : "";
+    ? `<a class="qa-b zap" data-qa="cobrar" data-id="${p.id}" href="${U.waLink(p.tutores?.whatsapp, msgCobranca(p))}" target="_blank" rel="noopener">${ic("conversa")} ${p.cobrancas ? `Lembrar (${p.cobrancas + 1}ª vez)` : "Cobrar"}</a>` : "";
+  if (p.status === "rascunho") return `<div class="qa" data-qa-row="${p.id}"><a class="qa-b terminar" href="#/proposta/${p.id}/enviar">${ic("enviar")} Terminar e enviar</a></div>`; // L-08: rascunho só tem um caminho
   return `<div class="qa" data-qa-row="${p.id}">
-    ${p.status === "rascunho" ? `<a class="qa-b terminar" href="#/proposta/${p.id}/enviar">${ic("enviar")} Enviar</a>` : ""}
     <button class="qa-b ok" data-qa="aceita" data-id="${p.id}">${ic("check")} Aceitou</button>
     <button class="qa-b no" data-qa="recusada" data-id="${p.id}">${ic("x")} Recusou</button>
     ${zap}
-    ${p.status === "enviada" ? `<button class="qa-b" data-qa="adiar" data-id="${p.id}">${ic("relogio")} Adiar</button>` : ""}
+    ${`<button class="qa-b" data-qa="adiar" data-id="${p.id}">${ic("relogio")} Adiar</button>`}
+  </div>`;
+}
+
+// L-02: mensagem para quem recusou (ou não respondeu) e cujo serviço está chegando
+export function msgReconfirmar(p) {
+  const oi = `Oi${p.tutor_nome ? ", " + primeiroNome(p.tutor_nome) : ""}!`;
+  const pets = nomesPets(p); const quem = pets.length ? pets.join(" e ") : "seu pet";
+  const quando = p.data_inicio ? ` (${U.periodo(p.data_inicio, p.data_fim)})` : "";
+  return `${oi} Tudo bem? 🐾\n\nLembrei que o cuidado do ${quem} está chegando${quando}. Deu certo com quem ia ficar com ele? Se precisar de mim, ainda consigo ver as datas 💛`;
+}
+export function botoesReconfirmar(p) {
+  return `<div class="qa" data-qa-row="${p.id}">
+    <a class="qa-b zap" data-qa="reconf" data-id="${p.id}" href="${U.waLink(p.tutores?.whatsapp, msgReconfirmar(p))}" target="_blank" rel="noopener">${ic("conversa")} Chamar</a>
+    <button class="qa-b ok" data-qa="aceita" data-id="${p.id}">${ic("check")} Fechou</button>
+    <button class="qa-b" data-qa="dispensar" data-id="${p.id}">${ic("x")} Resolvido, sem a gente</button>
   </div>`;
 }
 
@@ -91,9 +106,13 @@ export function ligar(container, getP, depoisTela) {
     const acao = b.dataset.qa;
     if (acao === "cobrar") { // o link abre o WhatsApp; aqui só registra a cobrança
       const set = await db.getSettings().catch(() => ({}));
-      const n = (p.cobrancas || 0) + 1; const lembrar = U.addDays(U.today(), set.follow_up_dias || 2);
+      const n = (p.cobrancas || 0) + 1; const lembrar = U.addDays(U.today(), n === 1 ? (set.follow_up_dias || 2) : (set.follow_up_dias_seg || 3));
       try { await db.registrarCobranca(p.id, n, lembrar); Object.assign(p, { cobrancas: n, cobrada_em: new Date().toISOString(), lembrar_em: lembrar }); U.toast(`Cobrança ${n} registrada. Lembro de novo em ${U.fmt(lembrar)}.`); depois(p, acao); }
       catch { U.toast("Abri o WhatsApp, mas não consegui registrar a cobrança."); }
+      return;
+    }
+    if (acao === "reconf") { // abre o WhatsApp; aqui só marca como reconfirmada
+      try { await db.marcarReconfirmada(p.id); p.reconfirmada_em = new Date().toISOString(); U.toast("Registrado. Saiu da lista."); depois(p, acao); } catch { U.toast("Abri o WhatsApp, mas não consegui registrar."); }
       return;
     }
     e.preventDefault();
@@ -108,6 +127,7 @@ export function ligar(container, getP, depoisTela) {
           await db.atualizarProposta(p.id, { status: antes }); p.status = antes; db.invalidate("lista"); depois(p, "desfeito"); U.toast("Desfeito");
         });
       }
+      else if (acao === "dispensar") { await db.marcarReconfirmada(p.id); p.reconfirmada_em = new Date().toISOString(); U.toast("Ok, saiu da lista."); depois(p, acao); }
       else if (acao === "adiar") {
         const d = await escolherAdiar(); if (!d) return;
         await db.atualizarProposta(p.id, { lembrar_em: d }); p.lembrar_em = d; db.invalidate("lista");

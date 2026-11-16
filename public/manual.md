@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.6 · atualizado em 12/11/2026
+Versão 2.7 · atualizado em 16/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -18,7 +18,7 @@ O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e 
 - [Orçamentos importados](#orcamentos-importados)
 - [Completar cadastros](#completar-cadastros)
 - [Depois que o cliente responde](#depois-que-o-cliente-responde)
-- [Cobrar resposta](#cobrar-resposta)
+- [Respostas (cobrar e reconfirmar)](#respostas-cobrar-e-reconfirmar)
 - [Filtros](#filtros)
 - [Diário do pet](#diario-do-pet)
 - [Área do tutor](#area-do-tutor)
@@ -56,7 +56,7 @@ Para mudar o nível de alguém: **Configurações → Quem tem acesso**, escolha
 |---|---|
 | **Hoje** | Resumo do dia: quantos serviços tem hoje, quem chega e quem vai embora, os próximos 7 dias, o botão **📓 Diário de hoje** de cada serviço, os orçamentos para cobrar (com Aceitou, Recusou, Cobrar e Adiar) e quanto há a receber. |
 | **Propostas** | Todos os orçamentos. Filtre por situação (rascunho, enviada, aceita, recusada) ou veja **Por cliente**. Busque pelo nome do tutor ou pelo número (PL-2026-001). Cada orçamento em aberto tem os botões **Aceitou**, **Recusou**, **Cobrar** e **Adiar**, sem precisar abrir. |
-| **Cobrar** | Quem recebeu orçamento e ainda não respondeu: quem cobrar agora, quem recebeu há pouco, quem ficou para depois e quem está sem resposta há muito tempo. O número no menu mostra quantos estão para cobrar. |
+| **Respostas** | Quem recebeu orçamento e ainda não respondeu: quem cobrar agora, quem recebeu há pouco, quem ficou para depois e quem está sem resposta há muito tempo. O número no menu mostra quantos estão para cobrar. |
 | **Pets** | **Com a Lari agora** (serviços em andamento), **Próximos** (confirmados nos próximos 60 dias) e **Todos**. Toque no pet para abrir a ficha. |
 | **Tutores** | Os clientes. A ficha tem contato, endereço, observações de acesso (chave, portaria), os pets dele e o histórico de orçamentos. |
 | **Agenda** | Calendário do mês. Mostra cada serviço confirmado e quantos hóspedes há por dia. Avisa quando passa da capacidade da casa. |
@@ -91,7 +91,7 @@ No fim do formulário tem o passo **5 · Enviar para o cliente**, com o que já 
 - **Enviar para Fulana**: abre as opções de envio abaixo;
 - **Terminar depois**: guarda o rascunho e volta para Propostas.
 
-Rascunhos esquecidos aparecem em três lugares: aviso no **Hoje** ("X propostas em rascunho"), faixa no topo de **Propostas** e o botão **Enviar** em cada rascunho da lista.
+Rascunhos esquecidos aparecem em três lugares: aviso no **Hoje** ("X propostas em rascunho"), faixa no topo de **Propostas** e o botão **Terminar e enviar** em cada rascunho da lista (rascunho não tem Aceitou/Recusou: o cliente ainda nem recebeu).
 
 ### Enviar
 
@@ -116,7 +116,7 @@ Serve para mandar, no mesmo PDF, duas alternativas para o cliente escolher. Por 
    - **Hospedagem ou visitas**: opção 1 vira hospedagem e opção 2 vira visitas, com as mesmas datas;
    - **Avulso ou pacote mensal**: opção 1 visitas avulsas, opção 2 pacote mensal;
    - **Outra combinação**: a opção 2 começa igual à 1 e você muda o que quiser.
-2. Mude o que for diferente: serviço, datas, desconto, adicionais ou valor combinado. Use as abas **Opção 1** e **Opção 2** para alternar entre elas. Cliente e recado valem para as duas.
+2. Mude o que for diferente: serviço, datas, desconto, adicionais ou valor combinado. **O desconto (e o valor combinado) é de cada opção**: o passo 4 mostra "Desconto especial da opção N", embaixo aparece o desconto das duas e o botão **Usar o mesmo desconto nas duas**. Use as abas **Opção 1** e **Opção 2** para alternar entre elas. Cliente e recado valem para as duas.
    - **Pets diferentes em cada opção:** com mais de um pet, aparece **Pets nesta opção** logo abaixo das abas. Toque no pet para tirar ou pôr de volta naquela opção. Ex.: opção 1 com os dois gatos (visitas), opção 2 só com um (hospedagem). O preço, o PDF ("Para Mimi") e o aceite usam só os pets daquela opção. Cada opção precisa de pelo menos 1 pet.
 3. A opção com ⭐ é a **recomendada**: fica em destaque no PDF e no card. Para trocar, abra a outra opção e toque em **Recomendar a opção**.
 4. No PDF, no card e na mensagem aparecem as duas, cada uma com o seu valor. O Pix do sinal só vai depois que o cliente escolher.
@@ -192,7 +192,7 @@ Cada item some da lista assim que é salvo. O aviso no Hoje mostra quantas infor
 
 ## Depois que o cliente responde
 
-Dá para fazer tudo direto da lista, sem abrir o orçamento: em **Propostas**, **Cobrar** ou **Hoje**, use os botões embaixo de cada um.
+Dá para fazer tudo direto da lista, sem abrir o orçamento: em **Propostas**, **Respostas** ou **Hoje**, use os botões embaixo de cada um.
 
 - **✅ Aceitou:** pede uma confirmação e lança o sinal e o saldo no Financeiro. Se o orçamento tiver duas opções, pergunta qual foi aceita.
 - **✖ Recusou:** muda na hora. Se tocou errado, toque em **Desfazer** no aviso.
@@ -205,18 +205,19 @@ Dentro do orçamento também funciona:
 - **Recusou:** menu ••• → **Cliente recusou**. Entra na taxa de aceite.
 - **Desistiu depois de aceitar:** menu ••• → **Cancelar serviço**.
 
-## Cobrar resposta
+## Respostas (cobrar e reconfirmar)
 
-A aba **Cobrar** junta os orçamentos enviados que ainda não tiveram resposta.
+A aba **Respostas** junta os orçamentos enviados que ainda não tiveram resposta e, no alto, quem recusou mas o serviço está chegando.
 
 | Grupo | O que entra |
 |---|---|
-| **Cobrar agora** | Enviados (ou cobrados pela última vez) há 2 dias ou mais. O prazo muda em Configurações → "Lembrar proposta sem resposta após (dias)" |
+| **Reconfirmar perto da data** | Propostas recusadas, vencidas ou ainda sem resposta cujo serviço começa nos próximos 7 dias. Muita gente diz "não" porque vai deixar com um conhecido, e na hora não dá certo: vale chamar uns 2 dias antes. Botões: **Chamar** (abre o WhatsApp com a mensagem pronta e tira da lista), **Fechou** (aceitou de última hora; gera sinal e saldo) e **Resolvido, sem a gente** (tira da lista). O número de dias muda em Configurações → "Reconfirmar quantos dias antes do serviço" |
+| **Cobrar agora** | Enviados há 2 dias ou mais (1ª cobrança). Da 2ª cobrança em diante, a espera é de 3 dias. Os dois prazos mudam em Configurações → "1ª cobrança após" e "Demais cobranças a cada" |
 | **Enviadas há pouco** | Ainda dentro do prazo, é só esperar |
 | **Adiadas** | Você pediu para lembrar numa data. Voltam para "Cobrar agora" nesse dia |
 | **Sem resposta há mais de 15 dias** (Configurações → "Considerar sem resposta depois de") | Dá para marcar todos de uma vez como sem resposta (expirados). Eles saem da lista |
 
-**Como cobrar:** toque em **💬 Cobrar**. Abre o WhatsApp do tutor com a mensagem pronta, e a mensagem muda conforme a vez:
+**Como cobrar:** toque em **💬 Cobrar** (da 2ª vez em diante o botão vira **Lembrar (2ª vez)**). Abre o WhatsApp do tutor com a mensagem pronta, e a mensagem muda conforme a vez:
 
 1. 1ª vez: pergunta com carinho se deu para ver e se ficou alguma dúvida.
 2. 2ª vez: avisa que as datas estão procuradas e oferece segurar com o sinal.
@@ -351,6 +352,16 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 | Pagamento | 50% para confirmar, 50% no fim |
 | Arredondamento | Múltiplo de R$ 5 |
 
+## Palavras usadas no painel
+
+| Palavra | O que quer dizer |
+|---|---|
+| **Proposta** | O documento que você monta e manda (PDF/imagem). Para o cliente, na área do tutor, aparece como **orçamento** |
+| **Tutor / cliente** | A pessoa dona do pet. Tutor é o cadastro; cliente é quem recebe a proposta |
+| **Respostas** | Aba para cobrar quem não respondeu e reconfirmar quem recusou |
+| **Configurações** | Pix, contato, prazos e acessos (nos dois menus) |
+| **Como usar** | Este manual (nos dois menus) |
+
 ## Dicas e dúvidas
 
 **A proposta não salva.** Ela só salva quando tem o nome do tutor ou de um pet. Confira também a internet: o aviso "Erro ao salvar" some na próxima alteração.
@@ -372,6 +383,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| 2.7 | 16/11/2026 | Desconto por opção. Aba **Respostas** com "Reconfirmar perto da data". Parcelas do Financeiro acompanham cancelamento e mudança de valor; "A receber" só de propostas aceitas; "Recebi" com a data de hoje certa. Tutor não aceita proposta vencida. Link do tutor vale 90 dias (com botão Renovar). Aviso quando duas pessoas editam a mesma proposta. Erros do painel registrados em Configurações. Botão primário com mais contraste, botões maiores no celular, letras a partir de 12 px. Senha com mínimo de 8. Foto padrão do pet nova; "Dentro de casa, com a gente" no lugar de "Um lar de verdade" |
 | 2.6 | 12/11/2026 | Quadro "Quer oferecer duas opções?" com atalhos (hospedagem ou visitas; avulso ou pacote). Idade com a palavra "anos" no PDF, no card e na área do tutor |
 | 2.5 | 12/11/2026 | Enquadrar a foto do pet (arrastar, zoom com pinça, girar) no painel e na área do tutor |
 | 2.4 | 12/11/2026 | Passo 5 da proposta (rascunho explicado, o que falta, Enviar / Terminar depois), rascunhos destacados na lista, aviso no Hoje e botão Enviar nos rascunhos. Fotos e vídeos do diário pelo WhatsApp por enquanto |

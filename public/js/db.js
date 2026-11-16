@@ -54,7 +54,7 @@ export async function followUps(dias) {
 }
 
 // colunas das listas com ações rápidas (Propostas, Cobrar, Hoje)
-export const PROP_LISTA = "id,numero,status,servico,tutor_id,tutor_nome,criado_por,data_inicio,data_fim,valor_total,valor_cheio,resumo,created_at,enviada_em,cobrancas,cobrada_em,lembrar_em,opcoes:payload->opcoes,escolhida:payload->escolhida,tutores(whatsapp),proposta_pets(pets(nome))";
+export const PROP_LISTA = "id,numero,status,servico,tutor_id,tutor_nome,criado_por,data_inicio,data_fim,valor_total,valor_cheio,resumo,created_at,enviada_em,cobrancas,cobrada_em,lembrar_em,reconfirmada_em,opcoes:payload->opcoes,escolhida:payload->escolhida,tutores(whatsapp),proposta_pets(pets(nome))";
 // filtros da tela Propostas (f = { criado:{ini,fim}, servicoData:{ini,fim}, servicos:[], cidades:[], valor:{min,max} })
 function filtrarPropostas(r, f = {}) {
   if (f.criado?.ini) r = r.gte("created_at", f.criado.ini);
@@ -80,8 +80,9 @@ export async function contarStatus(status, f) {
   return r.count || 0;
 }
 export async function getProposta(id) { return chk(await sb.from("propostas").select("*,proposta_pets(pet_id)").eq("id", id).single()); }
-export async function insertProposta(row) { return chk(await sb.from("propostas").insert(row).select("id,numero,status").single()); }
-export async function updateProposta(id, row) { return chk(await sb.from("propostas").update(row).eq("id", id).select("id,numero,status").single()); }
+export async function insertProposta(row) { return chk(await sb.from("propostas").insert(row).select("id,numero,status,updated_at").single()); }
+export async function updateProposta(id, row) { return chk(await sb.from("propostas").update(row).eq("id", id).select("id,numero,status,updated_at").single()); }
+export async function propostaAtualizadaEm(id) { return (chk(await sb.from("propostas").select("updated_at").eq("id", id).maybeSingle()) || {}).updated_at || null; }
 export async function deleteProposta(id) { return chk(await sb.from("propostas").delete().eq("id", id)); }
 export async function setPropostaPets(id, petIds) {
   chk(await sb.from("proposta_pets").delete().eq("proposta_id", id));
@@ -159,14 +160,15 @@ export async function fotoDataURL(path) {
 }
 
 // ---------- pagamentos ----------
+const hojeLocal = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 export async function pagamentosAbertos() {
-  return chk(await sb.from("pagamentos").select("id,descricao,valor,vencimento,pago_em,forma,proposta_id,propostas(numero,tutor_nome,servico,tutor_id,tutores(whatsapp))").is("pago_em", null).order("vencimento"));
+  return chk(await sb.from("pagamentos").select("id,descricao,valor,vencimento,pago_em,forma,proposta_id,propostas!inner(numero,tutor_nome,servico,tutor_id,status,tutores(whatsapp))").is("pago_em", null).eq("propostas.status", "aceita").order("vencimento"));
 }
 export async function pagamentosMes(ini, fim) {
   return chk(await sb.from("pagamentos").select("id,descricao,valor,vencimento,pago_em,forma,proposta_id,propostas(numero,tutor_nome,servico)").gte("pago_em", ini).lte("pago_em", fim).order("pago_em", { ascending: false }));
 }
 export async function pagamentosDaProposta(id) { return chk(await sb.from("pagamentos").select("*").eq("proposta_id", id).order("vencimento")); }
-export async function marcarPago(id, forma = "pix", data = null) { return chk(await sb.from("pagamentos").update({ pago_em: data || new Date().toISOString().slice(0, 10), forma }).eq("id", id)); }
+export async function marcarPago(id, forma = "pix", data = null) { return chk(await sb.from("pagamentos").update({ pago_em: data || hojeLocal(), forma }).eq("id", id)); }
 export async function desmarcarPago(id) { return chk(await sb.from("pagamentos").update({ pago_em: null, forma: null }).eq("id", id)); }
 export async function receitaPorServico(ini, fim) {
   return chk(await sb.from("propostas").select("servico,valor_total,tutor_nome").eq("status", "aceita").gte("data_inicio", ini).lte("data_inicio", fim));
@@ -199,7 +201,11 @@ export async function statusEmLote(ids, status) { return chk(await sb.from("prop
 export async function registrarCobranca(id, n, lembrarEm) {
   return chk(await sb.from("propostas").update({ cobrancas: n, cobrada_em: new Date().toISOString(), lembrar_em: lembrarEm }).eq("id", id).select("id").single());
 }
-export async function apagarPagamentosAbertos(propostaId) { return chk(await sb.from("pagamentos").delete().eq("proposta_id", propostaId).is("pago_em", null)); }
+// L-02: propostas recusadas, vencidas ou ainda em aberto cujo serviço está chegando (ainda não reconfirmadas)
+export async function propostasParaReconfirmar(de, ate) {
+  return chk(await sb.from("propostas").select(PROP_LISTA).in("status", ["recusada", "expirada", "enviada"]).is("reconfirmada_em", null).gte("data_inicio", de).lte("data_inicio", ate).order("data_inicio").limit(200));
+}
+export async function marcarReconfirmada(id) { return chk(await sb.from("propostas").update({ reconfirmada_em: new Date().toISOString() }).eq("id", id).select("id").single()); }
 export async function linkNovaSenha(email) {
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
   if (error) throw error; return true;
@@ -239,8 +245,16 @@ export async function acessoTutor(tutorId) {
 export async function criarAcessoTutor(tutorId) {
   return chk(await sb.from("tutor_acessos").insert({ tutor_id: tutorId, token: novoToken() }).select(ACESSO_COLS).single());
 }
+export async function renovarAcessoTutor(id, dias = 90) { return chk(await sb.from("tutor_acessos").update({ expira_em: new Date(Date.now() + dias * 86400000).toISOString() }).eq("id", id)); }
 export async function revogarAcessoTutor(id) { return chk(await sb.from("tutor_acessos").update({ revogado_em: new Date().toISOString() }).eq("id", id)); }
 export async function avaliacoesDoTutor(tutorId) { return chk(await sb.from("avaliacoes").select("proposta_id,nota,comentario,criado_em").eq("tutor_id", tutorId)); }
+
+// ---------- L-15: registro de erros ----------
+export async function registrarErro(e) {
+  try { await sb.from("erros").insert({ origem: "painel", rota: String(location.hash || "").slice(0, 120), mensagem: String(e.mensagem || "").slice(0, 400), pilha: String(e.pilha || "").slice(0, 1500), versao: e.versao || null, agente: navigator.userAgent.slice(0, 160) }); } catch { /* sem rede: ignora */ }
+}
+export async function errosRecentes(n = 15) { return chk(await sb.from("erros").select("id,criado_em,rota,mensagem,versao").order("criado_em", { ascending: false }).limit(n)); }
+export async function limparErros() { return chk(await sb.from("erros").delete().not("id", "is", null)); }
 
 // ---------- A-04: senha provisória (só administrador; Edge Function admin-senha) ----------
 export async function senhaProvisoria(email, senha) {

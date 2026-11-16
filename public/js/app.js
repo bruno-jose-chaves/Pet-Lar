@@ -18,7 +18,7 @@ const ROUTES = [
   { re: /^#\/financeiro$/, mod: "financeiro", nav: "mais", title: "Financeiro" },
   { re: /^#\/config$/, mod: "config", nav: "mais", title: "Configurações" },
   { re: /^#\/ajuda$/, mod: "ajuda", nav: "mais", title: "Como usar" },
-  { re: /^#\/cobrar$/, mod: "cobrar", nav: "cobrar", title: "Cobrar resposta" },
+  { re: /^#\/cobrar$/, mod: "cobrar", nav: "cobrar", title: "Respostas" },
   { re: /^#\/diario\/([\w-]+)$/, mod: "diario", nav: "hoje", title: "Diário" },
   { re: /^#\/completar$/, mod: "completar", nav: "mais", title: "Completar cadastros" },
 ];
@@ -34,8 +34,8 @@ export function replaceHash(h) { history.replaceState(null, "", h); lastHash = h
 
 function shell() {
   const g = gestao();
-  const top = [["hoje", "Hoje"], g && ["propostas", "Propostas"], g && ["cobrar", "Cobrar"], ["pets", "Pets"], ["tutores", "Tutores"], ["agenda", "Agenda"], g && ["financeiro", "Financeiro"], ["config", "Ajustes"], ["ajuda", "Ajuda"]].filter(Boolean);
-  const bottom = g ? [["hoje", "Hoje"], ["propostas", "Propostas"], ["cobrar", "Cobrar"], ["pets", "Pets"], ["agenda", "Agenda"]] : [["hoje", "Hoje"], ["pets", "Pets"], ["agenda", "Agenda"], ["tutores", "Tutores"]];
+  const top = [["hoje", "Hoje"], g && ["propostas", "Propostas"], g && ["cobrar", "Respostas"], ["pets", "Pets"], ["tutores", "Tutores"], ["agenda", "Agenda"], g && ["financeiro", "Financeiro"], ["config", "Configurações"], ["ajuda", "Como usar"]].filter(Boolean);
+  const bottom = g ? [["hoje", "Hoje"], ["propostas", "Propostas"], ["cobrar", "Respostas"], ["pets", "Pets"], ["agenda", "Agenda"]] : [["hoje", "Hoje"], ["pets", "Pets"], ["agenda", "Agenda"], ["tutores", "Tutores"]];
   document.body.classList.toggle("papel-assistente", !g);
   $("#root").innerHTML = `<div class="app">
     <header class="appbar">
@@ -111,7 +111,7 @@ function loginView(msg, err) {
     <img src="/assets/logo-petlar.webp" alt="Pet Lar" width="210">
     <form id="fLogin" autocomplete="on">
       <label class="f">E-mail<input type="email" name="email" required autocomplete="username" inputmode="email" style="width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px"></label>
-      <label class="f">Senha<input type="password" name="senha" required minlength="6" autocomplete="current-password" style="width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px"></label>
+      <label class="f">Senha<input type="password" name="senha" required autocomplete="current-password" style="width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px"></label>
       <button class="btn primary" type="submit">Entrar</button>
       <div class="links"><button class="x" type="button" id="lPrimeiro">Primeiro acesso</button><button class="x" type="button" id="lEsqueci">Esqueci a senha</button></div>
       ${msg ? `<p class="msg ${err ? "err" : ""}">${esc(msg)}</p>` : ""}
@@ -126,7 +126,7 @@ function loginView(msg, err) {
   });
   $("#lPrimeiro").addEventListener("click", async () => {
     const { email, senha } = val();
-    if (!email || senha.length < 6) { loginView("Para o primeiro acesso, digite seu e-mail e crie uma senha (mínimo 6 caracteres) e toque em “Primeiro acesso”.", true); return; }
+    if (!email || senha.length < 8) { loginView("Para o primeiro acesso, digite seu e-mail e crie uma senha (mínimo 8 caracteres) e toque em “Primeiro acesso”.", true); return; }
     const { sb } = await import("./db.js");
     const { data: ok } = await sb.rpc("email_autorizado", { p_email: email });
     if (!ok) { loginView("Este e-mail ainda não tem acesso. Peça para incluir em Configurações.", true); return; }
@@ -143,7 +143,7 @@ function loginView(msg, err) {
 }
 
 function novaSenha() {
-  const m = modal(`<h3>Criar nova senha</h3><form id="fNova"><label class="f">Nova senha<input type="password" name="s" minlength="6" required autocomplete="new-password"></label><div class="acts"><button class="btn primary">Salvar senha</button></div></form>`);
+  const m = modal(`<h3>Criar nova senha</h3><form id="fNova"><label class="f">Nova senha<input type="password" name="s" minlength="8" required autocomplete="new-password"></label><div class="acts"><button class="btn primary">Salvar senha</button></div></form>`);
   m.el.querySelector("form").addEventListener("submit", async e => {
     e.preventDefault(); const { sb } = await import("./db.js");
     const { error } = await sb.auth.updateUser({ password: e.target.s.value });
@@ -193,6 +193,13 @@ async function start() {
   session = data.session;
   if (!session) loginView();
 }
+
+export const VERSAO = "2.7";
+// L-15: erros inesperados viram uma linha na tabela "erros" (no máximo 5 por visita, sem repetir)
+{ const vistos = new Set();
+  const reg = (mensagem, pilha) => { const k = String(mensagem).slice(0, 80); if (!started || vistos.has(k) || vistos.size >= 5) return; vistos.add(k); import("./db.js").then(d => d.registrarErro({ mensagem, pilha, versao: VERSAO })).catch(() => {}); };
+  window.addEventListener("error", e => reg(e.message || "erro", e.error?.stack));
+  window.addEventListener("unhandledrejection", e => reg(e.reason?.message || String(e.reason), e.reason?.stack)); }
 
 window.addEventListener("hashchange", () => { if (started) route(); });
 window.addEventListener("beforeunload", e => { if (navGuard && window.__dirty) { e.preventDefault(); e.returnValue = ""; } });
