@@ -43,7 +43,7 @@ export async function mount(root, { params }) {
         ${f("veterinario", "Veterinário (nome e telefone)")}
         ${f("observacoes", "Outras observações", "area")}
         <label class="check"><input type="checkbox" name="reativo" ${pet.reativo ? "checked" : ""}> Pode ser reativo / agressivo</label>
-        <label class="check"><input type="checkbox" name="ativo" ${pet.ativo !== false ? "checked" : ""}> Cliente ativo</label>
+        <label class="check"><input type="checkbox" name="ativo" ${pet.ativo !== false ? "checked" : ""}> Pet ativo</label>
         <div class="row-actions" style="margin-top:8px"><button class="btn primary" type="submit">Salvar</button>${id && gestao() ? `<a class="btn soft" href="#/proposta/nova" id="bProp">Nova proposta</a>` : ""}</div>
       </form>
       <div>
@@ -63,7 +63,7 @@ export async function mount(root, { params }) {
 
   function renderTutor() {
     U.$("#tutorBox", root).innerHTML = tutor ? `<a class="item" href="#/tutor/${tutor.id}" style="background:#fff"><div class="av round">${U.USER}</div><div class="main"><div class="t">${U.esc(tutor.nome)}</div><div class="s">${U.esc(tutor.whatsapp || "")}</div></div></a><button class="x" id="bTrocaTutor" type="button">trocar tutor</button>`
-      : `<div class="ac"><input type="text" id="qTutor" placeholder="Buscar tutor pelo nome" autocomplete="off"><div class="ac-list hide" id="acT"></div></div>`;
+      : `<div class="ac"><input type="text" id="qTutor" aria-label="Buscar tutor" placeholder="Buscar tutor pelo nome" autocomplete="off"><div class="ac-list hide" id="acT"></div></div>`;
     const bt = U.$("#bTrocaTutor", root); if (bt) bt.onclick = () => { tutor = null; renderTutor(); };
     const qi = U.$("#qTutor", root); if (!qi) return;
     const ac = U.$("#acT", root);
@@ -84,7 +84,7 @@ export async function mount(root, { params }) {
       limitacoes: fd.get("limitacoes") || null, veterinario: fd.get("veterinario") || null, observacoes: fd.get("observacoes") || null,
       reativo: !!fd.get("reativo"), ativo: !!fd.get("ativo"), tutor_id: tutor ? tutor.id : null, aniversario: U.anivDoForm(fd) };
     try { const r = await db.savePet(id ? { id, ...v } : v); U.toast("Pet salvo"); if (!id) location.hash = "#/pet/" + r.id; else { pet = { ...pet, ...r }; U.$("h1.pg", root).textContent = r.nome || "Pet sem nome"; } }
-    catch (err) { U.toast("Não consegui salvar: " + err.message); } finally { b.disabled = false; }
+    catch (err) { U.toast(U.erroTxt("salvar", err)); } finally { b.disabled = false; }
   });
 
   const pick = () => { if (!id) { U.toast("Salve o pet primeiro, depois adicione a foto."); return; } U.$("#file", root).click(); };
@@ -100,7 +100,7 @@ export async function mount(root, { params }) {
       const old = pet.foto_path;
       const path = await db.uploadFoto(id, blob); await db.savePet({ id, foto_path: path }); if (old) db.removeFoto(old).catch(() => {});
       U.toast("Foto salva"); mount(root, { params });
-    } catch (err) { U.toast("Não consegui enviar a foto: " + err.message); mount(root, { params }); }
+    } catch (err) { U.toast(U.erroTxt("enviar a foto", err)); mount(root, { params }); }
   }
   U.$("#bAjFoto", root)?.addEventListener("click", () => enviar(fotoUrl));
   const rm = U.$("#bRmFoto", root);

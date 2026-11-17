@@ -11,7 +11,7 @@ export async function mount(root) {
   const equipe = await db.nomesEquipe().catch(() => ({}));
   let st = sessionStorage.getItem("petlar_filtro_prop") || "", q = "", page = 0, total = 0, items = [];
   root.innerHTML = `<h1 class="pg">Propostas</h1>
-    <div class="toolbar"><div class="grow search"><input type="text" id="q" placeholder="Buscar por tutor ou número" autocomplete="off"></div><button class="btn soft small" id="bSel">Selecionar</button></div>
+    <div class="toolbar"><div class="grow search"><input type="text" id="q" aria-label="Buscar por tutor ou número" placeholder="Buscar por tutor ou número" autocomplete="off"></div><button class="btn soft small" id="bSel">Selecionar</button></div>
     <div id="fbar"></div>
     <div class="chips" id="fil">${FILTROS.map(([k, t]) => `<button class="chip" data-v="${k}">${t}</button>`).join("")}</div>
     <div id="funil" class="muted" style="margin:-4px 0 10px"></div>

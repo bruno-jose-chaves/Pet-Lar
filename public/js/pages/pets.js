@@ -9,7 +9,7 @@ export async function mount(root) {
   root.innerHTML = `<h1 class="pg">Pets</h1>
     <div class="chips" id="abas"><button class="chip" data-v="ativos">Com a Lari agora</button><button class="chip" data-v="proximos">Próximos</button><button class="chip" data-v="todos">Todos</button></div>
     <div id="fbar"></div>
-    <div class="toolbar hide" id="tb"><div class="grow search"><input type="text" id="q" placeholder="Buscar pet pelo nome" autocomplete="off"></div></div>
+    <div class="toolbar hide" id="tb"><div class="grow search"><input type="text" id="q" aria-label="Buscar pet pelo nome" placeholder="Buscar pet pelo nome" autocomplete="off"></div></div>
     <div id="lista">${U.skeleton(4)}</div><div class="more" id="more"></div>
     ${gestao() ? `<a class="btn primary fab" href="#/pet/novo">+ Novo pet</a>` : ""}`;
   const filtros = F.criar(U.$("#fbar", root), { chave: "pets", aoMudar: () => load(), campos: [

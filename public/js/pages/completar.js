@@ -6,8 +6,8 @@ import { ic } from "../icones.js";
 import { enquadrar } from "../recorte.js";
 
 const SEC = [
-  ["semCliente", "Propostas sem cliente", "Abra e escolha o cliente (ou cadastre)."],
-  ["semWhats", "Clientes sem WhatsApp", "Sem o número não dá para mandar orçamento, cobrança nem o link da área do tutor."],
+  ["semCliente", "Propostas sem tutor", "Abra e escolha o tutor (ou cadastre)."],
+  ["semWhats", "Tutores sem WhatsApp", "Sem o número não dá para mandar orçamento, cobrança nem o link da área do tutor."],
   ["semNome", "Pets sem nome", ""],
   ["semRaca", "Pets sem raça", ""],
   ["semFoto", "Pets sem foto", "A foto aparece no orçamento, no diário e na área do tutor."],
@@ -47,7 +47,7 @@ export async function mount(root) {
       if (f.dataset.tutor) { if (v.replace(/\D/g, "").length < 10) { U.toast("Confira o número com DDD."); b.disabled = false; return; } await db.saveTutor({ id: f.dataset.tutor, whatsapp: v }); }
       else await db.savePet({ id: f.dataset.pet, [f.dataset.campo]: v });
       U.toast("Salvo"); tirar(f);
-    } catch (err) { U.toast("Não consegui salvar: " + err.message); b.disabled = false; }
+    } catch (err) { U.toast(U.erroTxt("salvar", err)); b.disabled = false; }
   });
   let alvo = null;
   root.addEventListener("click", e => { const b = e.target.closest("[data-foto]"); if (!b) return; alvo = b; U.$("#cpFile", root).click(); });
@@ -55,6 +55,6 @@ export async function mount(root) {
     const file = e.target.files[0]; e.target.value = ""; if (!file || !alvo) return;
     const id = alvo.dataset.foto; alvo.disabled = true; alvo.textContent = "Enviando…";
     try { const blob = await enquadrar(file); if (!blob) { alvo.disabled = false; alvo.innerHTML = `${ic("camera")} Pôr foto`; return; } const path = await db.uploadFoto(id, blob); await db.savePet({ id, foto_path: path }); U.toast("Foto salva"); tirar(alvo.closest(".item")); }
-    catch (err) { U.toast("Não consegui enviar a foto: " + err.message); alvo.disabled = false; alvo.innerHTML = `${ic("camera")} Pôr foto`; }
+    catch (err) { U.toast(U.erroTxt("enviar a foto", err)); alvo.disabled = false; alvo.innerHTML = `${ic("camera")} Pôr foto`; }
   });
 }

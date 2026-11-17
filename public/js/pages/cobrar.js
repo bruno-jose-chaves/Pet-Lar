@@ -59,7 +59,7 @@ export async function mount(root) {
     if (bx) bx.onclick = async () => {
       const ids = grupos().antigas.map(p => p.id);
       if (!(await U.confirmDialog(`Marcar ${ids.length} proposta${ids.length > 1 ? "s" : ""} como sem resposta (expirada)? Elas saem desta lista.`, { ok: "Marcar" }))) return;
-      try { await db.statusEmLote(ids, "expirada"); todas.forEach(p => { if (ids.includes(p.id)) p.status = "expirada"; }); db.invalidate("lista"); U.toast("Pronto"); pintar(); window.dispatchEvent(new Event("petlar:propostas")); }
+      try { await db.statusEmLote(ids, "expirada"); todas.forEach(p => { if (ids.includes(p.id)) p.status = "expirada"; }); db.invalidate("lista"); U.toast("Marcadas como sem resposta"); pintar(); window.dispatchEvent(new Event("petlar:propostas")); }
       catch { U.toast("Não consegui atualizar."); }
     };
   }

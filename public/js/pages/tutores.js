@@ -7,7 +7,7 @@ import * as F from "../filtros.js";
 export async function mount(root) {
   let q = "", page = 0, items = [], total = 0;
   root.innerHTML = `<h1 class="pg">Tutores</h1>
-    <div class="toolbar"><div class="grow search"><input type="text" id="q" placeholder="Buscar tutor pelo nome" autocomplete="off"></div></div>
+    <div class="toolbar"><div class="grow search"><input type="text" id="q" aria-label="Buscar tutor pelo nome" placeholder="Buscar tutor pelo nome" autocomplete="off"></div></div>
     <div id="fbar"></div>
     <div id="lista">${U.skeleton(5)}</div><div class="more" id="more"></div>
     ${gestao() ? `<a class="btn primary fab" href="#/tutor/novo">+ Novo tutor</a>` : ""}`;

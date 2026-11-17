@@ -57,7 +57,7 @@ export async function mount(root, { params }) {
     if (!fd.nome.trim()) { U.toast("Coloque o nome do tutor."); return; }
     const v = Object.fromEntries(Object.entries(fd).map(([k, x]) => [k, String(x).trim() || null]));
     try { const r = await db.saveTutor(id ? { id, ...v } : v); U.toast("Tutor salvo"); if (!id) location.hash = "#/tutor/" + r.id; else U.$("h1.pg", root).textContent = r.nome; }
-    catch (err) { U.toast("Não consegui salvar: " + err.message); }
+    catch (err) { U.toast(U.erroTxt("salvar", err)); }
   });
   if (!id || !g) return;
   pintarPortal();
@@ -77,7 +77,7 @@ export async function mount(root, { params }) {
     if (!a) {
       box.innerHTML = `<p class="muted" style="margin:0 0 10px">Um link só de ${U.esc(t.nome.split(" ")[0])}, sem senha, para ver o diário com fotos, confirmar orçamentos, pagar o sinal no Pix e atualizar a ficha dos pets.</p>
         <button class="btn primary" id="pCriar">${ic("link")} Criar link da área do tutor</button>`;
-      U.$("#pCriar", box).onclick = async e => { e.currentTarget.disabled = true; try { await db.criarAcessoTutor(id); pintarPortal(); } catch (err) { U.toast("Não consegui criar: " + err.message); e.currentTarget.disabled = false; } };
+      U.$("#pCriar", box).onclick = async e => { e.currentTarget.disabled = true; try { await db.criarAcessoTutor(id); pintarPortal(); } catch (err) { U.toast(U.erroTxt("criar", err)); e.currentTarget.disabled = false; } };
       return;
     }
     const url = db.linkPortal(a.token); const vencido = a.expira_em && new Date(a.expira_em) < new Date();

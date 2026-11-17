@@ -489,7 +489,7 @@ export async function mount(root, ctx) {
           <label class="f">Veterinário (nome e telefone)<input type="text" data-pk="veterinario" value="${esc(p.veterinario||"")}"></label>
           <label class="check"><input type="checkbox" data-pk="reativo" ${p.reativo?"checked":""}> Pode ser reativo / agressivo (combinar antes do banho)</label>
         </details>
-        ${S.pets.length>1?`<div style="display:flex;gap:14px"><button class="x" data-rm="${p.id}">remover pet</button></div>`:""}
+        ${S.pets.length>1?`<div style="display:flex;gap:14px"><button class="x" data-rm="${p.id}" aria-label="Remover este pet da proposta">remover pet</button></div>`:""}
       </div>`).join("");
   }
   $("#petList").addEventListener("input",e=>{
@@ -529,7 +529,7 @@ export async function mount(root, ctx) {
         <option value="fixo" ${a.tipo==="fixo"?"selected":""}>R$ valor único</option>
         <option value="unit" ${a.tipo==="unit"?"selected":""}>R$ por ${unit}</option></select>
         <label class="check"><input type="checkbox" data-ak="mostrar" ${a.mostrar!==false?"checked":""}> mostrar no PDF</label>
-        <button class="x" data-arm="${a.id}">remover</button></div></div>`).join("");
+        <button class="x" data-arm="${a.id}" aria-label="Remover este adicional">remover</button></div></div>`).join("");
   }
   $("#addPresets").addEventListener("click",e=>{ const b=e.target.closest("[data-preset]"); if(!b) return; e.preventDefault();
     S.adds.push(Object.assign({id:Math.random().toString(36).slice(2,8),mostrar:true}, PRESETS[b.dataset.preset])); renderAdds(); update(); });
@@ -993,7 +993,7 @@ export async function mount(root, ctx) {
     return t;
   }
   async function marcarEnviada() { if (META.status === "rascunho") await setStatus("enviada"); }
-  async function comBotao(btn, fn) { const t = btn.textContent; btn.disabled = true; btn.textContent = "Gerando…"; try { await fn(); } catch (e) { console.error(e); toast("Algo deu errado: " + (e.message || e)); } finally { btn.disabled = false; btn.textContent = t; } }
+  async function comBotao(btn, fn) { const t = btn.textContent; btn.disabled = true; btn.textContent = "Gerando…"; try { await fn(); } catch (e) { console.error(e); toast(U.erroTxt("gerar", e)); } finally { btn.disabled = false; btn.textContent = t; } }
   async function enviarPdf(btn) { await comBotao(btn, async () => { const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; } if (dirty || !META.id) await save(); const b = await pdfBlob(); const r = await U.shareOrDownload(b, nomeArquivo("pdf"), "application/pdf"); if (r !== "cancelled") { toast(r === "downloaded" ? "PDF baixado" : "PDF pronto"); await marcarEnviada(); } }); }
   async function enviarCard(btn) { await comBotao(btn, async () => { const R = withOpt(principal(), calc); if (!R.ok) { toast(R.msg); return; } if (dirty || !META.id) await save(); const b = await cardBlob(); const r = await U.shareOrDownload(b, nomeArquivo("png"), "image/png"); if (r !== "cancelled") { toast("Imagem pronta"); await marcarEnviada(); } }); }
   function abrirEnviar() {

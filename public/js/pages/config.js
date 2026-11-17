@@ -30,7 +30,7 @@ export async function mount(root) {
         ${A ? `<div class="panel"><h3>Quem tem acesso</h3>
           <div class="list" id="adm">${admins.map(a => `<div class="item" style="background:#fff;flex-wrap:wrap"><div class="main"><div class="t">${U.esc(a.nome || a.email)}${a.email === user?.email ? ' <span class="muted">(você)</span>' : ""}</div><div class="s">${U.esc(a.email)}</div></div>
             <select data-papel="${U.esc(a.email)}" aria-label="Nível de acesso" style="min-height:36px;border-radius:10px;border:1px solid var(--line);padding:4px 8px">${optPapel(a.papel || "gestora")}</select>
-            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">${ic("chave")} link de senha</button><button class="x" data-provisoria="${U.esc(a.email)}">${ic("chave")} senha provisória</button><button class="x" data-rm="${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
+            ${a.email !== user?.email ? `<button class="x" data-senha="${U.esc(a.email)}">${ic("chave")} link de senha</button><button class="x" data-provisoria="${U.esc(a.email)}">${ic("chave")} senha provisória</button><button class="x" data-rm="${U.esc(a.email)}" aria-label="Remover acesso de ${U.esc(a.email)}">remover</button>` : ""}</div>`).join("")}</div>
           <p class="muted" style="margin:6px 0 0">O link de senha manda para a pessoa um e-mail com link para criar uma senha nova (serve para quem esqueceu a senha ou ainda não fez o primeiro acesso).</p>
           <form id="fA" style="margin-top:12px"><div class="row"><label class="f">Nome<input type="text" name="nome" placeholder="Larissa"></label><label class="f">E-mail<input type="text" name="email" inputmode="email" placeholder="email@exemplo.com"></label></div>
           <label class="f">Nível<select name="papel">${optPapel("gestora")}</select></label>
@@ -60,7 +60,7 @@ export async function mount(root) {
     e.preventDefault(); const v = Object.fromEntries(new FormData(e.target));
     v.capacidade_hospedagem = Number(v.capacidade_hospedagem) || 3; v.follow_up_dias = Number(v.follow_up_dias) || 2; v.follow_up_dias_seg = Number(v.follow_up_dias_seg) || 3; v.reconfirmar_dias = Number(v.reconfirmar_dias) || 2; v.expira_dias = Number(v.expira_dias) || 15;
     for (const k of ["pix_chave", "pix_nome", "pix_cidade", "whatsapp", "instagram"]) v[k] = String(v[k]).trim() || null;
-    try { await db.saveSettings(v); U.toast("Configurações salvas"); } catch (err) { U.toast("Não consegui salvar: " + err.message); }
+    try { await db.saveSettings(v); U.toast("Configurações salvas"); } catch (err) { U.toast(U.erroTxt("salvar", err)); }
   });
   }
   if (A) {
@@ -139,7 +139,7 @@ export async function mount(root) {
       ${antigos.length ? `<button class="btn soft small" id="bVidAnt" style="margin-top:10px">${ic("lixo")} Apagar ${antigos.length} vídeo${antigos.length > 1 ? "s" : ""} com mais de 90 dias</button>` : ""}`;
     U.$("#bVidAnt", box)?.addEventListener("click", async () => {
       if (!(await U.confirmDialog(`Apagar ${U.plural(antigos.length, "vídeo", "vídeos")} com mais de 90 dias? Eles somem do diário e da área do tutor. As fotos ficam.`, { ok: "Apagar vídeos", danger: true }))) return;
-      try { const n = await db.apagarVideos(antigos); U.toast(`${U.plural(n, "vídeo apagado", "vídeos apagados")}`); armazenamento(); } catch (err) { U.toast("Não consegui apagar: " + err.message); }
+      try { const n = await db.apagarVideos(antigos); U.toast(`${U.plural(n, "vídeo apagado", "vídeos apagados")}`); armazenamento(); } catch (err) { U.toast(U.erroTxt("apagar", err)); }
     });
   }
 }

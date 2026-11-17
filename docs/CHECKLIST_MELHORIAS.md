@@ -9,7 +9,7 @@ Junta **três fontes** em uma lista só, sem duplicatas e já separada por impor
 | `AUDITORIA-FRONT_Pet-Lar_2026-11-13.md` | texto, visual, consistência, acessibilidade (códigos T-, F-, U-) |
 | **Pedidos de hoje** | 4 itens novos, marcados com ⭐ |
 
-**Atualizado em 16/11/2026 (v2.7):** ✅ feito · ◐ parcial ou depende de você · ☐ a fazer. Parciais: L-11 (glossário no manual; menus renomeados; "cliente"/"tutor" no painel não foi trocado em todas as telas); L-19 (plurais e "Preencher" feitos; resto do lote de textos fica para depois); L-21 (não feito (avisos padronizados)); L-25 (botões "x" e links maiores; revisar telas uma a uma depois); L-26 (foco visível feito; rótulos do portal já existiam; falta revisar o painel); L-07 (conferido: plano gratuito do Supabase não tem backup automático (ver relatório)); L-29 (é trabalho de dados, não de código).
+**Atualizado em 16/11/2026 (v2.7):** ✅ feito · ◐ parcial ou depende de você · ☐ a fazer. Pendentes: L-07 (backup, decisão sua) e L-29 (dados, trabalho de vocês). Atualizado em 17/11: L-11, L-19, L-21, L-25 e L-26 concluídos.
 
 **(Texto original) Nada foi executado.** Esta é só a organização. Os códigos novos são **L-01 em diante**; a coluna *Veio de* diz onde cada item aparecia antes, para você achar o detalhe nos arquivos originais.
 
@@ -42,7 +42,7 @@ Hoje o sistema tem 2 pessoas usando, 21 propostas e 27 pets. Por isso risco "par
 | ✅ | L-08 | **Um "Enviar" claro por estado** da proposta; rascunho só com "Terminar e enviar", sem "Aceitou/Recusou" | Foi exatamente a confusão da Larissa; hoje são 3 botões "Enviar" | M | U-03 · B-11 · F-14 · F-08 |
 | ✅ | L-09 | Botão principal com contraste (terracota forte `#A9553A`) | Branco sobre o terracota atual reprova (3,79:1) em todos os botões principais | P | T-01 · F-01 |
 | ✅ | L-10 | Ações rápidas ("Aceitou/Recusou/Cobrar/Adiar") maiores, em grade 2×2; botão "+ Nova proposta" sem cobrir conteúdo | É a ação mais usada do painel e o menor botão (30 px) | M | U-04 · U-05 · T-06 · F-15 · F-16 · B-16 |
-| ◐ | L-11 | **Glossário único:** proposta (painel) · orçamento (só área do tutor) · tutor (nunca "cliente") · "Configurações" e "Como usar" nos dois menus | Mesma coisa com dois nomes em quase toda tela | P | T-04 · F-03 |
+| ✅ | L-11 | **Glossário único:** proposta (painel) · orçamento (só área do tutor) · tutor (nunca "cliente") · "Configurações" e "Como usar" nos dois menus | Mesma coisa com dois nomes em quase toda tela | P | T-04 · F-03 |
 | ✅ | L-12 | Texto nunca abaixo de 12 px; rótulos dos cartões em marrom | ~390 trechos de 10–11,5 px, na rua, no sol | P | T-03 · F-06 |
 
 **Nota L-01, desconto por opção** (⭐ pedido de hoje)
@@ -68,14 +68,14 @@ Hoje o sistema tem 2 pessoas usando, 21 propostas e 27 pets. Por isso risco "par
 | ✅ | L-16 | Rodar os testes automaticamente antes de cada deploy | Push na `main` publica direto | M | S-06 · B-12 |
 | ✅ | L-17 | Avisar quando duas pessoas editam a mesma proposta | A última a salvar apaga a outra; Bruno e Larissa usam juntos (não reproduzido) | M | Q-05 · B-13 |
 | ✅ | L-18 | Tirar "Espécie" da proposta (PDF e cartões) | Pedido seu, 13/11 | P | A-07 · B-17 |
-| ◐ | L-19 | **Lote de textos:** "(s)" nos plurais, "Toque em Preencher"→"Contar", "Cliente ativo"→"Pet ativo", "ticket"→"média", "card"→"imagem", legendas e janelas da seção 3 da auditoria | Tom e correção; tudo com a reescrita pronta | P | F-02 · F-04 · F-13 |
+| ✅ | L-19 | **Lote de textos:** "(s)" nos plurais, "Toque em Preencher"→"Contar", "Cliente ativo"→"Pet ativo", "ticket"→"média", "card"→"imagem", legendas e janelas da seção 3 da auditoria | Tom e correção; tudo com a reescrita pronta | P | F-02 · F-04 · F-13 |
 | ✅ | L-20 | Senha mínima de 8 em todo lugar | Hoje 6 em alguns campos e 8 em outros | P | S-04 · F-05 |
-| ◐ | L-21 | Avisos de sucesso e erro num padrão só; sem texto técnico em inglês | "Salvo / Atualizado ✓ / Pronto / Foto salva!" convivem | P | T-12 · T-13 · F-09 |
+| ✅ | L-21 | Avisos de sucesso e erro num padrão só; sem texto técnico em inglês | "Salvo / Atualizado ✓ / Pronto / Foto salva!" convivem | P | T-12 · T-13 · F-09 |
 | ✅ | L-22 | "A Lari já foi avisada" ao tutor aceitar: mudar o texto **ou** avisar de verdade | Promessa sem lastro no código (provável) | P / G | F-21 |
 | ✅ | L-23 | Link do tutor com validade e renovar com um toque | Hoje vale para sempre | M | S-03 · B-14 |
 | ✅ | L-24 | Seletores de aniversário legíveis no celular | Aparece "Di" e "Não sei o" | P | U-02 · F-11 |
-| ◐ | L-25 | Ações em link minúsculo viram botões ("trocar", "desfazer", "desvincular", "remover") | Alvo de 18 px; "remover acesso" parece rodapé | M | T-09 · F-17 |
-| ◐ | L-26 | Rótulos para leitor de tela (marca, buscas, imagens da prévia) e foco visível no painel | Acessibilidade básica | P | A11-01..03 · F-12 · F-18 · B-10 |
+| ✅ | L-25 | Ações em link minúsculo viram botões ("trocar", "desfazer", "desvincular", "remover") | Alvo de 18 px; "remover acesso" parece rodapé | M | T-09 · F-17 |
+| ✅ | L-26 | Rótulos para leitor de tela (marca, buscas, imagens da prévia) e foco visível no painel | Acessibilidade básica | P | A11-01..03 · F-12 · F-18 · B-10 |
 | ✅ | L-27 | Cinza de apoio um tom mais escuro (`#6B5F57`) | 150 trechos no limite do contraste | P | T-02 · F-07 |
 | ✅ | L-28 | Manual com rolagem lateral no celular | Tabela de versões estoura a largura | P | Q-06 · U-01 · B-07 |
 | ◐ | L-29 | **Mutirão de dados:** WhatsApp de 8 tutores, vínculo de 6 propostas sem tutor, datas de 8 propostas, fotos de 21 pets, dar baixa nas 19 "enviadas" antigas | Não é código; sem isso Cobrar, Agenda e a área do tutor ficam vazias | — | C-02 · Raio-X seção 4.6 |

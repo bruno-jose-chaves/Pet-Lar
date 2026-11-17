@@ -11,6 +11,11 @@ export function pd(s) { if (!s) return null; const [y, m, d] = String(s).slice(0
 export function fmt(s) { const d = typeof s === "string" ? pd(s) : s; return d ? String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") : ""; }
 export function fmtY(s) { const d = typeof s === "string" ? pd(s) : s; return d ? fmt(d) + "/" + d.getFullYear() : ""; }
 export function periodo(a, b) { if (!a) return ""; if (!b || a === b) return fmt(a); return fmt(a) + " a " + fmt(b); }
+// L-21: mensagem de erro padrão, sem texto técnico em inglês
+export const erroTxt = (oque, e) => { const m = String(e?.message || "");
+  if (!m || /fetch|network|load failed|timeout|offline/i.test(m)) return `Não consegui ${oque}. Confira a internet e tente de novo.`;
+  if (/duplicate|violates|constraint|row-level|policy|jwt|permission|column|relation|syntax|undefined|null/i.test(m)) return `Não consegui ${oque}. Tente de novo; se repetir, avise o Bruno.`;
+  return `Não consegui ${oque}: ${m}`; };
 export const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 export function addDays(s, n) { const d = pd(s); d.setDate(d.getDate() + n); return iso(d); }
 export function relTime(ts) {

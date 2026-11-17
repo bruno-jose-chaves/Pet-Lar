@@ -170,7 +170,7 @@ export async function mount(root, { params }) {
       if (ev.target.closest("[data-salvar]")) {
         const [h, mi] = m.el.querySelector("#eHora").value.split(":").map(Number); const d = new Date(r.criado_em); const base = U.pd(dia); base.setHours(h || d.getHours(), mi ?? d.getMinutes(), 0, 0);
         const row = { criado_em: base.toISOString(), nota: m.el.querySelector("#eNota").value.trim() || null };
-        try { await Promise.all(ids.map(i => db.updateDiario(i, row))); regs.forEach(x => { if (ids.includes(x.id)) Object.assign(x, row); }); regs.sort((a, b) => a.criado_em.localeCompare(b.criado_em)); pintar(); m.close(); U.toast("Atualizado ✓"); }
+        try { await Promise.all(ids.map(i => db.updateDiario(i, row))); regs.forEach(x => { if (ids.includes(x.id)) Object.assign(x, row); }); regs.sort((a, b) => a.criado_em.localeCompare(b.criado_em)); pintar(); m.close(); U.toast("Atualizado"); }
         catch { U.toast("Não consegui salvar."); }
       } else if (ev.target.closest("[data-apagar]")) {
         try { await db.deleteDiario(ids); regs = regs.filter(x => !ids.includes(x.id)); pintar(); m.close(); U.toast("Apagado"); } catch { U.toast("Não consegui apagar."); }
