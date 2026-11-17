@@ -155,13 +155,11 @@ Deno.serve(async req => {
         row = { ...row, servico: o.servico, valor_total: o.valor_total, valor_cheio: Math.max(o.valor_cheio || 0, o.valor_total) };
         if (o.data_inicio) Object.assign(row, { data_inicio: o.data_inicio, data_fim: o.data_fim || o.data_inicio });
       }
-      await chk(sb.from("propostas").update(row).eq("id", p.id).eq("status", "enviada"));
-      // C-05: a opção escolhida pode ter só alguns pets
+      // L-34: tudo numa transação só (proposta + pets que ficaram de fora)
       const escolhida = ops ? ops.find((x: any) => x.n === Number(body.opcao)) : null;
       const ficam = (escolhida?.pet_ids || []).filter((x: unknown) => typeof x === "string" && /^[0-9a-f-]{36}$/i.test(x));
-      if (ficam.length) {
-        await chk(sb.from("proposta_pets").delete().eq("proposta_id", p.id).not("pet_id", "in", `(${ficam.join(",")})`));
-      }
+      const { error: eAc } = await sb.rpc("portal_aceitar", { p_id: p.id, p_row: row, p_ficam: ficam });
+      if (eAc) { if (String(eAc.message).includes("proposta_nao_aberta")) throw new Erro("Essa proposta não está mais aberta"); throw eAc; }
       return json(await dados(a));
     }
     if (acao === "avaliar") {

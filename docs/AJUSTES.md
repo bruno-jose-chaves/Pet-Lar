@@ -207,3 +207,9 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 | 10/11/2026 | Entrou A-04 (trocar senha de usuários). F-01 com acesso por link pessoal (sem SMS). C-03 e C-04 decididos: não fazer agora |
 | 10/11/2026 | C-01 entregue (v1.2). C-03 pausado (só no plano Pro). Entraram C-05, F-01 (área do tutor) e F-02 (diário do pet) |
 | 10/11/2026 | Criado com A-01, A-02, A-03 (Bruno) e C-01 a C-04 (observados) |
+
+## v2.8 (17/11/2026)
+- **L-33 · Cabeçalhos de segurança**: `public/_headers` ganhou `Content-Security-Policy` (só o próprio site, o Supabase do projeto, imagens/vídeos `data:`/`blob:`; sem scripts de terceiros, sem iframes) e `Strict-Transport-Security`. Os testes automáticos agora servem as páginas com esses mesmos cabeçalhos e falham se algo for bloqueado.
+- **L-34 · Aceite atômico**: o aceite do tutor roda numa função do banco (`portal_aceitar`): atualiza a proposta e remove os pets que ficaram de fora numa única transação (tudo ou nada). Migração `20261117100000`.
+- **L-07 · Cópia do banco**: Edge Function `backup` (JSON de todas as tabelas, protegida por `BACKUP_TOKEN`; desligada enquanto o segredo não existir) + `scripts/backup.sh` (salva `petlar-AAAA-MM-DD.json` numa pasta, guarda as 12 últimas). `backups/` está no `.gitignore`: os arquivos têm dados pessoais. **Fotos do Storage não entram** na cópia.
+  - Para ligar: (1) no Supabase → Edge Functions → Secrets, criar `BACKUP_TOKEN` com 24+ caracteres aleatórios; (2) no notebook, salvar o mesmo valor em `~/.petlar-backup-token`; (3) rodar `scripts/backup.sh "<pasta PetSister>/backups"`; (4) agendar (launchd/cron) 1×/semana.

@@ -9,8 +9,17 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PUB = ROOT / "public"; OUT = ROOT / "tests" / "output" / "telas"; OUT.mkdir(parents=True, exist_ok=True)
 _s = socket.socket(); _s.bind(("127.0.0.1", 0)); PORT = _s.getsockname()[1]; _s.close()
+def _cabecalhos():  # usa os mesmos cabeçalhos de segurança do site publicado (public/_headers, bloco /*)
+    out, dentro = [], False
+    for ln in (PUB / "_headers").read_text().splitlines():
+        if ln.startswith("/"): dentro = ln.strip() == "/*"; continue
+        if dentro and ln.strip() and ":" in ln: k, v = ln.strip().split(":", 1); out.append((k.strip(), v.strip()))
+    return out
 class Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a): pass
+    def end_headers(self):
+        for k, v in _cabecalhos(): self.send_header(k, v)
+        super().end_headers()
 srv = socketserver.ThreadingTCPServer(("127.0.0.1", PORT), functools.partial(Quiet, directory=str(PUB)))
 srv.daemon_threads = True; threading.Thread(target=srv.serve_forever, daemon=True).start()
 URL = f"http://127.0.0.1:{PORT}/t/"
@@ -81,6 +90,7 @@ with sync_playwright() as p:
     ctx.route("**/functions/v1/portal", lambda r: responder(st, r))
     pg = ctx.new_page(); errs = []
     pg.on("pageerror", lambda e: errs.append(str(e)))
+    pg.on("console", lambda m: errs.append("CSP: " + m.text) if "Content Security Policy" in m.text or "Refused to" in m.text else None)
     tap = (lambda s: pg.tap(s)) if (mob and engine == "webkit") else (lambda s: pg.click(s))
     sem_rolagem = lambda nome: check(f"[{tam}] {nome}: sem rolagem lateral", pg.evaluate("document.documentElement.scrollWidth") <= vp["width"] + 1)
 

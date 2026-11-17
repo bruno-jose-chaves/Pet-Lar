@@ -9,7 +9,7 @@ Junta **três fontes** em uma lista só, sem duplicatas e já separada por impor
 | `AUDITORIA-FRONT_Pet-Lar_2026-11-13.md` | texto, visual, consistência, acessibilidade (códigos T-, F-, U-) |
 | **Pedidos de hoje** | 4 itens novos, marcados com ⭐ |
 
-**Atualizado em 16/11/2026 (v2.7):** ✅ feito · ◐ parcial ou depende de você · ☐ a fazer. Pendentes: L-07 (backup, decisão sua) e L-29 (dados, trabalho de vocês). Atualizado em 17/11: L-11, L-19, L-21, L-25 e L-26 concluídos.
+**Atualizado em 16/11/2026 (v2.7):** ✅ feito · ◐ parcial ou depende de você · ☐ a fazer. Pendentes: L-07 (backup, decisão sua) e L-29 (dados, trabalho de vocês). Atualizado em 17/11 (v2.8): L-33 (CSP e HSTS) e L-34 (aceite atômico) concluídos; L-07: função de backup pronta, falta a senha (BACKUP_TOKEN) e agendar. Antes: L-11, L-19, L-21, L-25 e L-26 concluídos.
 
 **(Texto original) Nada foi executado.** Esta é só a organização. Os códigos novos são **L-01 em diante**; a coluna *Veio de* diz onde cada item aparecia antes, para você achar o detalhe nos arquivos originais.
 
@@ -89,8 +89,8 @@ Hoje o sistema tem 2 pessoas usando, 21 propostas e 27 pets. Por isso risco "par
 
 | ☐ | ID | Item | Por que não é urgente | Esf. | Veio de |
 |---|---|---|---|---|---|
-| ☐ | L-33 | CSP e HSTS nos cabeçalhos | Escape de HTML consistente nas amostras; é 2ª barreira | M | S-01 · B-15 |
-| ☐ | L-34 | Aceite com duas opções em transação única | Só falha se a internet cair no meio | M | Q-07 · B-19 |
+| ✅ | L-33 | CSP e HSTS nos cabeçalhos | Escape de HTML consistente nas amostras; é 2ª barreira | M | S-01 · B-15 |
+| ✅ | L-34 | Aceite com duas opções em transação única | Só falha se a internet cair no meio | M | Q-07 · B-19 |
 | ☐ | L-35 | Prender o foco dentro das janelas | Quase ninguém usa teclado no painel | M | A11-04 · B-20 |
 | ☐ | L-36 | Escala tipográfica de 8 degraus, 3 alturas de botão, raios 12/16/999 | Arrumação; a vantagem aparece em manutenção | M | F-22 · F-23 · F-25 · T-10 · T-16 |
 | ☐ | L-37 | Um arquivo de cores (`tokens.css`) para painel e área do tutor | Reduz as 66 cores soltas; só vale quando mexer em tema | G | F-24 · T-15 |

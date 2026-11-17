@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.7 · atualizado em 16/11/2026
+Versão 2.8 · atualizado em 17/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -384,6 +384,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 | Versão | Data | O que mudou |
 |---|---|---|
 | 2.7 | 16/11/2026 | Desconto por opção. Aba **Respostas** com "Reconfirmar perto da data". Parcelas do Financeiro acompanham cancelamento e mudança de valor; "A receber" só de propostas aceitas; "Recebi" com a data de hoje certa. Tutor não aceita proposta vencida. Link do tutor vale 90 dias (com botão Renovar). Aviso quando duas pessoas editam a mesma proposta. Erros do painel registrados em Configurações. Botão primário com mais contraste, botões maiores no celular, letras a partir de 12 px. Senha com mínimo de 8. Mensagens de erro padronizadas, "Tutor" em vez de "Cliente" nas listas de pendências, Financeiro e cadastro do pet. Foto padrão do pet nova; "Dentro de casa, com a gente" no lugar de "Um lar de verdade" |
+| 2.8 | 17/11/2026 | Segurança do site reforçada (cabeçalhos CSP e HSTS). Quando o tutor confirma uma proposta, tudo é gravado de uma vez só (sem risco de ficar pela metade). Preparada a cópia do banco para o notebook (falta ligar) |
 | 2.6 | 12/11/2026 | Quadro "Quer oferecer duas opções?" com atalhos (hospedagem ou visitas; avulso ou pacote). Idade com a palavra "anos" no PDF, no card e na área do tutor |
 | 2.5 | 12/11/2026 | Enquadrar a foto do pet (arrastar, zoom com pinça, girar) no painel e na área do tutor |
 | 2.4 | 12/11/2026 | Passo 5 da proposta (rascunho explicado, o que falta, Enviar / Terminar depois), rascunhos destacados na lista, aviso no Hoje e botão Enviar nos rascunhos. Fotos e vídeos do diário pelo WhatsApp por enquanto |
