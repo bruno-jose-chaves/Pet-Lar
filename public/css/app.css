@@ -422,3 +422,10 @@ button.x{min-height:40px;padding:8px 10px;font-size:13px}
   .manual td{border-bottom:0;padding:3px 10px}
   .manual td:first-child{font-weight:700}
 }
+/* Respostas: quatro botões de seção numa linha (nome em cima, contagem embaixo) */
+#abas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#abas .chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;font-size:13px;line-height:1.2;white-space:nowrap;min-width:0}
+#abas .chip b{font-size:18px;margin:0}
+#jan{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding-bottom:4px;scrollbar-width:none}
+#jan::-webkit-scrollbar{display:none}
+#jan .chip{flex:0 0 auto;white-space:nowrap}

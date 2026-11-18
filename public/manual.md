@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.8 · atualizado em 17/11/2026
+Versão 2.9 · atualizado em 18/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -207,15 +207,17 @@ Dentro do orçamento também funciona:
 
 ## Respostas (cobrar e reconfirmar)
 
-A aba **Respostas** junta os orçamentos enviados que ainda não tiveram resposta e, no alto, quem recusou mas o serviço está chegando.
+A aba **Respostas** junta os orçamentos enviados que ainda não tiveram resposta e quem recusou mas o serviço está chegando. No alto há **quatro botões** (**Cobrar**, **Reconfirmar**, **Aguardando** e **Paradas**), cada um com a quantidade. Toque num botão para ver só aquele grupo, sem lista longa. A tela abre em **Cobrar** quando há alguém para cobrar; senão, em **Reconfirmar**. Ela lembra a última escolha.
+
+No botão **Reconfirmar** há um filtro de prazo: **Hoje**, **Até 3 dias** (padrão) e **Até 7 dias**, para chamar só quem está mais perto da data.
 
 | Grupo | O que entra |
 |---|---|
-| **Reconfirmar perto da data** | Propostas recusadas, vencidas ou ainda sem resposta cujo serviço começa nos próximos 7 dias. Muita gente diz "não" porque vai deixar com um conhecido, e na hora não dá certo: vale chamar uns 2 dias antes. Botões: **Chamar** (abre o WhatsApp com a mensagem pronta e tira da lista), **Fechou** (aceitou de última hora; gera sinal e saldo) e **Resolvido, sem a gente** (tira da lista). O número de dias muda em Configurações → "Reconfirmar quantos dias antes do serviço" |
-| **Cobrar agora** | Enviados há 2 dias ou mais (1ª cobrança). Da 2ª cobrança em diante, a espera é de 3 dias. Os dois prazos mudam em Configurações → "1ª cobrança após" e "Demais cobranças a cada" |
-| **Enviadas há pouco** | Ainda dentro do prazo, é só esperar |
-| **Adiadas** | Você pediu para lembrar numa data. Voltam para "Cobrar agora" nesse dia |
-| **Sem resposta há mais de 15 dias** (Configurações → "Considerar sem resposta depois de") | Dá para marcar todos de uma vez como sem resposta (expirados). Eles saem da lista |
+| **Reconfirmar** | Propostas recusadas, vencidas ou ainda sem resposta cujo serviço começa nos próximos 7 dias (o filtro de prazo escolhe quantos). Muita gente diz "não" porque vai deixar com um conhecido, e na hora não dá certo: vale chamar uns 2 dias antes. Botões: **Chamar** (abre o WhatsApp com a mensagem pronta e tira da lista), **Fechou** (aceitou de última hora; gera sinal e saldo) e **Resolvido, sem a gente** (tira da lista). O número de dias muda em Configurações → "Reconfirmar quantos dias antes do serviço" |
+| **Cobrar** | Enviados há 2 dias ou mais (1ª cobrança). Da 2ª cobrança em diante, a espera é de 3 dias. Os dois prazos mudam em Configurações → "1ª cobrança após" e "Demais cobranças a cada" |
+| **Aguardando** (enviadas há pouco) | Ainda dentro do prazo, é só esperar |
+| **Aguardando** (adiadas) | Você pediu para lembrar numa data. Voltam para **Cobrar** nesse dia |
+| **Paradas** (sem resposta há mais de 15 dias; Configurações → "Considerar sem resposta depois de") | Dá para marcar todos de uma vez como sem resposta (expirados). Eles saem da lista |
 
 **Como cobrar:** toque em **💬 Cobrar** (da 2ª vez em diante o botão vira **Lembrar (2ª vez)**). Abre o WhatsApp do tutor com a mensagem pronta, e a mensagem muda conforme a vez:
 
@@ -384,6 +386,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 | Versão | Data | O que mudou |
 |---|---|---|
 | 2.7 | 16/11/2026 | Desconto por opção. Aba **Respostas** com "Reconfirmar perto da data". Parcelas do Financeiro acompanham cancelamento e mudança de valor; "A receber" só de propostas aceitas; "Recebi" com a data de hoje certa. Tutor não aceita proposta vencida. Link do tutor vale 90 dias (com botão Renovar). Aviso quando duas pessoas editam a mesma proposta. Erros do painel registrados em Configurações. Botão primário com mais contraste, botões maiores no celular, letras a partir de 12 px. Senha com mínimo de 8. Mensagens de erro padronizadas, "Tutor" em vez de "Cliente" nas listas de pendências, Financeiro e cadastro do pet. Foto padrão do pet nova; "Dentro de casa, com a gente" no lugar de "Um lar de verdade" |
+| 2.9 | 18/11/2026 | Aba **Respostas** com quatro botões no alto (Cobrar, Reconfirmar, Aguardando, Paradas) em vez de uma lista longa; em Reconfirmar, filtro de prazo (Hoje, até 3 dias, até 7 dias) |
 | 2.8 | 17/11/2026 | Segurança do site reforçada (cabeçalhos CSP e HSTS). Quando o tutor confirma uma proposta, tudo é gravado de uma vez só (sem risco de ficar pela metade). Preparada a cópia do banco para o notebook (falta ligar) |
 | 2.6 | 12/11/2026 | Quadro "Quer oferecer duas opções?" com atalhos (hospedagem ou visitas; avulso ou pacote). Idade com a palavra "anos" no PDF, no card e na área do tutor |
 | 2.5 | 12/11/2026 | Enquadrar a foto do pet (arrastar, zoom com pinça, girar) no painel e na área do tutor |

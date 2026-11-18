@@ -213,3 +213,7 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 - **L-34 · Aceite atômico**: o aceite do tutor roda numa função do banco (`portal_aceitar`): atualiza a proposta e remove os pets que ficaram de fora numa única transação (tudo ou nada). Migração `20261117100000`.
 - **L-07 · Cópia do banco**: Edge Function `backup` (JSON de todas as tabelas, protegida por `BACKUP_TOKEN`; desligada enquanto o segredo não existir) + `scripts/backup.sh` (salva `petlar-AAAA-MM-DD.json` numa pasta, guarda as 12 últimas). `backups/` está no `.gitignore`: os arquivos têm dados pessoais. **Fotos do Storage não entram** na cópia.
   - Para ligar: (1) no Supabase → Edge Functions → Secrets, criar `BACKUP_TOKEN` com 24+ caracteres aleatórios; (2) no notebook, salvar o mesmo valor em `~/.petlar-backup-token`; (3) rodar `scripts/backup.sh "<pasta PetSister>/backups"`; (4) agendar (launchd/cron) 1×/semana.
+
+## v2.9 (18/11/2026)
+- **Respostas por botões**: no lugar da lista longa, quatro botões no topo com contagem (Cobrar, Reconfirmar, Aguardando, Paradas). Mostra só o grupo escolhido; lembra a última escolha. Em Reconfirmar, filtro de prazo: Hoje / Até 3 dias (padrão) / Até 7 dias.
+- Organização do Supabase: o projeto `pet-lar` foi transferido para a organização "Pet Lar" (mesmo ID e URL; a integração com o GitHub foi desconectada antes).

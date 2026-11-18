@@ -31,7 +31,7 @@ export async function mount(root) {
     ${lista.length ? `<div class="list">${lista.map(linha).join("")}</div>` : `<div class="empty">${vazio}</div>`}`;
 
   const linhaRec = p => {
-    const d = Math.round((new Date(p.data_inicio + "T12:00") - new Date(U.today() + "T12:00")) / 864e5);
+    const d = diasAte(p);
     const st = p.status === "enviada" ? "ainda sem resposta" : p.status === "recusada" ? "recusou" : "venceu sem resposta";
     return `<div class="pwrap" data-pid="${p.id}"><a class="item" href="#/proposta/${p.id}">
       <div class="main"><div class="t">${U.esc(p.tutor_nome || "Sem tutor")} <span class="muted" style="font-weight:400">· ${U.esc(A.nomesPets(p).join(", "))}</span></div>
@@ -40,21 +40,24 @@ export async function mount(root) {
       <div class="r"><div class="v">${U.brl(p.valor_total)}</div></div></a>${A.botoesReconfirmar(p)}</div>`;
   };
   const recAtivas = () => rec.filter(p => !p.reconfirmada_em && p.status !== "aceita");
+  const ABAS = [["agora", "Cobrar"], ["reconf", "Reconfirmar"], ["aguard", "Aguardando"], ["antigas", "Paradas"]];
+  const JANS = [[0, "Hoje"], [3, "Até 3 dias"], [7, "Até 7 dias"]];
+  let aba = sessionStorage.getItem("petlar_aba_resp") || "", jan = Number(sessionStorage.getItem("petlar_jan_resp") ?? 3);
+  const diasAte = p => Math.round((new Date(p.data_inicio + "T12:00") - new Date(U.today() + "T12:00")) / 864e5);
   function pintar() {
-    const g = grupos(); const R = recAtivas();
+    const g = grupos(); const R = recAtivas(); const Rj = R.filter(p => diasAte(p) <= jan);
+    const n = { agora: g.agora.length, reconf: R.length, aguard: g.recentes.length + g.adiadas.length, antigas: g.antigas.length };
+    if (!ABAS.some(([k]) => k === aba)) aba = n.agora ? "agora" : n.reconf ? "reconf" : "agora";
+    const corpo = aba === "reconf" ? `
+        <p class="muted" style="margin:0 0 8px">Quem recusou ou não respondeu, mas o serviço está chegando. Vale chamar uns ${rDias} dias antes para saber se deu certo com outra pessoa.</p>
+        <div class="chips" id="jan">${JANS.map(([d, t]) => `<button class="chip ${d === jan ? "on" : ""}" data-j="${d}">${t}</button>`).join("")}</div>
+        ${Rj.length ? `<div class="list">${Rj.map(linhaRec).join("")}</div>` : `<div class="empty">Nenhum serviço para reconfirmar ${jan === 0 ? "hoje" : `nos próximos ${jan} dias`}.${R.length ? " Toque em outro prazo para ver mais." : ""}</div>`}`
+      : aba === "agora" ? sec("Cobrar agora", g.agora, "Ninguém para cobrar agora.")
+      : aba === "aguard" ? `${sec("Enviadas há pouco", g.recentes, `Nada enviado nos últimos ${fu} dias.`)}${g.adiadas.length ? sec("Adiadas", g.adiadas, "") : ""}`
+      : sec(`Sem resposta há mais de ${exp} dias`, g.antigas, "Nenhuma proposta parada há tanto tempo.", g.antigas.length ? `<div class="row-actions" style="margin:-4px 0 8px"><button class="btn soft small" id="bExpirar">Marcar todas como sem resposta</button></div>` : "");
     U.$("#cb", root).innerHTML = `
-      <div class="kpis" style="margin-bottom:6px">
-        <div class="kpi ${g.agora.length ? "alert" : ""}"><span>Cobrar agora</span><b>${g.agora.length}</b><small>${U.brl(g.agora.reduce((a, p) => a + Number(p.valor_total || 0), 0))}</small></div>
-        <div class="kpi"><span>Aguardando</span><b>${g.recentes.length + g.adiadas.length}</b><small>enviadas há pouco ou adiadas</small></div>
-        <div class="kpi"><span>Sem resposta há ${exp}+ dias</span><b>${g.antigas.length}</b></div>
-      </div>
-      ${R.length ? `<h2 class="sec">Reconfirmar perto da data <span class="count">${R.length}</span></h2>
-        <p class="muted" style="margin:-4px 0 8px">Quem recusou ou não respondeu, mas o serviço é nos próximos ${JANELA} dias. Vale chamar uns ${rDias} dias antes para saber se deu certo com outra pessoa.</p>
-        <div class="list">${R.map(linhaRec).join("")}</div>` : ""}
-      ${sec("Cobrar agora", g.agora, "Ninguém para cobrar agora.")}
-      ${sec("Enviadas há pouco", g.recentes, `Nada enviado nos últimos ${fu} dias.`)}
-      ${g.adiadas.length ? sec("Adiadas", g.adiadas, "") : ""}
-      ${g.antigas.length ? sec(`Sem resposta há mais de ${exp} dias`, g.antigas, "", `<div class="row-actions" style="margin:-4px 0 8px"><button class="btn soft small" id="bExpirar">Marcar todas como sem resposta</button></div>`) : ""}`;
+      <div class="chips" id="abas" role="tablist">${ABAS.map(([k, t]) => `<button class="chip ${k === aba ? "on" : ""}" role="tab" aria-selected="${k === aba}" data-aba="${k}">${t} <b>${n[k]}</b></button>`).join("")}</div>
+      ${corpo}`;
     const bx = U.$("#bExpirar", root);
     if (bx) bx.onclick = async () => {
       const ids = grupos().antigas.map(p => p.id);
@@ -62,6 +65,8 @@ export async function mount(root) {
       try { await db.statusEmLote(ids, "expirada"); todas.forEach(p => { if (ids.includes(p.id)) p.status = "expirada"; }); db.invalidate("lista"); U.toast("Marcadas como sem resposta"); pintar(); window.dispatchEvent(new Event("petlar:propostas")); }
       catch { U.toast("Não consegui atualizar."); }
     };
+    U.$("#abas", root).onclick = e => { const c = e.target.closest("[data-aba]"); if (!c) return; aba = c.dataset.aba; sessionStorage.setItem("petlar_aba_resp", aba); pintar(); };
+    const jj = U.$("#jan", root); if (jj) jj.onclick = e => { const c = e.target.closest("[data-j]"); if (!c) return; jan = Number(c.dataset.j); sessionStorage.setItem("petlar_jan_resp", jan); pintar(); };
   }
   pintar();
   A.ligar(U.$("#cb", root), id => todas.find(x => x.id === id) || rec.find(x => x.id === id), (p, acao) => { if (acao === "aceita") { rec = rec.filter(x => x.id !== p.id); } pintar(); });

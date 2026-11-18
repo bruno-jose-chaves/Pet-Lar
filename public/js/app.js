@@ -194,7 +194,7 @@ async function start() {
   if (!session) loginView();
 }
 
-export const VERSAO = "2.8";
+export const VERSAO = "2.9";
 // L-15: erros inesperados viram uma linha na tabela "erros" (no máximo 5 por visita, sem repetir)
 { const vistos = new Set();
   const reg = (mensagem, pilha) => { const k = String(mensagem).slice(0, 80); if (!started || vistos.has(k) || vistos.size >= 5) return; vistos.add(k); import("./db.js").then(d => d.registrarErro({ mensagem, pilha, versao: VERSAO })).catch(() => {}); };
