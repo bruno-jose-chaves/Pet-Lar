@@ -1,0 +1,23 @@
+/* Pet Lar · tokens.css — cores, letras, cantos e alturas usados no painel, na área do tutor e no PDF.
+   Carregado antes de todos os outros CSS. Para mudar uma cor, mude aqui. */
+:root{
+  /* --- cores da marca (Manual de Identidade Visual) --- */
+  --char:#30251F; --ink:var(--char); --char2:#3E312A;
+  --cream:#F9F3EC; --cream2:#F0E5D8; --sand:#E6DCD0; --sand2:#ECE1D4; --sand3:#EFE4D7; --page:#F6EEE5; --card:#FDF9F4; --papel2:#FBF7F1;
+  --terra:#C7694A; --terra2:#B05A3D; --terra-e:#A9553A; --terra-h:#8F4630; --terra-d:#9E4E33; --terra-t:#F5E3DA; --terra-c:#F4E0D6;
+  --brown:#5A3B2A; --texto2:#4A3B33; --texto3:#4C443E;
+  --muted:#6B5F57; --muted2:#7D7068;
+  --line:#E7DACB; --line2:#DCC9B6; --line3:#D6C3AE; --areia:#E8D9C8; --creme3:#F1E7DB;
+  --sage:#8A9B7F; --sage2:#E4E9DF; --sage-t:#E6EBE1; --sage-c:#E4E9DE; --sage-i:#6E7F63; --sage-e:#5F6F55; --sage-d:#4E6045; --sage-f:#45573C;
+  --ok:#4F7A52; --erro:#A4402A; --erro-l:#EBC9BD;
+  /* nomes usados na área do tutor (mesmos valores) */
+  --c-creme:var(--cream); --c-papel:#FFFCF8; --c-terra:var(--terra); --c-terra-e:var(--terra-e); --c-terra-c:var(--terra-c);
+  --c-salvia:var(--sage); --c-salvia-e:var(--sage-e); --c-salvia-c:var(--sage-c); --c-carvao:var(--char); --c-areia:var(--areia); --c-cinza:var(--muted);
+
+  /* --- letras: 8 degraus --- */
+  --fs-1:12px; --fs-2:13px; --fs-3:15px; --fs-4:17px; --fs-5:20px; --fs-6:24px; --fs-7:28px; --fs-8:40px;
+  /* --- cantos --- */
+  --r-p:12px; --r-g:16px; --r-pill:999px;
+  /* --- alturas de botão --- */
+  --h-p:32px; --h-m:44px; --h-g:52px;
+}

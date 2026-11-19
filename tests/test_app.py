@@ -623,6 +623,23 @@ with sync_playwright() as p:
     pg.click(".pwrap[data-pid=z2] [data-qa=dispensar]"); pg.wait_for_timeout(700)
     check("Respostas: 'Resolvido, sem a gente' tira da lista e grava", pg.locator(".pwrap[data-pid=z2]").count() == 0 and bool(DB("T.propostas.find(x=>x.id==='z2').reconfirmada_em")))
     check("Menu: nomes claros (Respostas, Configurações, Como usar)", all(t in pg.inner_text(".topnav") for t in ["Respostas", "Configurações", "Como usar"]))
+    # v2.10 · L-35/L-36/L-37/L-39
+    check("Tokens: cores e medidas vêm de tokens.css", pg.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--fs-3').trim()") == "15px" and pg.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--terra').trim()").upper() == "#C7694A")
+    go("#/cobrar"); pg.wait_for_timeout(700)
+    if engine == "webkit":
+        check("Título: no celular a barra esconde o nome enquanto o título grande aparece", pg.evaluate("document.getElementById('pageTitle').classList.contains('sob-h1')"))
+        pg.evaluate("window.scrollTo(0, 400); document.body.style.minHeight='3000px'"); pg.evaluate("window.scrollTo(0, 600)"); pg.wait_for_timeout(400)
+        check("Título: ao rolar, o nome volta para a barra", not pg.evaluate("document.getElementById('pageTitle').classList.contains('sob-h1')"))
+        pg.evaluate("document.body.style.minHeight=''; window.scrollTo(0,0)")
+    pg.evaluate("document.querySelector('#abas [data-aba=reconf]').focus()")
+    pg.evaluate("import('/js/ui.js').then(U => { window.__m = U.modal('<h3>Teste</h3><input id=mA><button id=mB>B</button><button data-close>Fechar</button>'); })"); pg.wait_for_timeout(300)
+    check("Janela: foco vai para dentro ao abrir e tem título ligado", pg.evaluate("document.activeElement.id") == "mA" and pg.evaluate("!!document.getElementById(document.querySelector('.modal').getAttribute('aria-labelledby'))"))
+    for _ in range(3): pg.keyboard.press("Tab")
+    check("Janela: Tab dá a volta sem sair da janela", pg.evaluate("document.activeElement.id") == "mA")
+    pg.keyboard.press("Shift+Tab")
+    check("Janela: Shift+Tab também fica dentro", pg.evaluate("document.activeElement.matches('.modal [data-close]')"))
+    pg.keyboard.press("Escape"); pg.wait_for_timeout(200)
+    check("Janela: ao fechar, o foco volta para onde estava", pg.evaluate("document.activeElement.dataset.aba") == "reconf")
     pg.evaluate("() => { const T = window.__FAKE_DB; T.propostas = T.propostas.filter(p => !['z1', 'z2'].includes(p.id)); T.pagamentos = T.pagamentos.filter(g => !['z1', 'z2'].includes(g.proposta_id)); }")
 
     real_errs = [e for e in errs if "falha simulada" not in e and "Failed to load resource" not in e]

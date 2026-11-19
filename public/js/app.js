@@ -91,6 +91,7 @@ async function route() {
   document.body.classList.toggle("editing", r.mod === "proposta");
   document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("on", a.dataset.nav === r.nav || (a.dataset.nav === r.mod)));
   const view = $("#view"); view.className = "view" + (r.wide ? " wide" : ""); $("#pageTitle").textContent = r.title; $("#saveState").textContent = "";
+  seguirTitulo(view);
   view.innerHTML = `<div class="list" style="padding:${r.wide ? "18px" : "0"}"><div class="sk" style="height:34px;width:200px;margin:6px 0 10px"></div><div class="sk sk-item"></div><div class="sk sk-item"></div><div class="sk sk-item"></div></div>`;
   window.scrollTo(0, 0);
   if (gestao()) atualizarBadge();
@@ -194,7 +195,21 @@ async function start() {
   if (!session) loginView();
 }
 
-export const VERSAO = "2.9";
+export const VERSAO = "2.10";
+
+// L-39 · no celular, o nome da tela na barra de cima só aparece quando o título grande da página sai da tela.
+let obsTit = null, obsMut = null;
+function seguirTitulo(view) {
+  const t = $("#pageTitle"); obsTit?.disconnect(); obsMut?.disconnect(); t.classList.remove("sob-h1");
+  let alvo = null;
+  const ligar = () => {
+    const h = view.querySelector("h1.pg"); if (h === alvo) return; alvo = h; obsTit?.disconnect(); t.classList.remove("sob-h1");
+    if (!h || !("IntersectionObserver" in window)) return;
+    obsTit = new IntersectionObserver(([e]) => t.classList.toggle("sob-h1", e.isIntersecting), { rootMargin: "-56px 0px 0px 0px" });
+    obsTit.observe(h);
+  };
+  ligar(); obsMut = new MutationObserver(ligar); obsMut.observe(view, { childList: true, subtree: true });
+}
 // L-15: erros inesperados viram uma linha na tabela "erros" (no máximo 5 por visita, sem repetir)
 { const vistos = new Set();
   const reg = (mensagem, pilha) => { const k = String(mensagem).slice(0, 80); if (!started || vistos.has(k) || vistos.size >= 5) return; vistos.add(k); import("./db.js").then(d => d.registrarErro({ mensagem, pilha, versao: VERSAO })).catch(() => {}); };

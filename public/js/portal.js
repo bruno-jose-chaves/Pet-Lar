@@ -223,20 +223,21 @@ function fotos() {
 }
 function verFoto(id) {
   const fs = D.diario.filter(r => r.foto); let i = Math.max(0, fs.findIndex(r => r.id === id));
-  const bg = document.createElement("div"); bg.className = "pt-visor"; bg.setAttribute("role", "dialog"); bg.setAttribute("aria-modal", "true");
+  const bg = document.createElement("div"); bg.className = "pt-visor"; bg.setAttribute("role", "dialog"); bg.setAttribute("aria-modal", "true"); bg.setAttribute("aria-label", "Fotos dos seus pets");
+  let soltar = () => {};
   const pintarV = () => { const r = fs[i]; const p = pet(r.pet_id);
     bg.innerHTML = `<div class="pt-visor-top"><button data-v="x" aria-label="Fechar">${ic("x")}</button><span>${i + 1} de ${fs.length}</span><button data-v="share" aria-label="Salvar ou compartilhar">${ic("enviar")}</button></div>
       <div class="pt-visor-img">${ehVideo(r) ? `<video src="${U.esc(r.foto)}" controls autoplay playsinline></video>` : `<img src="${U.esc(r.foto)}" alt="Foto de ${U.esc(p?.nome || "seu pet")}">`}</div>
       <div class="pt-visor-leg"><b>${U.esc(p?.nome || "")}</b>${r.nota ? `<p>${U.esc(r.nota)}</p>` : ""}<span>${diaNome(diaLocal(r.criado_em))}, ${hora(r.criado_em)}</span></div>
       ${fs.length > 1 ? `<button class="pt-visor-ant" data-v="ant" aria-label="Foto anterior">${ic("setaE")}</button><button class="pt-visor-prox" data-v="prox" aria-label="Próxima foto">${ic("seta")}</button>` : ""}`; };
   const mover = n => { i = (i + n + fs.length) % fs.length; pintarV(); };
-  const fechar = () => { bg.remove(); document.removeEventListener("keydown", tecla); };
+  const fechar = () => { bg.remove(); document.removeEventListener("keydown", tecla); soltar(); };
   const tecla = e => { if (e.key === "Escape") fechar(); if (e.key === "ArrowRight") mover(1); if (e.key === "ArrowLeft") mover(-1); };
   bg.addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (!b) return; const v = b.dataset.v;
     if (v === "x") fechar(); else if (v === "prox") mover(1); else if (v === "ant") mover(-1); else if (v === "share") compartilharFoto(fs[i]); });
   let x0 = null; bg.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
   bg.addEventListener("touchend", e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50 && fs.length > 1) mover(dx < 0 ? 1 : -1); });
-  document.addEventListener("keydown", tecla); pintarV(); document.body.appendChild(bg);
+  document.addEventListener("keydown", tecla); pintarV(); document.body.appendChild(bg); soltar = U.prenderFoco(bg);
 }
 async function compartilharFoto(r) {
   const nome = `PetLar-${pet(r.pet_id)?.nome || "foto"}-${diaLocal(r.criado_em)}.${ehVideo(r) ? "mp4" : "jpg"}`;

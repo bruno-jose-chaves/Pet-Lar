@@ -1,6 +1,6 @@
 # Manual do painel Pet Lar
 
-Versão 2.9 · atualizado em 18/11/2026
+Versão 2.10 · atualizado em 19/11/2026
 
 O painel Pet Lar é onde ficam os clientes, os pets, os orçamentos, a agenda e o dinheiro do negócio. Ele funciona no navegador do celular ou do computador, sem instalar nada.
 
@@ -386,6 +386,7 @@ O painel segue a **tabela v2.3**. A nota completa está no Obsidian ("Pet Lar - 
 | Versão | Data | O que mudou |
 |---|---|---|
 | 2.7 | 16/11/2026 | Desconto por opção. Aba **Respostas** com "Reconfirmar perto da data". Parcelas do Financeiro acompanham cancelamento e mudança de valor; "A receber" só de propostas aceitas; "Recebi" com a data de hoje certa. Tutor não aceita proposta vencida. Link do tutor vale 90 dias (com botão Renovar). Aviso quando duas pessoas editam a mesma proposta. Erros do painel registrados em Configurações. Botão primário com mais contraste, botões maiores no celular, letras a partir de 12 px. Senha com mínimo de 8. Mensagens de erro padronizadas, "Tutor" em vez de "Cliente" nas listas de pendências, Financeiro e cadastro do pet. Foto padrão do pet nova; "Dentro de casa, com a gente" no lugar de "Um lar de verdade" |
+| 2.10 | 19/11/2026 | Visual mais uniforme: letras em 8 tamanhos, cantos e botões padronizados (pequeno, normal e principal), cores num arquivo só. No celular, o nome da tela some da barra de cima enquanto o título grande está à vista (sem repetir). Janelas que abrem por cima prendem o teclado dentro delas e devolvem o foco ao fechar |
 | 2.9 | 18/11/2026 | Aba **Respostas** com quatro botões no alto (Cobrar, Reconfirmar, Aguardando, Paradas) em vez de uma lista longa; em Reconfirmar, filtro de prazo (Hoje, até 3 dias, até 7 dias) |
 | 2.8 | 17/11/2026 | Segurança do site reforçada (cabeçalhos CSP e HSTS). Quando o tutor confirma uma proposta, tudo é gravado de uma vez só (sem risco de ficar pela metade). Preparada a cópia do banco para o notebook (falta ligar) |
 | 2.6 | 12/11/2026 | Quadro "Quer oferecer duas opções?" com atalhos (hospedagem ou visitas; avulso ou pacote). Idade com a palavra "anos" no PDF, no card e na área do tutor |

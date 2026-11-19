@@ -53,16 +53,38 @@ export function diasDesde(iso) { if (!iso) return null; return Math.max(0, Math.
 
 export function skeleton(n = 4, cls = "sk-item") { return `<div class="list">${Array.from({ length: n }, () => `<div class="sk ${cls}"></div>`).join("")}</div>`; }
 
+// L-35 · prende o Tab dentro de uma janela aberta e devolve o foco a quem a abriu ao fechar.
+const FOCAVEIS = 'a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),video[controls],[tabindex]:not([tabindex="-1"])';
+export function prenderFoco(caixa) {
+  const antes = document.activeElement;
+  const itens = () => [...caixa.querySelectorAll(FOCAVEIS)].filter(e => e.offsetParent !== null || e === document.activeElement);
+  const onKey = e => {
+    if (e.key !== "Tab") return;
+    const l = itens(); if (!l.length) { e.preventDefault(); caixa.focus(); return; }
+    const i = l.indexOf(document.activeElement);
+    if (e.shiftKey && (i <= 0)) { e.preventDefault(); l[l.length - 1].focus(); }
+    else if (!e.shiftKey && (i === -1 || i === l.length - 1)) { e.preventDefault(); l[0].focus(); }
+  };
+  if (!caixa.hasAttribute("tabindex")) caixa.setAttribute("tabindex", "-1");
+  document.addEventListener("keydown", onKey, true);
+  requestAnimationFrame(() => { const l = itens(); const alvo = l.find(e => !e.matches("[data-close],[data-v=x]")) || l[0] || caixa; if (!caixa.contains(document.activeElement)) alvo.focus({ preventScroll: true }); });
+  return () => { document.removeEventListener("keydown", onKey, true); if (antes && antes.isConnected && antes.focus) antes.focus({ preventScroll: true }); };
+}
+
 // Modal simples. Retorna {el, close}. onClose opcional.
 export function modal(html, { onClose } = {}) {
   const bg = document.createElement("div"); bg.className = "modal-bg";
   bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${html}</div>`;
-  const close = () => { bg.remove(); document.removeEventListener("keydown", onKey); onClose && onClose(); };
+  const el = bg.querySelector(".modal"); const h = el.querySelector("h3,h2");
+  if (h) { h.id ||= "mdl-" + Math.random().toString(36).slice(2, 8); el.setAttribute("aria-labelledby", h.id); }
+  let soltar = () => {};
+  const close = () => { if (!bg.isConnected) return; bg.remove(); document.removeEventListener("keydown", onKey); soltar(); onClose && onClose(); };
   const onKey = e => { if (e.key === "Escape") close(); };
   bg.addEventListener("click", e => { if (e.target === bg || e.target.closest("[data-close]")) close(); });
   document.addEventListener("keydown", onKey);
   document.body.appendChild(bg);
-  return { el: bg.querySelector(".modal"), close };
+  soltar = prenderFoco(el);
+  return { el, close };
 }
 
 export function confirmDialog(msg, { ok = "Confirmar", danger = false } = {}) {

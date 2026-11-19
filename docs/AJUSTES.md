@@ -217,3 +217,11 @@ Origem: **Bruno** (pedido) ou **Claude** (observado durante o desenvolvimento, p
 ## v2.9 (18/11/2026)
 - **Respostas por botões**: no lugar da lista longa, quatro botões no topo com contagem (Cobrar, Reconfirmar, Aguardando, Paradas). Mostra só o grupo escolhido; lembra a última escolha. Em Reconfirmar, filtro de prazo: Hoje / Até 3 dias (padrão) / Até 7 dias.
 - Organização do Supabase: o projeto `pet-lar` foi transferido para a organização "Pet Lar" (mesmo ID e URL; a integração com o GitHub foi desconectada antes).
+
+## v2.10 (19/11/2026)
+- **L-37 · `public/css/tokens.css`**: todas as cores da marca num arquivo só, carregado antes dos outros CSS no painel e na área do tutor. As cores soltas iguais a um token viraram `var(--…)` (79 trocas); os `:root` antigos de `gerador.css`, `app.css` e `portal.css` saíram. Sem mudança de cor.
+- **L-36 · Escalas**: letras em 8 degraus (`--fs-1`…`--fs-8`: 12, 13, 15, 17, 20, 24, 28, 40), cantos 12/16/999 (`--r-p`, `--r-g`, `--r-pill`; exceção: a ilustração da casa no portal, 40), botões em 3 alturas (`--h-p` 32, `--h-m` 44, `--h-g` 52). Aplicado em `app.css` e `portal.css`; o layout do PDF (`gerador.css`) ficou como estava.
+- **L-38 · Pesos de fonte**: Lato só tem 400/700/900; os 500/600/800 viraram o peso real mais próximo.
+- **L-35 · Foco nas janelas**: `U.prenderFoco()` — ao abrir uma janela o foco entra nela, Tab/Shift+Tab não saem, Esc fecha e o foco volta para onde estava; título ligado por `aria-labelledby`. Vale para todas as janelas do painel e do portal e para o visor de fotos.
+- **L-39 · Título repetido**: no celular, o nome da tela na barra de cima fica oculto enquanto o título grande da página está visível e reaparece ao rolar.
+- Testes: 224/224 (webkit), 222/222 (chromium), 104/104, 21/21; varredura visual sem problemas.
